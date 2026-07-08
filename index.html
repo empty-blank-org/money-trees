@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Money Trees</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #100d0a; color: #e8e0d4;
+    font: 15px/1.55 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh; padding: 48px 24px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 34px; letter-spacing: -0.5px; margin-bottom: 6px; }
+  h1 .accent { color: #c8963e; }
+  .sub { color: #9a8f7d; margin-bottom: 40px; max-width: 620px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  a.card {
+    display: block; padding: 18px 20px; border: 1px solid #2e2820;
+    border-radius: 10px; background: #17130e; text-decoration: none;
+    color: inherit; transition: border-color .15s, transform .15s;
+  }
+  a.card:hover { border-color: #c8963e; transform: translateY(-2px); }
+  .card h2 { font-size: 17px; margin-bottom: 4px; color: #e8d9bd; }
+  .card p { font-size: 13px; color: #9a8f7d; }
+  .soon { opacity: 0.45; pointer-events: none; }
+  .tag { display: inline-block; font-size: 11px; color: #c8963e; border: 1px solid #4a3b22;
+         border-radius: 4px; padding: 1px 7px; margin-bottom: 10px; letter-spacing: .5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Money <span class="accent">Trees</span></h1>
+  <p class="sub">Every asset is a tree — one ring per year, growth as width, violence
+  as darkness, drawdowns as scars. A market history you can read like a core sample.</p>
+  <div class="grid">
+    <a class="card" href="forest/">
+      <span class="tag">SEED</span>
+      <h2>The Forest</h2>
+      <p>484 assets as tree cross-sections. Sort by age, growth, scarring; climate years scar the whole forest at once.</p>
+    </a>
+    <!-- prototype cards get added here as they land -->
+  </div>
+</div>
+</body>
+</html>
