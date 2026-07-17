@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Forest Grows — Money Trees</title>
+  <link rel="stylesheet" href="../shared/living.css">
+  <style>
+    .stage { min-height: 680px; }
+    .event { color:#e2c88f; min-width:220px; font-size:12px; }
+  </style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <div><div class="eyebrow">Prototype 08 · animated growth</div><h1 id="headline">Watch a market forest grow</h1><p class="dek">One year appears at a time. Ring width is annual growth, darkness is realized volatility, and drawdowns cut scars across the forest.</p></div>
+    <a class="back" href="../">← all prototypes</a>
+  </header>
+  <div class="controls">
+    <button class="primary" id="play">▶ play</button><span class="year" id="year">2010</span>
+    <input id="timeline" type="range" min="2010" max="2026" value="2010" step="1" aria-label="Calendar year">
+    <span class="event" id="event">The forest begins sparsely.</span>
+    <span class="key"><span><i style="background:#cc5c66"></i>loss</span><span><i style="background:#ad9e7c"></i>flat</span><span><i style="background:#58a991"></i>growth</span></span>
+  </div>
+  <section class="stage" id="stage"><canvas id="canvas"></canvas><div class="tooltip" id="tip"></div></section>
+</main>
+<script src="../shared/living.js"></script>
+<script>
+const cv=document.getElementById('canvas'), slider=document.getElementById('timeline');
+const yearEl=document.getElementById('year'), eventEl=document.getElementById('event'), playBtn=document.getElementById('play'), tip=document.getElementById('tip');
+let data, trees=[], year=2010, playing=false, timer=null, layout=[], redraw=()=>{};
+const EVENTS={2011:'The first crypto trees enter the clearing.',2018:'A synchronized crypto winter scars the young grove.',2020:'The COVID shock cuts across nearly every class.',2022:'Inflation and rates scar both stocks and bonds.',2026:'A fresh crypto scar remains open in the baked data.'};
+
+function titleForYear(y) {
+  const alive=trees.filter(t=>t.first_year<=y).length;
+  document.getElementById('headline').textContent=`By ${y}, ${alive} recognizable trees are alive`;
+  eventEl.textContent=EVENTS[y]||`${alive} trees carry market history through ${y}.`;
+}
+function setYear(y) { year=+y; slider.value=year; yearEl.textContent=year; titleForYear(year); redraw(); }
+function togglePlay() {
+  playing=!playing; playBtn.textContent=playing?'❚❚ pause':'▶ play'; playBtn.classList.toggle('active',playing);
+  clearInterval(timer);
+  if (playing) timer=setInterval(()=>{ if(year>=2026) setYear(2010); else setYear(year+1); },720);
+}
+playBtn.onclick=togglePlay; slider.oninput=e=>{ if(playing)togglePlay(); setYear(e.target.value); };
+
+function draw(g,w,h) {
+  g.clearRect(0,0,w,h); layout=[];
+  const alive=trees.filter(t=>t.first_year<=year);
+  const cols=w<620?4:w<900?6:8, rows=Math.ceil(alive.length/cols);
+  const top=38, cellW=w/cols, cellH=Math.min(132,(h-top-12)/Math.max(1,rows));
+  const R=Math.max(24,Math.min(cellW*.34,cellH*.34));
+  alive.forEach((tree,i)=>{
+    const col=i%cols,row=Math.floor(i/cols),x=cellW*(col+.5),y=top+cellH*(row+.43);
+    const current=tree.rings.filter(r=>r.year<=year);
+    const visibleThickness=current.reduce((s,r)=>s+LivingTrees.ringThickness(r.log_growth),0);
+    const finalThickness=tree.rings.reduce((s,r)=>s+LivingTrees.ringThickness(r.log_growth),0);
+    // Radius grows with cumulative ring thickness, so earlier rings retain
+    // nearly the same physical width when a new outer ring appears.
+    const radius=R*(.10+.90*visibleThickness/finalThickness);
+    LivingTrees.drawRings(g,tree,x,y,radius,year);
+    LivingTrees.label(g,tree.id.toUpperCase(),x,y+radius+16,LivingTrees.CLASS_COLORS[tree.cls]);
+    layout.push({tree,x,y,radius});
+  });
+  g.textAlign='left'; g.fillStyle='rgba(222,216,201,.52)'; g.font='11px ui-monospace,Menlo,monospace';
+  g.fillText('TIME → rings accumulate outward; trees enter when their price history begins',16,h-15);
+}
+redraw=LivingTrees.fitCanvas(cv,draw);
+cv.onmousemove=e=>{
+  const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const hit=layout.find(p=>Math.hypot(x-p.x,y-p.y)<=p.radius);
+  if(!hit){tip.style.opacity=0;return;}
+  const m=LivingTrees.metrics(hit.tree,year), last=m.rings[m.rings.length-1];
+  tip.innerHTML=`<b>${hit.tree.id.toUpperCase()}</b> · ${LivingTrees.CLASS_NAMES[hit.tree.cls]}<br>${m.years} visible rings · latest return ${(last.ret*100).toFixed(1)}%<br>${m.scars.length} major drawdown scar${m.scars.length===1?'':'s'}`;
+  tip.style.left=Math.min(r.width-250,x+15)+'px'; tip.style.top=Math.max(8,y-25)+'px'; tip.style.opacity=1;
+};
+cv.onmouseleave=()=>tip.style.opacity=0;
+
+LivingTrees.load().then(d=>{
+  data=d; trees=d.trees.filter(t=>t.featured).sort((a,b)=>a.first_year-b.first_year||a.id.localeCompare(b.id));
+  setYear(2010);
+}).catch(e=>{eventEl.textContent='Could not load rings.json: '+e.message; console.error(e);});
+</script>
+</body></html>

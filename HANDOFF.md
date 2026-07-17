@@ -10,9 +10,13 @@ in `NOTES.md`; this is where things stand and what's next.
 - Brand-new standalone repo (created 2026-07-08), graduated from
   physics-of-assets experiment #12 ("tree rings"). Two commits: the seed
   (`forest/` = verbatim rings viz + data) and the first prototype batch.
-- **8 working pages**: `forest/` (seed) + 7 prototypes — `grove/`, `core/`,
-  `climate/`, `fire/`, `chronology/`, `game/`, `poster/` — all
-  browser-verified, all on the gallery (`index.html`). **None culled yet**;
+- **17 working pages**: the original 8 plus three prototype batches and the
+  `specimen/` full-page detail utility. The living-tree
+  batch is `growth/`, `standing/`, and `living-grove/`; the forest-heart batch is
+  `atlas/`, `clearings/`, and `terrain/`. The original batch was browser-verified;
+  the detail batch is `arboretum/` and `specimen-wall/`. The original batch was
+  browser-verified; all new batches pass static/runtime checks but still need a visual review.
+  All are on the gallery (`index.html`). **None culled yet**;
   keep/kill is the next decision. NOTES.md has the verdict table.
 - The working name/framing: **"Money Trees" as a potentially standalone
   product**, not just a viz collection. The product-shaped prototypes
@@ -50,6 +54,26 @@ climate/fire/chronology bake their own JSON.
    UI as the parent repo's rings — it hasn't been touched this session
    beyond the prep path fix. A Money-Trees-branded landing/forest redesign
    is untouched territory.
+5. The second prototype batch shares `shared/living.js` and
+   `shared/living.css`. Keep the morphology mappings data-derived; spatial
+   staging (hills, shadows) is non-encoding atmosphere only.
+6. The forest-heart batch also uses the shared renderer. `atlas/` tests a direct
+   replacement for the current Forest; `clearings/` tests categorical grouping;
+   `terrain/` tests quantitative position. They are intentionally separate so
+   the interaction grammars can be judged before being combined.
+7. `shared/living.js` now also exports `drawDetailedRings()`, which ports the
+   Poster experiment's deterministic volatility grain, partial-year edge geometry,
+   and optional January year axis into multi-asset views. It still draws exactly
+   one true band per annual data record; the internal grain lines are texture.
+8. Both `arboretum/` and `specimen-wall/` link every card to the shareable
+   `specimen/?id=TICKER` viewer. Canvas display size is explicitly forced to 1:1
+   in all three detail views to prevent the shared canvas height rule from
+   stretching circular rings into ellipses.
+9. The current product spine is `arboretum/` → `specimen/`. Arboretum absorbs
+   ranked browsing from Specimen Wall and adds animated reorder, ring microscope,
+   and cross-date highlighting. Historical playback was intentionally removed
+   from both pages because the 2010–2026 / mostly 2016–2026 sample is too short
+   to make playback a valuable primary interaction.
 
 ## Gotchas
 
