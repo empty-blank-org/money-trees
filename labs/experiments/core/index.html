@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Core Lab — Cross-Dating Assets</title>
+<style>
+  :root {
+    --bg: #100d0a; --panel: #17130e; --ink: #e8e0d4; --dim: #9a8f7d;
+    --border: #2e2820; --accent: #c8963e;
+    --crypto: #c8963e; --equity: #5b8dd9; --bonds: #5fbf8a;
+    --commodities: #c97b4a; --fx: #52b8c4;
+    --neg: #d9705f; --pos: #6ab880;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.45 "SF Mono", ui-monospace, Menlo, monospace;
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 14px;
+    padding: 14px 22px 8px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 17px; font-weight: 600; letter-spacing: .02em; }
+  header h1 .accent { color: var(--accent); }
+  header .sub { color: var(--dim); font-size: 12px; }
+  #info-btn {
+    margin-left: auto;
+    background: var(--panel); color: var(--dim); border: 1px solid var(--border);
+    padding: 5px 10px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  #info-btn.active { color: var(--accent); border-color: var(--accent); }
+
+  #controls {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding: 0 22px 10px; font-size: 11px; color: var(--dim);
+  }
+  #controls .grp { display: flex; align-items: center; gap: 6px; }
+  #controls label { color: var(--dim); }
+  #controls select, #controls input[type=text] {
+    background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 4px; padding: 3px 6px; font: inherit; font-size: 11px;
+  }
+  #reset {
+    background: var(--panel); color: var(--dim); border: 1px solid var(--border);
+    padding: 3px 9px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 11px;
+  }
+  #reset:hover { color: var(--accent); border-color: var(--accent); }
+
+  #legend {
+    display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+    padding: 7px 16px; margin: 0 22px 12px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    font-size: 11px; color: var(--dim);
+  }
+  #legend .lk { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  #legend .sw { display: inline-block; width: 22px; height: 11px; border-radius: 2px; flex: none; }
+  .sw-width { background: linear-gradient(90deg, #6a5c46 0%, #ad9e7c 100%); }
+  .sw-color { background: linear-gradient(90deg, var(--neg) 0%, #ad9e7c 50%, var(--pos) 100%); }
+  .sw-scar { background: #12100c; border: 1px solid #4a3428; position: relative; }
+  .sw-scar::after { content: ""; position: absolute; left: 50%; top: -1px; bottom: -1px; width: 2px; background: #1c0f0a; }
+  .sw-clim { background: rgba(201,90,60,0.28); border: 1px solid rgba(201,90,60,0.5); }
+
+  #stage { flex: 1; position: relative; min-height: 0; display: flex; }
+  #scrollwrap { flex: 1; overflow: auto; padding: 0 0 20px 22px; }
+  #cv { display: block; }
+
+  #explainer {
+    display: none; position: absolute; top: 8px; right: 16px; z-index: 8;
+    width: 460px; max-height: calc(100% - 24px); overflow-y: auto;
+    background: rgba(23,19,14,0.98); border: 1px solid var(--border); border-radius: 6px;
+    padding: 16px 18px; font-size: 12.5px; color: #cfc4b2;
+  }
+  #explainer.open { display: block; }
+  #explainer h3 { font-size: 12px; color: var(--accent); margin: 14px 0 4px; }
+  #explainer h3:first-child { margin-top: 0; }
+  #explainer p { margin: 0 0 8px; }
+  #explainer b { color: var(--ink); }
+
+  #tip {
+    display: none; position: fixed; z-index: 9; pointer-events: none;
+    background: rgba(23,19,14,0.98); border: 1px solid var(--border); border-radius: 5px;
+    padding: 8px 10px; font-size: 11px; line-height: 1.55; color: #cfc4b2;
+    white-space: nowrap;
+  }
+  #tip b { color: var(--ink); font-size: 12px; }
+  #tip .pos { color: var(--pos); }
+  #tip .neg { color: var(--neg); }
+  #tip .dim { color: var(--dim); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Core <span class="accent">Lab</span></h1>
+  <span class="sub">tree rings laid flat, one strip per asset, on a shared calendar axis — cross-date assets like sediment cores in a lab</span>
+  <button id="info-btn">ⓘ what am I looking at?</button>
+</header>
+
+<div id="controls">
+  <div class="grp">
+    <label>add asset</label>
+    <input type="text" id="search" list="alltrees" placeholder="ticker…" size="10">
+    <datalist id="alltrees"></datalist>
+  </div>
+  <div class="grp">
+    <button id="reset">reset core set</button>
+  </div>
+  <div class="grp" style="color:var(--dim)">
+    <span id="rangeLabel"></span>
+  </div>
+</div>
+
+<div id="legend">
+  <div class="lk"><span class="sw sw-width"></span> bar height = year's growth (log return, squashed)</div>
+  <div class="lk"><span class="sw sw-color"></span> color = return · darkness = vol, both normalized within class</div>
+  <div class="lk"><span class="sw sw-scar"></span> notch = major drawdown scar at its calendar trough</div>
+  <div class="lk"><span class="sw sw-clim"></span> shaded column = climate year (≥60% of shown strips down)</div>
+</div>
+
+<div id="stage">
+  <div id="scrollwrap"><canvas id="cv"></canvas></div>
+
+  <div id="explainer">
+    <h3>What this is</h3>
+    <p>Every asset's tree rings, unrolled into a flat horizontal <b>strip</b> instead of
+    a disk. All strips sit on the <b>same calendar x-axis</b> — 2020 is the exact same
+    column in every row — so you can scan straight down a column and compare how
+    completely different assets behaved in the same year. This is the "core sample"
+    layout: strips of rings laid side by side on a lab bench, the way dendrochronologists
+    and ice-core geologists line up physical cores to <b>cross-date</b> them.</p>
+
+    <h3>How to read it</h3>
+    <p>Each year is one cell in a strip. The <b>colored bar inside the cell</b> carries
+    two numbers, identically encoded to the Forest view: <b>height</b> is that year's
+    growth (a monotone squash of log total return — a taller bar is unambiguously a
+    better year, but every year stays visible, even bad ones). <b>Color</b> is a
+    diverging red→tan→green scale on the year's return, and <b>darkness</b> is realized
+    volatility — both normalized <i>within the asset's class</i>, so "a good year for its
+    kind" reads the same green whether it's a bond fund or BTC. A pale hatched cell means
+    <b>no data</b> — the asset hadn't started trading yet that year.</p>
+    <p>The thin dark <b>vertical notch</b> inside a cell marks a major drawdown episode's
+    <b>trough date</b>, positioned left-to-right within the year by the fraction of the
+    year elapsed (Jan 1 = left edge, Dec 31 = right edge) — exactly the angle-to-month
+    conversion the Forest view uses, just unrolled onto a line instead of a circle. The
+    faint red band trailing right from the notch is the episode's <b>time spent
+    underwater</b>, ending where price reclaimed its prior peak; a band that runs all the
+    way to the strip's right edge (with a small marker) means the asset has <b>never
+    recovered</b>.</p>
+    <p>A <b>shaded column</b> behind all strips flags a <b>climate year</b>: a real,
+    live-computed quantity — the share of the <i>currently displayed</i> strips whose ring
+    that year had a negative return. When that share is ≥60% (and at least 3 strips have
+    data that year), the whole column tints faintly red-amber, so market-wide shocks pop
+    out as aligned dark columns straight down the bench.</p>
+
+    <h3>The analogy</h3>
+    <p>In dendrochronology and ice-core work, you rarely read one core in isolation — you
+    lay several cores side by side and slide them until matching ring patterns (a drought
+    year, a volcanic-ash layer) line up at the same depth. That alignment is what proves
+    the ring dating is right, and it's what reveals events no single core could show on
+    its own. Here, sliding is unnecessary because the x-axis is already the true
+    calendar — but the reading technique is the same: scan a column, not a row, to find
+    the years that scarred everything at once.</p>
+
+    <h3>Caveats</h3>
+    <p>Bar height is a monotone <i>squash</i> of log return, not linear — rank is
+    preserved, magnitude is compressed, exactly as in the Forest view. Color/darkness
+    normalization is per-class, so a "good green" bar means different raw numbers for
+    BTC versus TLT. Scars only mark drawdown episodes deeper than the asset's own
+    severity gate (median annual vol, clamped 15–50%) that stayed underwater
+    ≥~4 months — smaller dips don't notch (hover a cell for that year's actual max
+    drawdown regardless). The current year is a partial ring computed only over the days
+    elapsed so far. The climate-year metric is only as meaningful as the strips you have
+    open — two strips agreeing isn't a "market," which is why it requires at least 3
+    strips with data in that year before it will shade a column; add more assets for a
+    stronger signal.</p>
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<script>
+const CLASS_COLORS = {
+  crypto: "#c8963e", equity: "#5b8dd9", bonds: "#5fbf8a",
+  commodities: "#c97b4a", fx: "#52b8c4",
+};
+const CORE_DEFAULT = ["btc", "eth", "spy", "qqq", "tlt", "gld", "uso"];
+
+let DATA = null, NORM = null, byId = {};
+let shown = [];   // array of ticker ids, in display order
+
+// ---------- color helpers (same math as forest/index.html) ----------
+function hexToRgb(h) {
+  const n = parseInt(h.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function mix(a, b, t) { return a.map((v, i) => Math.round(v + (b[i] - v) * t)); }
+function rgb(c, alpha) { return `rgba(${c[0]},${c[1]},${c[2]},${alpha == null ? 1 : alpha})`; }
+function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+const RET_NEG = [214, 96, 82];
+const RET_MID = [173, 158, 124];
+const RET_POS = [106, 184, 128];
+
+function ringFill(cls, ring) {
+  const lg = ring.log_growth;
+  const la = (NORM.lg_cls && NORM.lg_cls[cls]) || [NORM.lg_p5, NORM.lg_p95];
+  let col;
+  if (lg >= 0) {
+    const u = clamp(lg / la[1], 0, 1);
+    col = mix(RET_MID, RET_POS, Math.sqrt(u));
+  } else {
+    const u = clamp(lg / la[0], 0, 1);
+    col = mix(RET_MID, RET_NEG, Math.sqrt(u));
+  }
+  const va = (NORM.vol_cls && NORM.vol_cls[cls]) || [NORM.vol_p10, NORM.vol_p90];
+  const v = clamp((ring.vol - va[0]) / (va[1] - va[0]), 0, 1);
+  const light = mix(col, [230, 224, 210], 0.26 * (1 - v));
+  return mix(light, [14, 11, 8], v * 0.45);
+}
+
+// Log-growth -> normalized 0..1 fraction for bar height (same monotone squash
+// as forest's ringThickness, global anchors so width means the same thing
+// everywhere on the bench).
+function ringWidthFrac(lg) {
+  const t = Math.sign(lg) * Math.log1p(Math.abs(lg) * 3.2);
+  const lo = Math.sign(NORM.lg_p5) * Math.log1p(Math.abs(NORM.lg_p5) * 3.2);
+  const hi = Math.sign(NORM.lg_p95) * Math.log1p(Math.abs(NORM.lg_p95) * 3.2);
+  return clamp((t - lo) / (hi - lo), 0, 1);
+}
+
+// ---------- layout constants ----------
+const LABEL_W = 172;
+const COL_W = 54;
+const ROW_H = 60;
+const ROW_GAP = 10;
+const HEADER_H = 34;
+const PAD_TOP = 10;
+const PAD_RIGHT = 28;
+const PAD_BOTTOM = 16;
+const CELL_PAD = 3;
+
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+let dpr = window.devicePixelRatio || 1;
+let minYear = 0, maxYear = 0, nYears = 0;
+let rowButtons = [];   // [{id, up:{x,y,w,h}, down:{...}, remove:{...}}]
+let climateYears = {}; // year -> {denom, neg, flagged}
+
+function pct(x) { return (x * 100).toFixed(1) + "%"; }
+function spct(x) { return (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%"; }
+
+function xOfYear(y) { return LABEL_W + (y - minYear) * COL_W; }
+
+function ringForYear(tree, y) {
+  return tree.rings.find(r => r.year === y) || null;
+}
+
+function computeClimateYears() {
+  climateYears = {};
+  const trees = shown.map(id => byId[id]);
+  for (let y = minYear; y <= maxYear; y++) {
+    let denom = 0, neg = 0;
+    for (const t of trees) {
+      const r = ringForYear(t, y);
+      if (!r) continue;
+      denom++;
+      if (r.ret < 0) neg++;
+    }
+    const share = denom ? neg / denom : 0;
+    climateYears[y] = { denom, neg, share, flagged: denom >= 3 && share >= 0.6 };
+  }
+}
+
+// ---------- draw ----------
+function layoutSize() {
+  const trees = shown.map(id => byId[id]).filter(Boolean);
+  minYear = trees.length ? Math.min(...trees.map(t => t.first_year)) : 2016;
+  maxYear = trees.length ? Math.max(...trees.map(t => t.last_year)) : 2026;
+  nYears = maxYear - minYear + 1;
+  const w = LABEL_W + nYears * COL_W + PAD_RIGHT;
+  const h = PAD_TOP + HEADER_H + shown.length * (ROW_H + ROW_GAP) + PAD_BOTTOM;
+  return { w, h };
+}
+
+function draw() {
+  computeClimateYears();
+  const { w, h } = layoutSize();
+  dpr = window.devicePixelRatio || 1;
+  cv.style.width = w + "px";
+  cv.style.height = h + "px";
+  cv.width = Math.round(w * dpr);
+  cv.height = Math.round(h * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#100d0a";
+  ctx.fillRect(0, 0, w, h);
+
+  const bodyTop = PAD_TOP + HEADER_H;
+  const bodyH = shown.length * (ROW_H + ROW_GAP);
+
+  // year header ticks
+  ctx.font = "10px ui-monospace, Menlo, monospace";
+  ctx.textAlign = "center";
+  for (let y = minYear; y <= maxYear; y++) {
+    const x = xOfYear(y) + COL_W / 2;
+    const cy = climateYears[y];
+    ctx.fillStyle = cy && cy.flagged ? "#e0a15f" : "rgba(154,143,125,0.85)";
+    ctx.font = cy && cy.flagged ? "bold 10px ui-monospace, Menlo, monospace" : "10px ui-monospace, Menlo, monospace";
+    ctx.fillText("'" + String(y).slice(2), x, PAD_TOP + HEADER_H - 12);
+    // faint gridline
+    ctx.strokeStyle = "rgba(232,224,212,0.05)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(xOfYear(y), PAD_TOP + HEADER_H);
+    ctx.lineTo(xOfYear(y), PAD_TOP + HEADER_H + bodyH);
+    ctx.stroke();
+  }
+  // right border of last column
+  ctx.strokeStyle = "rgba(232,224,212,0.05)";
+  ctx.beginPath();
+  ctx.moveTo(xOfYear(maxYear + 1), PAD_TOP + HEADER_H);
+  ctx.lineTo(xOfYear(maxYear + 1), PAD_TOP + HEADER_H + bodyH);
+  ctx.stroke();
+  ctx.textAlign = "left";
+
+  rowButtons = [];
+
+  shown.forEach((id, i) => {
+    const tree = byId[id];
+    if (!tree) return;
+    const rowY = bodyTop + i * (ROW_H + ROW_GAP);
+
+    // row background panel
+    ctx.fillStyle = "rgba(255,255,255,0.015)";
+    ctx.fillRect(0, rowY, LABEL_W + nYears * COL_W, ROW_H);
+
+    // ---- label gutter ----
+    const dotX = 14, dotY = rowY + 16;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = CLASS_COLORS[tree.cls] || "#9a8f7d";
+    ctx.fill();
+    ctx.fillStyle = "#e8e0d4";
+    ctx.font = "bold 13px ui-monospace, Menlo, monospace";
+    ctx.fillText(tree.id.toUpperCase(), 26, rowY + 20);
+    ctx.fillStyle = "#9a8f7d";
+    ctx.font = "10px ui-monospace, Menlo, monospace";
+    ctx.fillText(tree.cls, 26, rowY + 33);
+
+    // buttons: up, down, remove
+    const bY = rowY + 40, bH = 16, bW = 20;
+    const upR = { x: 8, y: bY, w: bW, h: bH };
+    const downR = { x: 32, y: bY, w: bW, h: bH };
+    const remR = { x: LABEL_W - 30, y: rowY + 6, w: 20, h: 16 };
+    function btn(r, label, enabled) {
+      ctx.fillStyle = "rgba(232,224,212,0.06)";
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.strokeStyle = "rgba(232,224,212,0.12)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+      ctx.fillStyle = enabled ? "#c8b89e" : "rgba(154,143,125,0.35)";
+      ctx.font = "10px ui-monospace, Menlo, monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(label, r.x + r.w / 2, r.y + r.h - 4);
+      ctx.textAlign = "left";
+    }
+    btn(upR, "▲", i > 0);
+    btn(downR, "▼", i < shown.length - 1);
+    btn(remR, "✕", true);
+    rowButtons.push({ id, up: upR, down: downR, remove: remR });
+
+    // ---- year cells ----
+    for (let y = minYear; y <= maxYear; y++) {
+      const x = xOfYear(y);
+      const ring = ringForYear(tree, y);
+      const cx0 = x + CELL_PAD, cw = COL_W - CELL_PAD * 2;
+
+      if (!ring) {
+        // no-data hatch
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, rowY, COL_W, ROW_H);
+        ctx.clip();
+        ctx.strokeStyle = "rgba(232,224,212,0.05)";
+        ctx.lineWidth = 1;
+        for (let d = -ROW_H; d < COL_W + ROW_H; d += 7) {
+          ctx.beginPath();
+          ctx.moveTo(x + d, rowY);
+          ctx.lineTo(x + d + ROW_H, rowY + ROW_H);
+          ctx.stroke();
+        }
+        ctx.restore();
+        continue;
+      }
+
+      const fill = ringFill(tree.cls, ring);
+      // faint full-cell backdrop tint for context
+      ctx.fillStyle = rgb(fill, 0.10);
+      ctx.fillRect(x + 1, rowY + 1, COL_W - 2, ROW_H - 2);
+
+      const u = ringWidthFrac(ring.log_growth);
+      const barH = ROW_H * (0.16 + 0.80 * u) - CELL_PAD * 2;
+      const barY = rowY + (ROW_H - barH) / 2;
+      ctx.fillStyle = rgb(fill, ring.partial ? 0.65 : 1);
+      ctx.fillRect(cx0, barY, cw, barH);
+      if (ring.partial) {
+        ctx.strokeStyle = "rgba(232,224,212,0.35)";
+        ctx.setLineDash([2, 2]);
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx0 + 0.5, barY + 0.5, cw - 1, barH - 1);
+        ctx.setLineDash([]);
+      }
+    }
+
+    // ---- scars: vertical notch @ trough + underwater band to recovery ----
+    for (const sc of (tree.scars || [])) {
+      if (sc.year < minYear || sc.year > maxYear) continue;
+      const troughX = xOfYear(sc.year) + sc.angle * COL_W;
+      const open = sc.r_year == null;
+      const lastX = xOfYear(tree.last_year) + COL_W;
+      const recX = open ? lastX : clamp(xOfYear(sc.r_year) + sc.r_angle * COL_W, troughX, lastX);
+      const severity = clamp(Math.abs(sc.depth), 0, 1);
+
+      // underwater band
+      ctx.fillStyle = open ? `rgba(201,80,60,${0.20 + 0.25 * severity})` : `rgba(180,90,70,${0.14 + 0.20 * severity})`;
+      ctx.fillRect(troughX, rowY + ROW_H - 6, Math.max(1, recX - troughX), 4);
+      if (open) {
+        ctx.fillStyle = "rgba(214,110,90,0.9)";
+        ctx.beginPath();
+        ctx.moveTo(lastX - 6, rowY + ROW_H - 8);
+        ctx.lineTo(lastX, rowY + ROW_H - 4);
+        ctx.lineTo(lastX - 6, rowY + ROW_H - 0);
+        ctx.fill();
+      }
+
+      // trough notch
+      ctx.fillStyle = `rgba(10,6,5,${0.55 + 0.35 * severity})`;
+      ctx.fillRect(troughX - 1, rowY + 2, 2.4, ROW_H - 4);
+      ctx.strokeStyle = "rgba(232,224,212,0.18)";
+      ctx.lineWidth = 0.6;
+      ctx.strokeRect(troughX - 1, rowY + 2, 2.4, ROW_H - 4);
+    }
+  });
+
+  // climate column wash — drawn LAST, on top of the bars, so a flagged year
+  // reads as a darkened band no matter how bright the ring colors under it
+  // (this is what makes market-wide down-years "pop out as aligned dark
+  // columns" straight down the bench, per the dendrochronology analogy).
+  for (let y = minYear; y <= maxYear; y++) {
+    const cy = climateYears[y];
+    if (!cy || !cy.flagged) continue;
+    const x = xOfYear(y);
+    ctx.fillStyle = "rgba(30,10,8,0.34)";
+    ctx.fillRect(x, bodyTop, COL_W, bodyH);
+    ctx.strokeStyle = "rgba(224,161,95,0.55)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, bodyTop);
+    ctx.lineTo(x + 0.5, bodyTop + bodyH);
+    ctx.moveTo(x + COL_W - 0.5, bodyTop);
+    ctx.lineTo(x + COL_W - 0.5, bodyTop + bodyH);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(224,161,95,0.9)";
+    ctx.fillRect(x, PAD_TOP + HEADER_H - 4, COL_W, 3);
+  }
+
+  document.getElementById("rangeLabel").textContent =
+    shown.length ? `${minYear}–${maxYear} · ${shown.length} strips` : "no strips — add an asset";
+}
+
+// ---------- hit testing / tooltip ----------
+const tip = document.getElementById("tip");
+
+function cellAt(clientX, clientY) {
+  const r = cv.getBoundingClientRect();
+  const mx = clientX - r.left, my = clientY - r.top;
+  const bodyTop = PAD_TOP + HEADER_H;
+  if (mx < LABEL_W) return null;
+  if (my < PAD_TOP) return null;
+  const y = minYear + Math.floor((mx - LABEL_W) / COL_W);
+  if (y < minYear || y > maxYear) return null;
+  if (my < bodyTop) {
+    return { kind: "header", year: y, clientX, clientY };
+  }
+  const rowIdx = Math.floor((my - bodyTop) / (ROW_H + ROW_GAP));
+  if (rowIdx < 0 || rowIdx >= shown.length) return null;
+  const withinRow = (my - bodyTop) - rowIdx * (ROW_H + ROW_GAP);
+  if (withinRow > ROW_H) return null;
+  return { kind: "cell", row: rowIdx, id: shown[rowIdx], year: y, clientX, clientY };
+}
+
+cv.addEventListener("pointermove", e => {
+  const hit = cellAt(e.clientX, e.clientY);
+  if (!hit) { tip.style.display = "none"; cv.style.cursor = "default"; return; }
+
+  if (hit.kind === "header") {
+    const cy = climateYears[hit.year];
+    if (!cy) { tip.style.display = "none"; return; }
+    tip.innerHTML = `<b>${hit.year}</b><br>` +
+      `${cy.neg}/${cy.denom} shown strips negative (${pct(cy.share)})<br>` +
+      (cy.flagged ? `<span class="neg">climate year</span>` : `<span class="dim">not a climate year</span>`) +
+      (cy.denom < 3 ? `<br><span class="dim">need ≥3 strips with data to flag</span>` : "");
+    tip.style.display = "block"; cv.style.cursor = "default";
+  } else {
+    const tree = byId[hit.id];
+    const ring = ringForYear(tree, hit.year);
+    if (!ring) {
+      tip.innerHTML = `<b>${tree.id.toUpperCase()}</b> · ${hit.year}<br><span class="dim">no data — not yet trading</span>`;
+    } else {
+      const rc = ring.ret >= 0 ? "pos" : "neg";
+      const scar = (tree.scars || []).find(sc => sc.year === hit.year);
+      tip.innerHTML =
+        `<b>${tree.id.toUpperCase()}</b> · ${tree.cls} · <b>${hit.year}</b>${ring.partial ? " (partial)" : ""}<br>` +
+        `return <span class="${rc}">${spct(ring.ret)}</span><br>` +
+        `vol ${pct(ring.vol)}<br>` +
+        `max DD <span class="neg">${pct(ring.max_dd)}</span> @ ${ring.scar_date}` +
+        (scar ? `<br><span class="neg">scar</span> ${pct(scar.depth)} — ` +
+          (scar.r_year == null ? `<span class="neg">still open</span>` : `healed ${scar.r_date}`) : "");
+    }
+    tip.style.display = "block"; cv.style.cursor = "pointer";
+  }
+  tip.style.left = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 10) + "px";
+  tip.style.top = Math.min(e.clientY + 14, window.innerHeight - tip.offsetHeight - 10) + "px";
+});
+cv.addEventListener("pointerleave", () => { tip.style.display = "none"; });
+
+cv.addEventListener("click", e => {
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  for (const rb of rowButtons) {
+    if (inRect(mx, my, rb.up) && canUp(rb.id)) { moveRow(rb.id, -1); return; }
+    if (inRect(mx, my, rb.down) && canDown(rb.id)) { moveRow(rb.id, 1); return; }
+    if (inRect(mx, my, rb.remove)) { removeRow(rb.id); return; }
+  }
+});
+function inRect(x, y, r) { return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
+function canUp(id) { return shown.indexOf(id) > 0; }
+function canDown(id) { return shown.indexOf(id) < shown.length - 1; }
+function moveRow(id, dir) {
+  const i = shown.indexOf(id);
+  const j = i + dir;
+  if (j < 0 || j >= shown.length) return;
+  [shown[i], shown[j]] = [shown[j], shown[i]];
+  draw();
+}
+function removeRow(id) {
+  shown = shown.filter(x => x !== id);
+  draw();
+}
+
+// ---------- controls ----------
+const search = document.getElementById("search");
+search.addEventListener("change", () => {
+  const id = search.value.trim().toLowerCase();
+  if (byId[id] && !shown.includes(id)) { shown.push(id); search.value = ""; draw(); }
+  else search.value = "";
+});
+document.getElementById("reset").onclick = () => {
+  shown = CORE_DEFAULT.filter(id => byId[id]);
+  draw();
+};
+
+const infoBtn = document.getElementById("info-btn");
+infoBtn.onclick = () => {
+  document.getElementById("explainer").classList.toggle("open");
+  infoBtn.classList.toggle("active");
+};
+
+// ---------- boot ----------
+async function boot() {
+  const res = await fetch("data/rings.json");
+  DATA = await res.json();
+  NORM = DATA.norm;
+  DATA.trees.forEach(t => { byId[t.id] = t; });
+
+  const dl = document.getElementById("alltrees");
+  DATA.trees.map(t => t.id).sort().forEach(id => {
+    const o = document.createElement("option"); o.value = id; dl.appendChild(o);
+  });
+
+  shown = CORE_DEFAULT.filter(id => byId[id]);
+  window.__core = { get shown() { return shown; }, byId };
+  draw();
+}
+boot().catch(e => { console.error("boot failed:", e && e.stack || e); });
+</script>
+</body>
+</html>

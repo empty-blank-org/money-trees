@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Standing Forest — Money Trees</title>
+  <link rel="stylesheet" href="shared/living.css">
+  <style>
+    .stage { min-height: 720px; background:linear-gradient(rgba(8,22,18,.22),rgba(8,16,12,.78)); }
+    .mapping { display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin-top:9px;font-size:11px;color:#aaa596; }
+    .mapping b { color:#e7dfcc; }
+  </style>
+</head>
+<body><main class="page">
+  <header>
+    <div><div class="eyebrow">Prototype 09 · inferred morphology</div><h1>Market histories become standing trees</h1><p class="dek">Age controls height. Accumulated ring growth thickens the trunk. CAGR spreads the crown; positive years fill it in; volatility bends the branches.</p></div>
+    <a class="back" href="../../">← all prototypes</a>
+  </header>
+  <div class="controls">
+    <span class="year" id="year">2026</span><input id="timeline" type="range" min="2010" max="2026" value="2026" aria-label="Calendar year">
+    <button id="labels">show labels</button><button id="reset">reset view</button>
+    <span class="note">Click a tree to inspect or cut it open.</span>
+  </div>
+  <section class="stage"><canvas id="canvas"></canvas><div class="tooltip" id="tip"></div>
+    <aside class="panel" id="panel"><h2>Read the silhouette</h2><p>Every visible difference is derived from the rings—not assigned as decoration.</p><div class="mapping"><b>height</b><span>years observed</span><b>trunk</b><span>accumulated ring width</span><b>crown reach</b><span>annualized growth</span><b>foliage</b><span>share of positive years</span><b>irregularity</b><span>realized volatility</span><b>trunk cuts</b><span>major drawdowns</span></div></aside>
+  </section>
+</main>
+<script src="shared/living.js"></script>
+<script>
+const cv=document.getElementById('canvas'), slider=document.getElementById('timeline'), yearEl=document.getElementById('year');
+const panel=document.getElementById('panel'),tip=document.getElementById('tip');
+let trees=[],year=2026,layout=[],selected=null,cutOpen=false,showLabels=false,redraw=()=>{};
+const desired=['btc','eth','sol','doge','spy','qqq','iwm','aapl','msft','nvda','amzn','meta','googl','tsla','tlt','ief','shy','gld','slv','uso','dbc','eurusd','gbpusd','usdjpy'];
+
+function setPanel(tree) {
+  if(!tree){selected=null;cutOpen=false;return;}
+  selected=tree; const m=LivingTrees.metrics(tree,year); if(!m)return;
+  panel.innerHTML=`<h2>${tree.id.toUpperCase()} <span style="color:${LivingTrees.CLASS_COLORS[tree.cls]};font-size:12px">${LivingTrees.CLASS_NAMES[tree.cls]}</span></h2>
+    <p><strong>${m.years} rings</strong> produce this tree in ${year}. Its inferred CAGR is <strong>${(m.cagr*100).toFixed(1)}%</strong>; <strong>${Math.round(m.positive*100)}%</strong> of visible years are positive.</p>
+    <p>Mean realized volatility: <strong>${(m.meanVol*100).toFixed(1)}%</strong><br>Worst visible drawdown: <strong>${(m.worst*100).toFixed(1)}%</strong></p>
+    <button id="cut">${cutOpen?'return to standing tree':'cut open the trunk'}</button>`;
+  document.getElementById('cut').onclick=()=>{cutOpen=!cutOpen;setPanel(tree);redraw();};
+}
+
+function draw(g,w,h) {
+  g.clearRect(0,0,w,h); layout=[];
+  const ground=h-68, alive=trees.filter(t=>t.first_year<=year);
+  // Repeating hills are spatial staging only; tree encodings remain comparable.
+  g.beginPath();g.moveTo(0,ground+4);g.quadraticCurveTo(w*.25,ground-15,w*.5,ground+1);g.quadraticCurveTo(w*.76,ground+15,w,ground-4);g.lineTo(w,h);g.lineTo(0,h);g.closePath();g.fillStyle='rgba(25,37,24,.88)';g.fill();
+  const maxH=Math.min(h*.64,470), gap=(w-70)/Math.max(1,alive.length-1);
+  alive.forEach((tree,i)=>{
+    const x=35+i*gap, depth=.82+.18*((i%5)/4), localGround=ground+8*Math.sin(i*1.7);
+    const box=LivingTrees.drawStandingTree(g,tree,x,localGround,maxH,year,{scale:depth});
+    if(box){layout.push({tree,...box});if(showLabels||tree===selected)LivingTrees.label(g,tree.id.toUpperCase(),x,localGround+18,LivingTrees.CLASS_COLORS[tree.cls]);}
+  });
+  if(selected&&cutOpen){
+    const R=Math.min(145,w*.18,h*.22),cx=Math.min(w-R-22,w*.72),cy=R+30;
+    g.beginPath();g.arc(cx,cy,R+12,0,Math.PI*2);g.fillStyle='rgba(5,9,8,.86)';g.fill();
+    LivingTrees.drawRings(g,selected,cx,cy,R,year); LivingTrees.label(g,selected.id.toUpperCase()+' · CUT AT '+year,cx,cy+R+22,'#fff1c8');
+  }
+}
+redraw=LivingTrees.fitCanvas(cv,draw);
+slider.oninput=e=>{year=+e.target.value;yearEl.textContent=year;if(selected)setPanel(selected);redraw();};
+document.getElementById('labels').onclick=e=>{showLabels=!showLabels;e.target.textContent=showLabels?'hide labels':'show labels';e.target.classList.toggle('active',showLabels);redraw();};
+document.getElementById('reset').onclick=()=>{selected=null;cutOpen=false;panel.innerHTML='<h2>Read the silhouette</h2><p>Every visible difference is derived from the rings—not assigned as decoration.</p><div class="mapping"><b>height</b><span>years observed</span><b>trunk</b><span>accumulated ring width</span><b>crown reach</b><span>annualized growth</span><b>foliage</b><span>share of positive years</span><b>irregularity</b><span>realized volatility</span><b>trunk cuts</b><span>major drawdowns</span></div>';redraw();};
+cv.onclick=e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const hits=layout.filter(p=>x>p.x-p.width/2&&x<p.x+p.width/2&&y>p.top&&y<p.ground+10);if(hits.length){hits.sort((a,b)=>Math.abs(x-a.x)-Math.abs(x-b.x));cutOpen=false;setPanel(hits[0].tree);redraw();}};
+cv.onmousemove=e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const hits=layout.filter(p=>x>p.x-p.width/2&&x<p.x+p.width/2&&y>p.top&&y<p.ground+8);if(!hits.length){tip.style.opacity=0;return;}hits.sort((a,b)=>Math.abs(x-a.x)-Math.abs(x-b.x));const t=hits[0].tree,m=LivingTrees.metrics(t,year);tip.innerHTML=`<b>${t.id.toUpperCase()}</b><br>${m.years} years · ${(m.cagr*100).toFixed(1)}% inferred CAGR`;tip.style.left=Math.min(r.width-250,x+12)+'px';tip.style.top=Math.max(8,y-25)+'px';tip.style.opacity=1;};
+cv.onmouseleave=()=>tip.style.opacity=0;
+LivingTrees.load().then(d=>{const map=Object.fromEntries(d.trees.map(t=>[t.id,t]));trees=desired.map(id=>map[id]).filter(Boolean);redraw();}).catch(console.error);
+</script></body></html>

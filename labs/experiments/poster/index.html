@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Money Trees — Poster</title>
+<style>
+  :root {
+    --bg: #100d0a; --panel: #17130e; --panel2: #1d1811; --ink: #e8e0d4; --dim: #9a8f7d;
+    --accent: #c8963e; --border: #2e2820;
+  }
+  body.paper {
+    --bg: #e9dfc8; --panel: #ddd0ac; --panel2: #d3c397; --ink: #2b2015; --dim: #6b5c3f;
+    --accent: #a5651e; --border: #b8a878;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    color: var(--ink);
+    font: 14px/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    transition: background .2s, color .2s;
+  }
+  header {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 18px 26px 14px; border-bottom: 1px solid var(--border);
+  }
+  header h1 { font-size: 19px; letter-spacing: -.3px; font-weight: 650; }
+  header h1 .accent { color: var(--accent); }
+  header .sub { color: var(--dim); font-size: 12px; margin-right: auto; }
+
+  .grp { display: flex; align-items: center; gap: 7px; }
+  label { color: var(--dim); font-size: 11.5px; }
+  input[type=text] {
+    background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 5px; padding: 6px 9px; font: inherit; font-size: 12.5px; width: 130px;
+  }
+  input[type=text]:focus { outline: 1px solid var(--accent); }
+  button {
+    background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 5px; padding: 6px 12px; font: inherit; font-size: 12.5px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #1a1408; border-color: var(--accent); font-weight: 650; }
+  button.primary:hover { filter: brightness(1.08); }
+  .seg { display: flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+  .seg button { border: none; border-radius: 0; }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button.active { background: var(--accent); color: #1a1408; font-weight: 650; }
+  #info-btn.active { color: var(--accent); border-color: var(--accent); }
+
+  main {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 26px 16px 50px; position: relative;
+  }
+  #stage { position: relative; }
+  #preview {
+    display: block; border-radius: 3px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+    border: 1px solid var(--border);
+  }
+  #loading {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--dim); font-size: 13px; letter-spacing: .04em;
+  }
+
+  #explainer {
+    display: none; position: absolute; top: 8px; right: -8px; transform: translateX(100%);
+    width: 360px; max-height: 88vh; overflow-y: auto; z-index: 8;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px 20px; font-size: 12.5px; color: var(--dim);
+  }
+  #explainer.open { display: block; }
+  #explainer h3 { font-size: 12px; color: var(--accent); margin: 14px 0 4px; }
+  #explainer h3:first-child { margin-top: 0; }
+  #explainer p { margin: 0 0 9px; }
+  #explainer b { color: var(--ink); }
+  @media (max-width: 980px) {
+    #explainer { position: fixed; top: auto; bottom: 0; left: 0; right: 0; transform: none;
+      width: auto; border-radius: 10px 10px 0 0; max-height: 60vh; }
+  }
+
+  footer { text-align: center; color: var(--dim); font-size: 11px; padding: 0 16px 30px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Money <span class="accent">Trees</span> — Poster</h1>
+  <span class="sub">one asset, full life, print resolution</span>
+
+  <div class="grp">
+    <label>asset</label>
+    <input type="text" id="search" list="alltrees" placeholder="ticker…" value="btc" autocomplete="off">
+    <datalist id="alltrees"></datalist>
+  </div>
+
+  <div class="grp seg" id="theme-toggle">
+    <button data-t="dark" class="active">dark</button>
+    <button data-t="paper">paper</button>
+  </div>
+
+  <button class="primary" id="download-btn">↓ download PNG</button>
+  <button id="info-btn">ⓘ what am I looking at?</button>
+</header>
+
+<main>
+  <div id="stage">
+    <canvas id="preview"></canvas>
+    <div id="loading">loading rings.json…</div>
+
+    <div id="explainer">
+      <h3>What this is</h3>
+      <p>A single asset rendered as a <b>tree cross-section</b> at print resolution — one
+      <b>ring per calendar year</b> of its price history, oldest at the pith (center), the
+      most recent year at the bark. Everything on the poster is computed from real daily
+      prices; nothing is decorative.</p>
+
+      <h3>How to read it</h3>
+      <p><b>Ring width</b> is that year's growth — the log of its total return, squashed
+      <i>monotonically</i> so huge up years don't blow the disk apart and down years stay
+      visible instead of vanishing to zero. This is a <b>squash, not a linear scale</b>: a
+      +1400% year does not draw fourteen times wider than a +100% year — rank is preserved,
+      magnitude is compressed.</p>
+      <p><b>Ring color</b> is one uniform hue per ring, like real wood — a diverging scale on
+      that year's return (red = bad, tan = flat, green = good), normalized <i>within the
+      asset's class</i> so "a good year for a bond fund" reads exactly as green as "a good
+      year for a crypto token," even though the raw magnitudes differ by an order of
+      magnitude. <b>Darkness</b> is that year's realized volatility, also normalized within
+      class — calm years stay light, violent years go dark.</p>
+      <p>The faint <b>wood grain</b> inside each ring is not random noise: its wobble
+      amplitude is proportional to that year's realized volatility, and its exact pattern is
+      seeded deterministically from the ticker and year — the same asset always regrows the
+      same grain.</p>
+      <p><b>Scars</b> are radial seams marking a major drawdown episode: they start at the
+      <b>trough date's angle</b> (January at the top, clockwise through December) and radiate
+      outward through every later ring until the price reclaimed its prior peak, tapering
+      shut like a healed callus. A scar still open at the bark means the asset has never
+      recovered. The callouts along the edge name the 2–3 deepest scars with trough date and
+      drawdown depth.</p>
+      <p>A <b>notch</b> at the pith or the bark — instead of a full circle — means that year
+      is incomplete: the ring is only drawn across the calendar months the asset actually
+      traded (an IPO stub year, or the current year still in progress).</p>
+      <p>The <b>bark outline color</b> carries the asset's class: crypto amber, equity blue,
+      bonds green, commodities rust, FX teal.</p>
+
+      <h3>Caveats</h3>
+      <p>Vol is realized (backward-looking), annualized from daily moves. Scars only mark
+      drawdowns deeper than the asset's own severity gate (median annual vol, clamped to
+      15–50%), so a 20% dip scars a bond fund but not BTC. Class-normalized color means the
+      same red is a much smaller loss for bonds than for crypto — read the numbers, not just
+      the hue, when comparing across classes. Ring geometry uses a monotone squash (above) —
+      compare ranks and colors across rings, not raw pixel widths.</p>
+    </div>
+  </div>
+</main>
+
+<footer id="foot-credit">Money Trees · poster prototype</footer>
+
+<script>
+const CLASS_COLORS = {
+  crypto: "#c8963e", equity: "#5b8dd9", bonds: "#5fbf8a",
+  commodities: "#c97b4a", fx: "#52b8c4", volatility: "#d95b6a",
+};
+const CLASS_NAMES = {
+  crypto: "Crypto", equity: "Equity", bonds: "Bonds",
+  commodities: "Commodities", fx: "FX", volatility: "Volatility",
+};
+const RET_NEG = [198, 84, 92];
+const RET_MID = [173, 158, 124];
+const RET_POS = [106, 184, 128];
+
+const THEMES = {
+  dark: {
+    bg: "#100d0a", ink: "rgba(232,224,212,0.94)", ink2: "rgba(232,224,212,0.62)",
+    dim: "rgba(180,168,146,0.5)", faint: "rgba(232,224,212,0.30)",
+    separator: "rgba(9,7,5,0.55)", pith: "rgba(190,178,156,0.55)",
+    axis: "rgba(232,224,212,0.22)", grainLight: [255,255,255], grainDark: [0,0,0],
+    grainAlpha: 0.16, panel: "rgba(23,19,14,0.72)", panelBorder: "rgba(232,224,212,0.14)",
+  },
+  paper: {
+    bg: "#efe4c9", ink: "rgba(43,32,21,0.92)", ink2: "rgba(43,32,21,0.62)",
+    dim: "rgba(90,74,50,0.55)", faint: "rgba(43,32,21,0.28)",
+    separator: "rgba(239,228,201,0.65)", pith: "rgba(90,74,50,0.45)",
+    axis: "rgba(43,32,21,0.24)", grainLight: [255,250,235], grainDark: [40,28,14],
+    grainAlpha: 0.14, panel: "rgba(239,228,201,0.75)", panelBorder: "rgba(43,32,21,0.18)",
+  },
+};
+
+let DATA = null, NORM = null, byId = {};
+let themeKey = "dark";
+let currentTree = null;
+
+const POSTER_W = 4096, POSTER_H = 5120;
+const posterCv = document.createElement("canvas");
+posterCv.width = POSTER_W; posterCv.height = POSTER_H;
+const pctx = posterCv.getContext("2d");
+
+const preview = document.getElementById("preview");
+const pvctx = preview.getContext("2d");
+
+// ---------- utils ----------
+function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+function mix(a, b, t) { return a.map((v, i) => Math.round(v + (b[i] - v) * t)); }
+function rgb(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a == null ? 1 : a})`; }
+function pct(x) { return (x * 100).toFixed(1) + "%"; }
+function spct(x) { return (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%"; }
+
+function hashSeed(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function mulberry32(seed) {
+  let a = seed;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// ---------- data-driven visual encodings (ported from forest/index.html) ----------
+function ringFill(cls, ring) {
+  const lg = ring.log_growth;
+  const la = (NORM.lg_cls && NORM.lg_cls[cls]) || [NORM.lg_p5, NORM.lg_p95];
+  let col;
+  if (lg >= 0) {
+    const u = clamp(lg / la[1], 0, 1);
+    col = mix(RET_MID, RET_POS, Math.sqrt(u));
+  } else {
+    const u = clamp(lg / la[0], 0, 1);
+    col = mix(RET_MID, RET_NEG, Math.sqrt(u));
+  }
+  const va = (NORM.vol_cls && NORM.vol_cls[cls]) || [NORM.vol_p10, NORM.vol_p90];
+  const v = clamp((ring.vol - va[0]) / (va[1] - va[0]), 0, 1);
+  const light = mix(col, [222, 226, 230], 0.28 * (1 - v));
+  return { rgb: mix(light, [16, 18, 24], v * 0.45), vol01: v };
+}
+function ringThickness(lg) {
+  const t = Math.sign(lg) * Math.log1p(Math.abs(lg) * 3.2);
+  const lo = Math.sign(NORM.lg_p5) * Math.log1p(Math.abs(NORM.lg_p5) * 3.2);
+  const hi = Math.sign(NORM.lg_p95) * Math.log1p(Math.abs(NORM.lg_p95) * 3.2);
+  const u = clamp((t - lo) / (hi - lo), 0, 1);
+  return 0.28 + 1.72 * u;
+}
+
+// Contiguous month coverage from `mr` (12-slot monthly-return array, null = absent).
+function monthCoverage(mr) {
+  if (!mr) return null;
+  let iMin = -1, iMax = -1;
+  for (let i = 0; i < mr.length; i++) {
+    if (mr[i] != null) { if (iMin < 0) iMin = i; iMax = i; }
+  }
+  if (iMin < 0) return null;
+  if (iMin === 0 && iMax === 11) return null; // full year, no notch needed
+  return { iMin, iMax };
+}
+function monthAngle(frac) { return -Math.PI / 2 + frac * Math.PI * 2; } // Jan top, clockwise
+
+// ---------- wood grain: deterministic per ticker+year, amplitude ∝ vol ----------
+function drawGrain(g, cx, cy, r0, r1, vol01, a0, a1, seedStr, theme) {
+  if (r1 - r0 < 4) return;
+  const rng = mulberry32(hashSeed(seedStr));
+  const nLines = 4;
+  const amp = (r1 - r0) * (0.05 + 0.24 * vol01) * 0.5;
+  const span = a1 - a0;
+  const steps = Math.max(16, Math.round((span / (Math.PI * 2)) * 240));
+  for (let i = 0; i < nLines; i++) {
+    const rr = r0 + (r1 - r0) * ((i + 1) / (nLines + 1));
+    const k1 = 3 + Math.floor(rng() * 6), k2 = 8 + Math.floor(rng() * 10);
+    const p1 = rng() * Math.PI * 2, p2 = rng() * Math.PI * 2;
+    const w1 = 0.6 + rng() * 0.3, w2 = 1 - w1;
+    const dark = rng() > 0.5;
+    const col = dark ? theme.grainDark : theme.grainLight;
+    g.beginPath();
+    for (let s = 0; s <= steps; s++) {
+      const ang = a0 + span * (s / steps);
+      const j = amp * (Math.sin(k1 * ang + p1) * w1 + Math.sin(k2 * ang + p2) * w2);
+      const rad = rr + j;
+      const x = cx + Math.cos(ang) * rad, y = cy + Math.sin(ang) * rad;
+      if (s === 0) g.moveTo(x, y); else g.lineTo(x, y);
+    }
+    g.strokeStyle = rgb(col, theme.grainAlpha * (0.55 + 0.45 * vol01));
+    g.lineWidth = Math.max(1, (r1 - r0) * 0.035);
+    g.stroke();
+  }
+}
+
+// ---------- core glyph ----------
+// Draws the tree at (cx,cy) with outer radius R. Returns layout geometry used
+// by the poster layer to place year-axis labels and scar callouts.
+function drawTree(g, tree, cx, cy, R, theme) {
+  const rings = tree.rings;
+  const thick = rings.map(r => ringThickness(r.log_growth));
+  const totalThick = thick.reduce((a, b) => a + b, 0);
+  const core = R * 0.055;
+  const usable = R - core;
+  let r0 = core;
+  const bands = [];
+
+  rings.forEach((ring, k) => {
+    const r1 = r0 + usable * (thick[k] / totalThick);
+    const isEdge = (k === 0 || k === rings.length - 1);
+    const cov = isEdge ? monthCoverage(ring.mr) : null;
+    const a0 = cov ? monthAngle(cov.iMin / 12) : -Math.PI / 2;
+    const a1 = cov ? monthAngle((cov.iMax + 1) / 12) : a0 + Math.PI * 2;
+    const { rgb: fillRgb, vol01 } = ringFill(tree.cls, ring);
+
+    g.beginPath();
+    g.arc(cx, cy, r1, a0, a1);
+    g.arc(cx, cy, r0, a1, a0, true);
+    g.closePath();
+    g.fillStyle = rgb(fillRgb);
+    g.fill();
+
+    drawGrain(g, cx, cy, r0, r1, vol01, a0, a1, tree.id + "|" + ring.year, theme);
+
+    g.beginPath();
+    g.arc(cx, cy, r1, a0, a1);
+    g.strokeStyle = theme.separator;
+    g.lineWidth = Math.max(1, R * 0.0009);
+    g.stroke();
+    if (cov) {
+      // radial edges of the notch, so the stub year reads as a bitten wedge.
+      g.beginPath();
+      g.moveTo(cx + Math.cos(a0) * r0, cy + Math.sin(a0) * r0);
+      g.lineTo(cx + Math.cos(a0) * r1, cy + Math.sin(a0) * r1);
+      g.moveTo(cx + Math.cos(a1) * r0, cy + Math.sin(a1) * r0);
+      g.lineTo(cx + Math.cos(a1) * r1, cy + Math.sin(a1) * r1);
+      g.strokeStyle = theme.separator;
+      g.lineWidth = Math.max(1, R * 0.0012);
+      g.stroke();
+    }
+
+    bands.push({ year: ring.year, r0, r1, a0, a1, partialArc: !!cov });
+    r0 = r1;
+  });
+
+  // Bark: follows the outer band's own angular coverage; where the last ring
+  // is a partial-year notch, the bark steps in to the previous ring's edge.
+  if (bands.length) {
+    const bk = bands[bands.length - 1];
+    g.beginPath();
+    if (bk.partialArc) {
+      const prevR = bands.length > 1 ? bands[bands.length - 2].r1 : core;
+      g.arc(cx, cy, bk.r1, bk.a0, bk.a1);
+      g.arc(cx, cy, prevR, bk.a1, bk.a0 + Math.PI * 2, false);
+    } else {
+      g.arc(cx, cy, bk.r1, 0, Math.PI * 2);
+    }
+    g.strokeStyle = CLASS_COLORS[tree.cls] || "#7a8299";
+    g.lineWidth = Math.max(2, R * 0.0035);
+    g.stroke();
+  }
+
+  // Scars.
+  const scarAnchors = [];
+  for (const sc of (tree.scars || [])) {
+    let k0 = bands.findIndex(b => b.year >= sc.year);
+    if (k0 < 0) continue;
+    const open = sc.r_year == null;
+    let k1 = open ? bands.length - 1 : k0;
+    if (!open) for (let k = k0; k < bands.length && bands[k].year <= sc.r_year; k++) k1 = k;
+    const b0 = bands[k0];
+    const ang = monthAngle(sc.angle);
+    const rEnd = bands[k1].r1;
+    const depth = clamp(Math.abs(sc.depth), 0, 1);
+    const rA = b0.r0;
+    const hw0 = Math.min(R * (0.009 + 0.022 * depth), rA * 0.32);
+    const hwEnd = open ? hw0 * 0.85 : hw0 * 0.28;
+    const ux = Math.cos(ang), uy = Math.sin(ang);
+    const px = -uy, py = ux;
+    g.beginPath();
+    g.moveTo(cx + ux * rA + px * hw0, cy + uy * rA + py * hw0);
+    g.lineTo(cx + ux * rEnd + px * hwEnd, cy + uy * rEnd + py * hwEnd);
+    g.lineTo(cx + ux * rEnd - px * hwEnd, cy + uy * rEnd - py * hwEnd);
+    g.lineTo(cx + ux * rA - px * hw0, cy + uy * rA - py * hw0);
+    g.closePath();
+    g.fillStyle = "rgba(6,6,9,0.86)";
+    g.fill();
+    g.strokeStyle = "rgba(226,230,238,0.22)";
+    g.lineWidth = Math.max(1, R * 0.0008);
+    g.stroke();
+
+    scarAnchors.push({ scar: sc, x: cx + ux * rEnd, y: cy + uy * rEnd, angle: ang });
+  }
+
+  // Pith.
+  g.beginPath();
+  g.arc(cx, cy, core * 0.6, 0, Math.PI * 2);
+  g.fillStyle = theme.pith;
+  g.fill();
+
+  return { bands, barkR: bands.length ? bands[bands.length - 1].r1 : core, core, scarAnchors };
+}
+
+// ---------- poster composition ----------
+function drawPoster(tree) {
+  const theme = THEMES[themeKey];
+  const g = pctx;
+  const W = POSTER_W, H = POSTER_H;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.clearRect(0, 0, W, H);
+  g.fillStyle = theme.bg;
+  g.fillRect(0, 0, W, H);
+
+  const marginX = W * 0.075;
+
+  // ---- title block ----
+  const titleTop = H * 0.052;
+  g.textBaseline = "alphabetic";
+  g.fillStyle = theme.ink;
+  g.font = "700 220px -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
+  g.textAlign = "left";
+  g.fillText(tree.id.toUpperCase(), marginX, titleTop + 190);
+
+  const lifespan = `${tree.first_year}–${tree.last_year} · ${tree.age_years.toFixed(1)} yr · ${tree.n_rings} rings`;
+  g.font = "500 46px -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif";
+  g.fillStyle = CLASS_COLORS[tree.cls] || theme.ink2;
+  g.textAlign = "left";
+  const clsLabel = (CLASS_NAMES[tree.cls] || tree.cls).toUpperCase();
+  g.fillText(clsLabel, marginX, titleTop + 258);
+  const clsW = g.measureText(clsLabel).width;
+  g.fillStyle = theme.dim;
+  g.fillText("  ·  " + lifespan, marginX + clsW, titleTop + 258);
+
+  // stat tiles
+  const stats = [
+    ["CAGR", spct(tree.cagr), tree.cagr >= 0],
+    ["WORST DRAWDOWN", pct(tree.worst_dd), false],
+    ["BEST YEAR", `${tree.best_year.year}  ${spct(tree.best_year.ret)}`, true],
+    ["WORST YEAR", `${tree.worst_year.year}  ${spct(tree.worst_year.ret)}`, false],
+  ];
+  const statsTop = titleTop + 330;
+  const statW = (W - marginX * 2) / stats.length;
+  stats.forEach((s, i) => {
+    const x = marginX + statW * i;
+    g.textAlign = "left";
+    g.font = "600 30px ui-monospace, Menlo, monospace";
+    g.fillStyle = theme.dim;
+    g.fillText(s[0], x, statsTop);
+    g.font = "700 58px ui-monospace, Menlo, monospace";
+    g.fillStyle = s[2] ? "rgb(106,184,128)" : "rgb(198,84,92)";
+    g.fillText(s[1], x, statsTop + 66);
+  });
+  g.strokeStyle = theme.faint;
+  g.lineWidth = 2;
+  g.beginPath(); g.moveTo(marginX, statsTop + 96); g.lineTo(W - marginX, statsTop + 96); g.stroke();
+
+  // ---- tree glyph ----
+  const treeTop = statsTop + 170;
+  const footTop = H * 0.925;
+  const sideCallout = W * 0.135;
+  const cx = W / 2;
+  const availH = footTop - treeTop - H * 0.02;
+  const availW = W - marginX * 2 - sideCallout * 2;
+  const R = Math.min(availH, availW) / 2;
+  const cy = treeTop + availH / 2 + R * 0.02;
+
+  const geo = drawTree(g, tree, cx, cy, R, theme);
+
+  // ---- year axis (top / January meridian) ----
+  const nRings = tree.rings.length;
+  const everyRing = nRings <= 15;
+  g.save();
+  g.strokeStyle = theme.axis;
+  g.lineWidth = 2;
+  g.beginPath(); g.moveTo(cx, cy - geo.core); g.lineTo(cx, cy - geo.barkR - 14); g.stroke();
+  g.textAlign = "right";
+  g.font = "600 30px ui-monospace, Menlo, monospace";
+  geo.bands.forEach((b, k) => {
+    const yr = b.year;
+    const show = everyRing || (yr % 5 === 0) || k === 0 || k === geo.bands.length - 1;
+    if (!show) return;
+    const rMid = (b.r0 + b.r1) / 2;
+    const ty = cy - rMid;
+    g.strokeStyle = theme.axis;
+    g.beginPath(); g.moveTo(cx - 10, ty); g.lineTo(cx + 10, ty); g.stroke();
+    g.fillStyle = theme.ink2;
+    g.fillText(String(yr), cx - 18, ty + 10);
+  });
+  g.textAlign = "left";
+  g.font = "500 24px ui-monospace, Menlo, monospace";
+  g.fillStyle = theme.dim;
+  g.fillText("Jan", cx + 14, cy - geo.barkR - 20);
+  g.restore();
+
+  // ---- scar callouts (2-3 deepest) ----
+  const scars = (tree.scars || []).slice().sort((a, b) => a.depth - b.depth).slice(0, 3);
+  const anchors = scars.map(sc => geo.scarAnchors.find(an => an.scar === sc)).filter(Boolean);
+  const left = [], right = [];
+  anchors.forEach(an => (Math.cos(an.angle) >= 0 ? right : left).push(an));
+  const layoutSide = (list, side) => {
+    list.sort((a, b) => a.y - b.y);
+    const labelX = side === "right" ? cx + R + sideCallout * 0.32 : marginX;
+    const boxW = sideCallout * 0.92;
+    const minGap = 118;
+    let ys = list.map(a => a.y);
+    for (let i = 1; i < ys.length; i++) if (ys[i] - ys[i - 1] < minGap) ys[i] = ys[i - 1] + minGap;
+    // keep within tree vertical band
+    const top = cy - R * 0.85, bot = cy + R * 0.85;
+    if (ys.length) {
+      if (ys[ys.length - 1] > bot) { const d = ys[ys.length - 1] - bot; ys = ys.map(y => y - d); }
+      if (ys[0] < top) { const d = top - ys[0]; ys = ys.map(y => y + d); }
+    }
+    list.forEach((an, i) => {
+      const ly = ys[i];
+      const elbowX = side === "right" ? cx + R + sideCallout * 0.14 : cx - R - sideCallout * 0.14;
+      g.strokeStyle = theme.faint;
+      g.lineWidth = 2.4;
+      g.beginPath();
+      g.moveTo(an.x, an.y);
+      g.lineTo(elbowX, an.y);
+      g.lineTo(elbowX, ly);
+      g.lineTo(side === "right" ? labelX - 14 : labelX + boxW + 14, ly);
+      g.stroke();
+      g.beginPath(); g.arc(an.x, an.y, 7, 0, Math.PI * 2); g.fillStyle = theme.ink; g.fill();
+
+      const sc = an.scar;
+      g.textAlign = side === "right" ? "left" : "right";
+      const tx = side === "right" ? labelX : labelX + boxW;
+      g.font = "700 32px ui-monospace, Menlo, monospace";
+      g.fillStyle = "rgb(198,84,92)";
+      g.fillText(pct(sc.depth), tx, ly - 8);
+      g.font = "500 24px ui-monospace, Menlo, monospace";
+      g.fillStyle = theme.dim;
+      g.fillText(sc.date, tx, ly + 22);
+      const status = sc.r_year == null ? "still open" : `healed ${sc.r_date}`;
+      g.fillStyle = theme.faint;
+      g.font = "400 22px ui-monospace, Menlo, monospace";
+      g.fillText(status, tx, ly + 48);
+    });
+  };
+  layoutSide(right, "right");
+  layoutSide(left, "left");
+
+  // ---- footer ----
+  const fy = H * 0.965;
+  g.textAlign = "left";
+  g.font = "500 26px ui-monospace, Menlo, monospace";
+  g.fillStyle = theme.dim;
+  g.fillText("MONEY TREES — asset as dendrochronology", marginX, fy);
+  g.fillStyle = theme.faint;
+  g.font = "400 22px ui-monospace, Menlo, monospace";
+  g.fillText("width = year growth (squashed log-return) · color = return · darkness = volatility · seams = drawdowns", marginX, fy + 32);
+  g.textAlign = "right";
+  g.fillStyle = theme.faint;
+  g.font = "400 22px ui-monospace, Menlo, monospace";
+  g.fillText(`daily prices → rings.json · generated ${DATA.generated}`, W - marginX, fy);
+  g.fillText(`${POSTER_W}×${POSTER_H}px`, W - marginX, fy + 32);
+}
+
+// ---------- preview (downscaled, offscreen full-res source) ----------
+function updatePreview() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const maxW = Math.min(window.innerWidth - 48, 640);
+  const dispW = maxW, dispH = dispW * (POSTER_H / POSTER_W);
+  preview.style.width = dispW + "px";
+  preview.style.height = dispH + "px";
+  preview.width = Math.round(dispW * dpr);
+  preview.height = Math.round(dispH * dpr);
+  pvctx.clearRect(0, 0, preview.width, preview.height);
+  pvctx.imageSmoothingEnabled = true;
+  pvctx.imageSmoothingQuality = "high";
+  pvctx.drawImage(posterCv, 0, 0, preview.width, preview.height);
+}
+window.addEventListener("resize", () => { if (currentTree) updatePreview(); });
+
+function render(id) {
+  const tree = byId[id];
+  if (!tree) return;
+  currentTree = tree;
+  document.getElementById("loading").style.display = "none";
+  drawPoster(tree);
+  updatePreview();
+}
+
+// ---------- controls ----------
+document.getElementById("search").addEventListener("change", e => {
+  const id = e.target.value.trim().toLowerCase();
+  if (byId[id]) render(id);
+});
+document.querySelectorAll("#theme-toggle button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#theme-toggle button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    themeKey = b.dataset.t;
+    document.body.classList.toggle("paper", themeKey === "paper");
+    if (currentTree) { drawPoster(currentTree); updatePreview(); }
+  };
+});
+const infoBtn = document.getElementById("info-btn");
+infoBtn.onclick = () => {
+  document.getElementById("explainer").classList.toggle("open");
+  infoBtn.classList.toggle("active");
+};
+document.getElementById("download-btn").onclick = () => {
+  if (!currentTree) return;
+  posterCv.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `money-trees-${currentTree.id}-poster.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }, "image/png");
+};
+
+// ---------- boot ----------
+async function boot() {
+  const res = await fetch("data/rings.json");
+  DATA = await res.json();
+  NORM = DATA.norm;
+  DATA.trees.forEach(t => { byId[t.id] = t; });
+  const dl = document.getElementById("alltrees");
+  DATA.trees.map(t => t.id).sort().forEach(id => {
+    const o = document.createElement("option"); o.value = id; dl.appendChild(o);
+  });
+  window.__poster = { byId, get currentTree() { return currentTree; } };
+  render("btc");
+}
+boot().catch(e => {
+  document.getElementById("loading").textContent = "failed to load rings.json";
+  console.error("boot failed:", e && e.stack || e);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Chronology — Tree Rings</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #100d0a; --panel: #17130e; --panel2: #1c170f; --ink: #e8e0d4; --dim: #9a8f7d;
+    --border: #2e2820; --accent: #c8963e;
+    --crypto: #e8b84b; --equity: #5b8dd9; --bonds: #5fbf8a;
+    --commodities: #c97b4a; --fx: #52b8c4;
+    --pos: #6ab880; --neg: #ce6b76;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 "SF Mono", ui-monospace, Menlo, monospace;
+    padding: 0 0 60px;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+    padding: 22px 28px 6px;
+  }
+  header h1 { font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
+  header h1 .accent { color: var(--accent); }
+  header .sub { color: var(--dim); font-size: 12.5px; }
+  #info-btn {
+    margin-left: auto;
+    background: var(--panel); color: var(--dim); border: 1px solid var(--border);
+    padding: 5px 11px; border-radius: 5px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  #info-btn:hover { color: var(--ink); }
+  #info-btn.active { color: var(--accent); border-color: var(--accent); }
+
+  a.link { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); cursor: pointer; }
+  a.link:hover { color: #ecc978; }
+
+  /* ---- ranking banner ---- */
+  #ranking {
+    margin: 10px 28px 22px; padding: 12px 18px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12.5px; color: var(--dim); display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline;
+  }
+  #ranking b.title { color: var(--ink); font-weight: 600; margin-right: 4px; }
+  #ranking .item { display: inline-flex; align-items: baseline; gap: 5px; }
+  #ranking .item .n { color: var(--ink); font-weight: 600; }
+  #ranking .arrow { color: var(--border); }
+
+  /* ---- explainer ---- */
+  #explainer {
+    display: none; margin: 0 28px 22px; max-width: 900px;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 20px; font-size: 12.5px; color: #c9bfae;
+  }
+  #explainer.open { display: block; }
+  #explainer h3 { font-size: 12px; color: var(--accent); margin: 14px 0 4px; }
+  #explainer h3:first-child { margin-top: 0; }
+  #explainer p { margin: 0 0 8px; }
+  #explainer b { color: var(--ink); }
+
+  /* ---- masters grid ---- */
+  #masters {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px; padding: 0 28px;
+  }
+  .mpanel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px 16px; display: flex; flex-direction: column; align-items: center;
+  }
+  .mpanel .cls-label {
+    font-size: 13px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .mpanel .synth-tag {
+    font-size: 10.5px; color: var(--dim); margin-bottom: 8px; text-align: center;
+  }
+  .mpanel canvas.tree { display: block; cursor: crosshair; }
+  .mpanel .metrics { width: 100%; margin-top: 10px; font-size: 11.5px; color: var(--dim); }
+  .mpanel .metrics .row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .mpanel .metrics .row b { color: var(--ink); }
+  .mpanel .metrics .broke { margin-top: 6px; line-height: 1.6; }
+  .mpanel .metrics .broke .y {
+    display: inline-block; padding: 1px 5px; margin: 1px 2px 0 0; border-radius: 3px;
+    background: var(--panel2); border: 1px solid var(--border); font-size: 10.5px;
+  }
+
+  /* ---- heat strip ---- */
+  .heatstrip { display: flex; gap: 2px; width: 100%; margin-top: 10px; }
+  .heatcell { flex: 1; height: 30px; border-radius: 2px; cursor: pointer; position: relative; }
+  .heatcell .mark { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; display: flex; }
+  .heatcell .mark i { flex: 1; }
+  .heatlabels { display: flex; gap: 2px; width: 100%; margin-top: 3px; }
+  .heatlabels span { flex: 1; text-align: center; font-size: 8.5px; color: var(--dim); }
+
+  /* ---- compare section ---- */
+  #compare-wrap { margin: 30px 28px 0; }
+  #compare-wrap h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  #compare-wrap .hint { color: var(--dim); font-size: 12px; margin-bottom: 12px; }
+  #compare-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  #compare-controls input[type=text] {
+    background: var(--panel); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 5px; padding: 6px 10px; font: inherit; font-size: 12.5px; width: 160px;
+  }
+  #compare-controls .chip {
+    background: var(--panel2); color: var(--dim); border: 1px solid var(--border);
+    padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 11.5px;
+  }
+  #compare-controls .chip:hover { color: var(--ink); border-color: var(--accent); }
+  #compare-panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 20px 24px; display: none;
+  }
+  #compare-panel.open { display: block; }
+  #compare-empty { color: var(--dim); font-size: 12.5px; padding: 18px 4px; }
+  .cpair { display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; }
+  .ctree { display: flex; flex-direction: column; align-items: center; }
+  .ctree .lbl { font-size: 12.5px; margin-top: 8px; text-align: center; }
+  .ctree .lbl b { color: var(--ink); }
+  .ctree .lbl .sub2 { color: var(--dim); font-size: 10.5px; margin-top: 2px; }
+  .cstats { flex: 1; min-width: 220px; font-size: 12px; }
+  .cstats table { border-collapse: collapse; width: 100%; }
+  .cstats td { padding: 3px 10px 3px 0; color: var(--dim); }
+  .cstats td.v { color: var(--ink); text-align: right; }
+  .cstats td.v.pos { color: var(--pos); }
+  .cstats td.v.neg { color: var(--neg); }
+  #compare-panel .devstrip-wrap { margin-top: 18px; }
+  #compare-panel .devstrip-wrap .cap { font-size: 11.5px; color: var(--dim); margin-bottom: 6px; }
+
+  #tip {
+    display: none; position: fixed; z-index: 20; pointer-events: none;
+    background: rgba(23,19,14,0.98); border: 1px solid var(--border); border-radius: 5px;
+    padding: 8px 10px; font-size: 11px; line-height: 1.55; color: #c9bfae;
+    max-width: 260px;
+  }
+  #tip b { color: var(--ink); font-size: 12px; }
+  #tip .pos { color: var(--pos); }
+  #tip .neg { color: var(--neg); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Master <span class="accent">Chronology</span></h1>
+  <span class="sub">one reference tree per asset class — how tightly do its members follow the class master, year by year?</span>
+  <button id="info-btn">ⓘ what am I looking at?</button>
+</header>
+
+<div id="ranking">
+  <b class="title">chronology tightness</b>
+  <span id="ranking-items"></span>
+</div>
+
+<div id="explainer">
+  <h3>What this is</h3>
+  <p>Real dendrochronologists don't date a tree from one core sample — they build a
+  <b>master chronology</b>: a composite ring pattern averaged from many trees of the same
+  species and site, then <b>cross-date</b> individual specimens against it to see how well
+  each one tracks the reference. This page builds the same thing for markets. For each
+  asset class (crypto, equity, bonds, commodities, fx), every calendar year with at least
+  <b id="ex-minmembers">8</b> "alive" members (assets with a computed ring that year) gets a
+  synthetic <b>master ring</b>: the <b>median</b> log-return and <b>median</b> realized vol
+  across all members that year. Five master trees, one per class, each built from real
+  per-asset annual stats but tracing no real asset's actual price path.</p>
+
+  <h3>How to read it</h3>
+  <p>The five large glyphs are the <b>master trees</b> — rendered with the exact same
+  ring encoding as the seed forest (width = that year's growth, color = return, darkness =
+  vol), except every ring is a <b>median across the class</b>, not one asset's real year.
+  They carry <b>no scars</b>: a scar marks a real asset's real drawdown episode, and a
+  median composite has no real price path to draw down from.</p>
+  <p>Under each master tree is an <b>agreement heat strip</b>, one cell per year: <b>light</b>
+  means the class moved together that year, <b>dark</b> means it was a genuinely split year.
+  Two numbers drive it — hover any cell for both: <b>sign-agreement</b> is the fraction of
+  members whose direction (up/down) matched the master's; <b>dispersion (MAD)</b> is the
+  median absolute deviation of member log-returns around the master, a stricter score that
+  catches years where everyone agreed on direction but scattered wildly on magnitude. Cells
+  with a colored tick underneath <b>broke</b> that class's own normal pattern (more than 1.2
+  standard deviations off its own baseline) — red for a split-sign year, amber for an
+  unusually wide dispersion year.</p>
+  <p>The <b>chronology tightness</b> banner at the top ranks classes by their mean
+  sign-agreement across all years — higher means that class's members more consistently
+  move the same direction together. Each panel also names its single <b>most divergent
+  asset-year</b>: the one (asset, year) pair with the largest gap between that asset's
+  log-return and its class master's, that year. Click it (or search below) to open
+  <b>compare mode</b>: the real asset's own tree next to its class master, plus a per-year
+  <b>deviation strip</b> — green where the asset beat its master that year, red where it
+  lagged, intensity scaled to the size of the gap.</p>
+
+  <h3>The physics analogy — cross-dating</h3>
+  <p>Dendrochronologists overlay many trees from a stand and read off the pattern they all
+  share — that composite <i>is</i> the master chronology, and it's how a single sample tree
+  (even a dead beam from an old building) gets dated: by matching its ring-width pattern
+  against the reference. A tree that tracks the master tightly is easy to cross-date; one
+  with erratic, idiosyncratic rings is not. Here, an asset that always agrees in sign and
+  magnitude with its class master is "well cross-dated" against its class — a bond ETF that
+  falls exactly when TLT falls, by about as much. An asset that regularly diverges — like
+  a single-country FX pair breaking from the broader dollar move — is telling its own story,
+  not the class's.</p>
+
+  <h3>Caveats</h3>
+  <p>The master is a <b>statistical composite, not a tradable asset</b> — nothing in this
+  dataset actually earned the master's return. The universe is whatever
+  <code>data/rings.json</code> currently tracks (a <b>survivor-ish snapshot</b>, not a
+  point-in-time historical membership list), so early years have fewer members and the
+  8-member gate means the earliest 1-2 years of a class's real history may be excluded
+  entirely if too few assets existed yet. Sign-agreement treats an exact zero return as
+  agreeing with whatever sign the median happened to take — rare, but a real edge case.
+  The current year (2026) is a partial year for every class, computed only over the months
+  elapsed so far — its ring and agreement score will still move before December. Finally,
+  "broke agreement" is relative to <b>each class's own normal scatter</b>, not an absolute
+  bar — a genuinely diversified class like crypto has a much noisier baseline than bonds, so
+  the same raw agreement number means something different in each.</p>
+</div>
+
+<div id="masters"></div>
+
+<div id="compare-wrap">
+  <h2>Compare an asset to its master</h2>
+  <div class="hint">pick a "most divergent" link above, a quick chip below, or search any of the tracked tickers.</div>
+  <div id="compare-controls">
+    <input type="text" id="search" list="alltrees" placeholder="ticker…" size="10">
+    <datalist id="alltrees"></datalist>
+    <span id="quick-chips"></span>
+  </div>
+  <div id="compare-panel">
+    <div id="compare-empty">no asset selected yet</div>
+  </div>
+</div>
+
+<div id="tip"></div>
+
+<script>
+const CLASS_COLORS = {
+  crypto: "#e8b84b", equity: "#5b8dd9", bonds: "#5fbf8a",
+  commodities: "#c97b4a", fx: "#52b8c4",
+};
+const CLASS_NAMES = { crypto: "crypto", equity: "equity", bonds: "bonds", commodities: "commodities", fx: "fx" };
+
+let CHRON = null, RINGS = null, NORM = null;
+let byId = {};
+let dpr = window.devicePixelRatio || 1;
+
+// ---------- color helpers (adapted from forest/index.html) ----------
+function hexToRgb(h) {
+  const n = parseInt(h.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function mix(a, b, t) { return a.map((v, i) => Math.round(v + (b[i] - v) * t)); }
+function rgb(c, alpha) { return `rgba(${c[0]},${c[1]},${c[2]},${alpha == null ? 1 : alpha})`; }
+function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+function pct(x) { return (x * 100).toFixed(1) + "%"; }
+function spct(x) { return (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%"; }
+
+const RET_NEG = [206, 84, 92], RET_MID = [173, 158, 124], RET_POS = [106, 184, 128];
+function ringFill(cls, ring) {
+  const lg = ring.log_growth;
+  const la = (NORM.lg_cls && NORM.lg_cls[cls]) || [NORM.lg_p5, NORM.lg_p95];
+  let col;
+  if (lg >= 0) {
+    const u = clamp(lg / la[1], 0, 1);
+    col = mix(RET_MID, RET_POS, Math.sqrt(u));
+  } else {
+    const u = clamp(lg / la[0], 0, 1);
+    col = mix(RET_MID, RET_NEG, Math.sqrt(u));
+  }
+  const va = (NORM.vol_cls && NORM.vol_cls[cls]) || [NORM.vol_p10, NORM.vol_p90];
+  const v = clamp((ring.vol - va[0]) / (va[1] - va[0]), 0, 1);
+  const light = mix(col, [216, 220, 224], 0.28 * (1 - v));
+  return mix(light, [16, 18, 24], v * 0.45);
+}
+function ringThickness(lg) {
+  const t = Math.sign(lg) * Math.log1p(Math.abs(lg) * 3.2);
+  const lo = Math.sign(NORM.lg_p5) * Math.log1p(Math.abs(NORM.lg_p5) * 3.2);
+  const hi = Math.sign(NORM.lg_p95) * Math.log1p(Math.abs(NORM.lg_p95) * 3.2);
+  const u = clamp((t - lo) / (hi - lo), 0, 1);
+  return 0.28 + 1.72 * u;
+}
+
+// ---------- tree glyph renderer (adapted from forest/index.html) ----------
+function drawTree(g, tree, cx, cy, R, opts) {
+  opts = opts || {};
+  const labels = !!opts.labels;
+  const rings = tree.rings;
+  const thick = rings.map(r => ringThickness(r.log_growth));
+  const totalThick = thick.reduce((a, b) => a + b, 0);
+  const core = R * 0.08;
+  const usable = R - core;
+  let r0 = core;
+  const TWO_PI = Math.PI * 2;
+  const bands = [];
+
+  for (let k = 0; k < rings.length; k++) {
+    const ring = rings[k];
+    const r1 = r0 + usable * (thick[k] / totalThick);
+    const fill = ringFill(tree.cls, ring);
+    const a0 = -Math.PI / 2, a1 = a0 + TWO_PI;
+
+    g.beginPath();
+    g.arc(cx, cy, r1, a0, a1);
+    g.arc(cx, cy, r0, a1, a0, true);
+    g.closePath();
+    g.fillStyle = rgb(fill);
+    g.fill();
+
+    g.beginPath();
+    g.arc(cx, cy, r1, a0, a1);
+    g.strokeStyle = "rgba(16,13,10,0.55)";
+    g.lineWidth = 0.6;
+    g.stroke();
+
+    bands.push({ year: ring.year, r0, r1 });
+
+    if (labels && (r1 - r0) > 7) {
+      g.fillStyle = "rgba(232,224,212,0.55)";
+      g.font = "9px ui-monospace, Menlo, monospace";
+      g.save();
+      g.translate(cx, cy - (r0 + r1) / 2);
+      g.fillText("'" + String(ring.year).slice(2), -6, 3);
+      g.restore();
+    }
+    r0 = r1;
+  }
+
+  if (bands.length) {
+    const bk = bands[bands.length - 1];
+    g.beginPath();
+    g.arc(cx, cy, bk.r1, 0, Math.PI * 2);
+    g.strokeStyle = CLASS_COLORS[tree.cls] || "#7a8299";
+    g.lineWidth = 1.5;
+    g.stroke();
+  }
+
+  for (const sc of (tree.scars || [])) {
+    let k0 = bands.findIndex(b => b.year >= sc.year);
+    if (k0 < 0) continue;
+    const open = sc.r_year == null;
+    let k1 = open ? bands.length - 1 : k0;
+    if (!open) {
+      for (let k = k0; k < bands.length && bands[k].year <= sc.r_year; k++) k1 = k;
+    }
+    const b0 = bands[k0];
+    const ang = -Math.PI / 2 + sc.angle * Math.PI * 2;
+    const rEnd = bands[k1].r1;
+    const depth = clamp(Math.abs(sc.depth), 0, 1);
+    const rA = b0.r0;
+    const hw0 = Math.min(R * (0.008 + 0.020 * depth), rA * 0.30);
+    const hwEnd = open ? hw0 * 0.85 : hw0 * 0.30;
+    const ux = Math.cos(ang), uy = Math.sin(ang);
+    const px = -uy, py = ux;
+    g.beginPath();
+    g.moveTo(cx + ux * rA + px * hw0, cy + uy * rA + py * hw0);
+    g.lineTo(cx + ux * rEnd + px * hwEnd, cy + uy * rEnd + py * hwEnd);
+    g.lineTo(cx + ux * rEnd - px * hwEnd, cy + uy * rEnd - py * hwEnd);
+    g.lineTo(cx + ux * rA - px * hw0, cy + uy * rA - py * hw0);
+    g.closePath();
+    g.fillStyle = "rgba(16,13,10,0.85)";
+    g.fill();
+    g.strokeStyle = "rgba(232,224,212,0.20)";
+    g.lineWidth = 0.7;
+    g.stroke();
+  }
+
+  g.beginPath();
+  g.arc(cx, cy, core * 0.7, 0, Math.PI * 2);
+  g.fillStyle = "rgba(154,143,125,0.5)";
+  g.fill();
+
+  return bands;
+}
+
+function ringAt(tree, R, dx, dy) {
+  const dist = Math.hypot(dx, dy);
+  if (dist > R) return -1;
+  const thick = tree.rings.map(r => ringThickness(r.log_growth));
+  const total = thick.reduce((a, b) => a + b, 0);
+  const core = R * 0.08, usable = R - core;
+  let r0 = core;
+  for (let k = 0; k < tree.rings.length; k++) {
+    const r1 = r0 + usable * (thick[k] / total);
+    if (dist >= r0 && dist <= r1) return k;
+    r0 = r1;
+  }
+  return -1;
+}
+
+// ---------- tooltip ----------
+const tip = document.getElementById("tip");
+function showTip(html, x, y) {
+  tip.innerHTML = html;
+  tip.style.display = "block";
+  const vw = window.innerWidth, vh = window.innerHeight;
+  let left = x + 16, top = y + 16;
+  tip.style.left = "0px"; tip.style.top = "0px"; // measure first
+  const bw = tip.offsetWidth, bh = tip.offsetHeight;
+  if (left + bw > vw - 8) left = x - bw - 16;
+  if (top + bh > vh - 8) top = y - bh - 16;
+  tip.style.left = left + "px";
+  tip.style.top = top + "px";
+}
+function hideTip() { tip.style.display = "none"; }
+
+// ---------- master panels ----------
+function masterTreeLike(cls) {
+  const m = CHRON.classes[cls];
+  return {
+    cls,
+    rings: m.master_rings.map(r => ({ year: r.year, ret: r.ret, log_growth: r.log_growth, vol: r.vol })),
+    scars: [],
+  };
+}
+
+function buildMasterPanel(cls) {
+  const m = CHRON.classes[cls];
+  const panel = document.createElement("div");
+  panel.className = "mpanel";
+
+  const clsLabel = document.createElement("div");
+  clsLabel.className = "cls-label";
+  clsLabel.style.color = CLASS_COLORS[cls];
+  clsLabel.textContent = cls;
+  panel.appendChild(clsLabel);
+
+  const tag = document.createElement("div");
+  tag.className = "synth-tag";
+  tag.textContent = `MASTER — synthetic composite (median of ${m.master_rings[m.master_rings.length - 1].n} members, ${m.master_rings[0].year}–${m.master_rings[m.master_rings.length - 1].year})`;
+  panel.appendChild(tag);
+
+  const size = 200;
+  const cv = document.createElement("canvas");
+  cv.className = "tree";
+  cv.width = size * dpr; cv.height = size * dpr;
+  cv.style.width = size + "px"; cv.style.height = size + "px";
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const tree = masterTreeLike(cls);
+  const R = size / 2 - 10;
+  drawTree(g, tree, size / 2, size / 2, R);
+  panel.appendChild(cv);
+
+  cv.addEventListener("pointermove", e => {
+    const r = cv.getBoundingClientRect();
+    const dx = e.clientX - r.left - size / 2, dy = e.clientY - r.top - size / 2;
+    const idx = ringAt(tree, R, dx, dy);
+    if (idx >= 0) {
+      const mr = m.master_rings[idx];
+      const rc = mr.ret >= 0 ? "pos" : "neg";
+      showTip(
+        `<b>${cls} MASTER</b> · <b>${mr.year}</b><br>` +
+        `median return <span class="${rc}">${spct(mr.ret)}</span> · median vol ${pct(mr.vol)}<br>` +
+        `n=${mr.n} members · agreement ${pct(mr.agreement)} · mad ${mr.mad_log_ret.toFixed(3)}`,
+        e.clientX, e.clientY
+      );
+      cv.style.cursor = "pointer";
+    } else { hideTip(); cv.style.cursor = "default"; }
+  });
+  cv.addEventListener("pointerleave", hideTip);
+
+  // ---- heat strip ----
+  const brokeByYear = {};
+  m.years_broke_agreement.forEach(b => brokeByYear[b.year] = b.reasons);
+  const strip = document.createElement("div");
+  strip.className = "heatstrip";
+  m.master_rings.forEach(mr => {
+    const cell = document.createElement("div");
+    cell.className = "heatcell";
+    const t = clamp(mr.agreement, 0, 1);
+    const col = mix(hexToRgb("#100d0a"), hexToRgb("#e8d9bd"), 0.12 + 0.88 * t);
+    cell.style.background = rgb(col);
+    const reasons = brokeByYear[mr.year];
+    if (reasons) {
+      const markWrap = document.createElement("div");
+      markWrap.className = "mark";
+      reasons.forEach(rs => {
+        const i = document.createElement("i");
+        i.style.background = rs === "sign" ? "#ce6b76" : "#c8963e";
+        markWrap.appendChild(i);
+      });
+      cell.appendChild(markWrap);
+    }
+    cell.addEventListener("pointermove", e => {
+      const rc = mr.ret >= 0 ? "pos" : "neg";
+      showTip(
+        `<b>${cls}</b> · <b>${mr.year}</b>${reasons ? ` · <span style="color:#c8963e">broke (${reasons.join(", ")})</span>` : ""}<br>` +
+        `sign-agreement <b>${pct(mr.agreement)}</b> of ${mr.n} members<br>` +
+        `dispersion (MAD) <b>${mr.mad_log_ret.toFixed(3)}</b><br>` +
+        `master return <span class="${rc}">${spct(mr.ret)}</span> · vol ${pct(mr.vol)}`,
+        e.clientX, e.clientY
+      );
+    });
+    cell.addEventListener("pointerleave", hideTip);
+    strip.appendChild(cell);
+  });
+  panel.appendChild(strip);
+
+  const labels = document.createElement("div");
+  labels.className = "heatlabels";
+  m.master_rings.forEach(mr => {
+    const s = document.createElement("span");
+    s.textContent = "'" + String(mr.year).slice(2);
+    labels.appendChild(s);
+  });
+  panel.appendChild(labels);
+
+  // ---- metrics ----
+  const metrics = document.createElement("div");
+  metrics.className = "metrics";
+  const md = m.most_divergent;
+  metrics.innerHTML =
+    `<div class="row"><span>chronology tightness</span><b>${pct(m.mean_agreement)}</b></div>` +
+    `<div class="row"><span>mean dispersion (MAD)</span><b>${m.mean_mad_log_ret.toFixed(3)}</b></div>` +
+    `<div class="row"><span>most divergent</span><b><a class="link" data-asset="${md.asset}">${md.asset.toUpperCase()} '${String(md.year).slice(2)}</a></b></div>` +
+    (m.years_broke_agreement.length ?
+      `<div class="broke">broke agreement: ` +
+      m.years_broke_agreement.map(b => `<span class="y" title="${b.reasons.join(', ')}">${b.year}</span>`).join("") +
+      `</div>` : `<div class="broke" style="color:var(--dim)">no years broke agreement (&gt;1.2σ off class baseline)</div>`);
+  panel.appendChild(metrics);
+
+  metrics.querySelector("a.link").addEventListener("click", () => {
+    selectAsset(md.asset);
+    document.getElementById("compare-wrap").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  return panel;
+}
+
+function buildRankingBanner() {
+  const wrap = document.getElementById("ranking-items");
+  const order = CHRON.class_order.slice().sort((a, b) => CHRON.classes[b].mean_agreement - CHRON.classes[a].mean_agreement);
+  wrap.innerHTML = order.map((cls, i) => {
+    const m = CHRON.classes[cls];
+    return `<span class="item">${i > 0 ? '<span class="arrow">›</span>' : ''}` +
+      `<span style="color:${CLASS_COLORS[cls]}">${cls}</span> <span class="n">${pct(m.mean_agreement)}</span></span>`;
+  }).join(" ");
+}
+
+// ---------- compare mode ----------
+function buildQuickChips() {
+  const wrap = document.getElementById("quick-chips");
+  CHRON.class_order.forEach(cls => {
+    const md = CHRON.classes[cls].most_divergent;
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = `${md.asset.toUpperCase()} vs ${cls}`;
+    chip.addEventListener("click", () => selectAsset(md.asset));
+    wrap.appendChild(chip);
+  });
+}
+
+function selectAsset(id) {
+  const tree = byId[id];
+  if (!tree) return;
+  const cls = tree.cls;
+  const m = CHRON.classes[cls];
+  if (!m) return;
+
+  const panel = document.getElementById("compare-panel");
+  panel.classList.add("open");
+  panel.innerHTML = "";
+
+  const pair = document.createElement("div");
+  pair.className = "cpair";
+
+  // real asset tree
+  const size = 230;
+  const assetWrap = document.createElement("div");
+  assetWrap.className = "ctree";
+  const acv = document.createElement("canvas");
+  acv.width = size * dpr; acv.height = size * dpr;
+  acv.style.width = size + "px"; acv.style.height = size + "px";
+  const ag = acv.getContext("2d");
+  ag.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const R = size / 2 - 12;
+  drawTree(ag, tree, size / 2, size / 2, R, { labels: true });
+  assetWrap.appendChild(acv);
+  const alabel = document.createElement("div");
+  alabel.className = "lbl";
+  alabel.innerHTML = `<b>${tree.id.toUpperCase()}</b> <span style="color:${CLASS_COLORS[cls]}">· real asset</span>` +
+    `<div class="sub2">${tree.first_year}–${tree.last_year} · ${tree.n_rings} rings</div>`;
+  assetWrap.appendChild(alabel);
+  pair.appendChild(assetWrap);
+
+  // master tree, same scale
+  const masterWrap = document.createElement("div");
+  masterWrap.className = "ctree";
+  const mcv = document.createElement("canvas");
+  mcv.width = size * dpr; mcv.height = size * dpr;
+  mcv.style.width = size + "px"; mcv.style.height = size + "px";
+  const mg = mcv.getContext("2d");
+  mg.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const mtree = masterTreeLike(cls);
+  drawTree(mg, mtree, size / 2, size / 2, R, { labels: true });
+  masterWrap.appendChild(mcv);
+  const mlabel = document.createElement("div");
+  mlabel.className = "lbl";
+  mlabel.innerHTML = `<b>${cls} MASTER</b> <span style="color:${CLASS_COLORS[cls]}">· synthetic composite</span>` +
+    `<div class="sub2">median of class each year, no real price path</div>`;
+  masterWrap.appendChild(mlabel);
+  pair.appendChild(masterWrap);
+
+  // stats
+  const byYear = {};
+  m.master_rings.forEach(mr => byYear[mr.year] = mr);
+  const shared = tree.rings.filter(rg => byYear[rg.year]);
+  const devs = shared.map(rg => rg.log_growth - byYear[rg.year].log_growth);
+  const meanAbsDev = devs.length ? devs.reduce((a, b) => a + Math.abs(b), 0) / devs.length : 0;
+  const sameSign = shared.filter(rg => (rg.log_growth >= 0) === (byYear[rg.year].log_growth >= 0)).length;
+
+  const stats = document.createElement("div");
+  stats.className = "cstats";
+  const cagrC = tree.cagr >= 0 ? "pos" : "neg";
+  stats.innerHTML =
+    `<table>` +
+    `<tr><td>class</td><td class="v" style="color:${CLASS_COLORS[cls]}">${cls}</td></tr>` +
+    `<tr><td>CAGR</td><td class="v ${cagrC}">${spct(tree.cagr)}</td></tr>` +
+    `<tr><td>class chronology tightness</td><td class="v">${pct(m.mean_agreement)}</td></tr>` +
+    `<tr><td>years shared with master</td><td class="v">${shared.length}</td></tr>` +
+    `<tr><td>years same sign as master</td><td class="v">${sameSign} of ${shared.length} (${pct(shared.length ? sameSign / shared.length : 0)})</td></tr>` +
+    `<tr><td>mean |deviation| from master</td><td class="v">${meanAbsDev.toFixed(3)} (log-return units)</td></tr>` +
+    `</table>`;
+  pair.appendChild(stats);
+
+  panel.appendChild(pair);
+
+  // deviation strip
+  const devWrap = document.createElement("div");
+  devWrap.className = "devstrip-wrap";
+  const cap = document.createElement("div");
+  cap.className = "cap";
+  cap.innerHTML = `per-year deviation — <span style="color:#6ab880">green</span> = ${tree.id.toUpperCase()} beat its class master, <span style="color:#ce6b76">red</span> = it lagged`;
+  devWrap.appendChild(cap);
+
+  const strip = document.createElement("div");
+  strip.className = "heatstrip";
+  const scale = Math.max(m.mean_mad_log_ret * 4, 0.05);
+  shared.forEach(rg => {
+    const mr = byYear[rg.year];
+    const dev = rg.log_growth - mr.log_growth;
+    const u = clamp(Math.abs(dev) / scale, 0, 1);
+    const base = hexToRgb("#100d0a");
+    const target = dev >= 0 ? hexToRgb("#6ab880") : hexToRgb("#ce6b76");
+    const col = mix(base, target, 0.15 + 0.85 * u);
+    const cell = document.createElement("div");
+    cell.className = "heatcell";
+    cell.style.background = rgb(col);
+    cell.addEventListener("pointermove", e => {
+      const rc1 = rg.ret >= 0 ? "pos" : "neg", rc2 = mr.ret >= 0 ? "pos" : "neg";
+      showTip(
+        `<b>${tree.id.toUpperCase()}</b> vs <b>${cls} master</b> · <b>${rg.year}</b><br>` +
+        `asset return <span class="${rc1}">${spct(rg.ret)}</span> · master return <span class="${rc2}">${spct(mr.ret)}</span><br>` +
+        `deviation (log-return) <b>${dev >= 0 ? "+" : ""}${dev.toFixed(3)}</b>`,
+        e.clientX, e.clientY
+      );
+    });
+    cell.addEventListener("pointerleave", hideTip);
+    strip.appendChild(cell);
+  });
+  devWrap.appendChild(strip);
+
+  const labels = document.createElement("div");
+  labels.className = "heatlabels";
+  shared.forEach(rg => {
+    const s = document.createElement("span");
+    s.textContent = "'" + String(rg.year).slice(2);
+    labels.appendChild(s);
+  });
+  devWrap.appendChild(labels);
+
+  panel.appendChild(devWrap);
+}
+
+// ---------- controls ----------
+const search = document.getElementById("search");
+search.addEventListener("change", () => {
+  const id = search.value.trim().toLowerCase();
+  if (byId[id]) { selectAsset(id); search.value = ""; }
+});
+
+const infoBtn = document.getElementById("info-btn");
+infoBtn.onclick = () => {
+  document.getElementById("explainer").classList.toggle("open");
+  infoBtn.classList.toggle("active");
+};
+
+// ---------- boot ----------
+async function boot() {
+  const [chronRes, ringsRes] = await Promise.all([
+    fetch("data/chronology.json"),
+    fetch("data/rings.json"),
+  ]);
+  CHRON = await chronRes.json();
+  RINGS = await ringsRes.json();
+  NORM = RINGS.norm;
+  RINGS.trees.forEach(t => byId[t.id] = t);
+
+  const dl = document.getElementById("alltrees");
+  RINGS.trees.map(t => t.id).sort().forEach(id => {
+    const o = document.createElement("option"); o.value = id; dl.appendChild(o);
+  });
+
+  document.getElementById("ex-minmembers").textContent = CHRON.min_members;
+
+  buildRankingBanner();
+  const mastersEl = document.getElementById("masters");
+  CHRON.class_order.forEach(cls => mastersEl.appendChild(buildMasterPanel(cls)));
+  buildQuickChips();
+
+  // debug hook for headless verification
+  window.__chron = { CHRON, RINGS, byId };
+}
+boot().catch(e => { console.error("boot failed:", e && e.stack || e); });
+</script>
+</body>
+</html>

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tree Rings — Assets as Dendrochronology</title>
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #11151f; --ink: #d7dce6; --dim: #6b7385;
+    --accent: #e8b84b;
+    --crypto: #e8b84b; --equity: #5b8dd9; --bonds: #5fbf8a;
+    --commodities: #c97b4a; --fx: #52b8c4; --volatility: #d95b6a;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.45 "SF Mono", ui-monospace, Menlo, monospace;
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 14px;
+    padding: 12px 20px 8px; flex-wrap: wrap;
+  }
+  header h1 { font-size: 16px; font-weight: 600; letter-spacing: .02em; }
+  header .sub { color: var(--dim); font-size: 12px; }
+  #info-btn {
+    margin-left: auto;
+    background: var(--panel); color: var(--dim); border: 1px solid #232a3a;
+    padding: 5px 10px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 12px;
+  }
+  #info-btn.active { color: var(--accent); border-color: var(--accent); }
+
+  #controls {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 0 20px 8px; font-size: 11px; color: var(--dim);
+  }
+  #controls .grp { display: flex; align-items: center; gap: 6px; }
+  #controls label { color: var(--dim); }
+  #controls select, #controls input[type=text] {
+    background: var(--panel); color: var(--ink); border: 1px solid #232a3a;
+    border-radius: 4px; padding: 3px 6px; font: inherit; font-size: 11px;
+  }
+  #controls .seg button {
+    background: var(--panel); color: var(--dim); border: 1px solid #232a3a;
+    padding: 3px 9px; border-radius: 4px; cursor: pointer; font: inherit; font-size: 11px;
+  }
+  #controls .seg button.active { color: var(--accent); border-color: var(--accent); }
+  #classfilter span {
+    display: inline-block; margin-left: 4px; cursor: pointer; user-select: none;
+    padding: 2px 6px; border-radius: 3px;
+  }
+  #classfilter span.off { opacity: 0.3; text-decoration: line-through; }
+  #classfilter i {
+    display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    margin-right: 4px; vertical-align: -1px;
+  }
+
+  /* Legend strip — the decode key, visible on-page (not just in explainer). */
+  #legend {
+    display: flex; gap: 22px; align-items: center; flex-wrap: wrap;
+    padding: 6px 20px 8px; margin: 0 20px 4px;
+    background: var(--panel); border: 1px solid #1c2434; border-radius: 6px;
+    font-size: 11px; color: var(--dim);
+  }
+  #legend .lk { display: flex; align-items: center; gap: 8px; }
+  #legend b { color: var(--ink); font-weight: 600; }
+  #legend canvas { display: block; }
+
+  #stage { flex: 1; position: relative; min-height: 0; }
+  #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  #explainer {
+    display: none; position: absolute; top: 8px; right: 16px; z-index: 8;
+    width: 460px; max-height: calc(100% - 24px); overflow-y: auto;
+    background: rgba(17,21,31,0.97); border: 1px solid #232a3a; border-radius: 6px;
+    padding: 16px 18px; font-size: 12.5px; color: #aab2c2;
+  }
+  #explainer.open { display: block; }
+  #explainer h3 { font-size: 12px; color: var(--accent); margin: 14px 0 4px; }
+  #explainer h3:first-child { margin-top: 0; }
+  #explainer p { margin: 0 0 8px; }
+  #explainer b { color: var(--ink); }
+
+  #tip {
+    display: none; position: absolute; z-index: 9; pointer-events: none;
+    background: rgba(17,21,31,0.98); border: 1px solid #232a3a; border-radius: 5px;
+    padding: 8px 10px; font-size: 11px; line-height: 1.5; color: #aab2c2;
+    white-space: nowrap;
+  }
+  #tip b { color: #d7dce6; font-size: 12px; }
+  #tip .pos { color: #5fbf8a; }
+  #tip .neg { color: #d95b6a; }
+
+  /* Detail overlay — enlarged single tree. */
+  #detail {
+    display: none; position: absolute; inset: 0; z-index: 10;
+    background: rgba(8,10,16,0.93); backdrop-filter: blur(2px);
+  }
+  #detail.open { display: flex; }
+  #detail .panel {
+    margin: auto; display: flex; gap: 28px; align-items: center;
+    background: var(--panel); border: 1px solid #232a3a; border-radius: 8px;
+    padding: 24px 28px; max-width: 92%; max-height: 92%;
+  }
+  #detail canvas { display: block; }
+  #detail .stats h2 { font-size: 18px; margin-bottom: 2px; }
+  #detail .stats .cls { font-size: 12px; margin-bottom: 14px; }
+  #detail .stats table { border-collapse: collapse; font-size: 12px; }
+  #detail .stats td { padding: 2px 14px 2px 0; color: var(--dim); }
+  #detail .stats td.v { color: var(--ink); text-align: right; }
+  #detail .stats td.v.pos { color: #5fbf8a; }
+  #detail .stats td.v.neg { color: #d95b6a; }
+  #detail .close {
+    position: absolute; top: 16px; right: 22px; cursor: pointer;
+    color: var(--dim); font-size: 20px;
+  }
+  #detail .close:hover { color: var(--ink); }
+  #detail .hint { color: var(--dim); font-size: 11px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tree Rings</h1>
+  <span class="sub">assets as dendrochronology — one ring per year of life, computed on real daily prices</span>
+  <button id="info-btn">ⓘ what am I looking at?</button>
+</header>
+
+<div id="controls">
+  <div class="grp">
+    <label>sort</label>
+    <div class="seg" id="sort">
+      <button data-k="featured" class="active">curated</button>
+      <button data-k="age">age</button>
+      <button data-k="cagr">growth</button>
+      <button data-k="worst_dd">scarring</button>
+      <button data-k="uniformity">steadiness</button>
+    </div>
+  </div>
+  <div class="grp" id="classfilter"><label>classes</label></div>
+  <div class="grp">
+    <label>add asset</label>
+    <input type="text" id="search" list="alltrees" placeholder="ticker…" size="10">
+    <datalist id="alltrees"></datalist>
+  </div>
+  <div class="grp">
+    <button class="seg" id="reset" style="background:var(--panel);color:var(--dim);border:1px solid #232a3a;padding:3px 9px;border-radius:4px;cursor:pointer;font:inherit;font-size:11px;">reset forest</button>
+  </div>
+</div>
+
+<!-- Decode legend — always visible -->
+<div id="legend">
+  <div class="lk"><canvas id="lg-width" width="120" height="30"></canvas>
+    <span>ring <b>width</b> = year's growth<br><span style="opacity:.7">thin = down year · wide = up year</span></span></div>
+  <div class="lk"><canvas id="lg-dark" width="120" height="30"></canvas>
+    <span>ring <b>color</b> = year's return · <b>darkness</b> = vol<br><span style="opacity:.7">red = bad · tan = flat · green = good · darker = wilder</span></span></div>
+  <div class="lk"><canvas id="lg-scar" width="46" height="46"></canvas>
+    <span><b>scar</b> = major drawdown, radiating until healed<br><span style="opacity:.7">base = trough date · open to bark = still underwater</span></span></div>
+  <div class="lk"><span style="opacity:.7"><b style="color:var(--ink)">bark + label hue = class</b><br>center = oldest ring · bark = this year</span></div>
+</div>
+
+<div id="stage">
+  <canvas id="cv"></canvas>
+
+  <div id="explainer">
+    <h3>What this is</h3>
+    <p>Every glyph is one asset rendered as a <b>tree cross-section</b>. It grows one
+    <b>ring per calendar year</b> of its price history, oldest at the center, this year at
+    the bark. A whole decade of an asset is legible in a single disk — and the gallery
+    becomes a <b>forest</b>, where old-growth bonds (many tight pale rings) sit beside
+    fast-grown, heavily scarred crypto (few wide dark rings). Every visual feature decodes
+    to a real number; nothing here is decoration.</p>
+
+    <h3>How to read it</h3>
+    <p><b>Ring width</b> is that year's <b>growth</b> — the log of its total return,
+    squashed monotonically so up years swell wide and down years compress to a thin band,
+    but every year stays visible. A fatter ring is unambiguously a better year.</p>
+    <p><b>Ring color</b> is one uniform color per ring, like real wood, and encodes the
+    <b>year's return</b> on a diverging scale: red = bad year, parched tan = flat, green =
+    good. Both color and darkness are normalized <i>within each asset class</i>, so a great
+    year for a bond fund is as green as a great year for BTC even though the raw returns are
+    an order of magnitude apart — equities and bonds don't wash out to tan just because
+    crypto's swings are bigger. <b>Darkness</b> is that year's <b>realized volatility</b>
+    (calm = light, violent = deep and dark). Color and width agree on purpose — a wide green
+    ring is a fat year twice over.</p>
+    <p><b>The asset class</b> lives on the <b>bark outline and the label</b> — crypto amber,
+    equity blue, bonds green, commodities rust, FX teal. Every ring is drawn as a full
+    circle; the first and last calendar years are usually incomplete (an asset that listed
+    mid-year, or the current year so far), and their stats are computed only over the days
+    that exist — but the band is drawn all the way around for a clean disk.</p>
+    <p><b>Scars</b> are the dark radial seams: each marks a <b>major drawdown episode</b>
+    (deeper than the asset's typical annual vol — a 20% dip scars a bond fund, not BTC).
+    The seam is <b>widest at the trough</b> — its ring, at the <b>angular position of the date
+    it bottomed</b> (Jan at the top, clockwise through Dec), width proportional to severity —
+    and <b>radiates outward through every later ring until the year price reclaimed the prior
+    peak</b>, where it tapers shut like a healed callus. A scar still <b>open at the bark</b>
+    means the asset has never recovered that high.</p>
+    <p>Use the <b>sort</b> buttons to reorder the forest by age, growth, scarring, or
+    steadiness; toggle <b>classes</b>; type a ticker to <b>add any of the 484 computed
+    trees</b>. <b>Hover</b> a ring for that year's numbers; <b>click</b> a tree for the
+    enlarged view with year labels and a stats panel.</p>
+
+    <h3>The physics analogy — dendrochronology</h3>
+    <p>Tree-ring science reads a tree's life from its cross-section: wide rings are good
+    growing seasons, narrow rings droughts, dark latewood marks stress, and a fire scar is
+    wounded <b>once</b> but visible for years — subsequent rings grow around it until bark
+    closes over the callus. The scars here behave the same way: the wound is the trough,
+    and the seam stays open through every ring grown while the asset was still underwater.
+    Crucially, a climate event leaves the <b>same scar at the same radius across every tree
+    in the stand</b> — that's how dendrochronologists cross-date. Here the market's
+    <b>climate years do exactly that</b>: COVID (late March 2020) and the 2022 rate shock
+    carve scars at the <b>same angle across the whole forest</b> at the same ring.</p>
+
+    <h3>Caveat</h3>
+    <p>Width is a <i>monotone squash</i> of log-return, not a linear one — a +1400% crypto
+    year (BTC 2017) doesn't draw 14× wider than a +100% year, or the disk would be unreadable;
+    rank is preserved, magnitude is compressed. Scars mark only drawdown episodes deeper
+    than the severity gate (the asset's median annual vol, clamped to 15–50%) that stayed
+    underwater at least ~4 months — and a first-ring crash is dropped as a listing
+    artifact; hover a ring to see that year's max drawdown regardless.
+    First and last calendar years are usually incomplete, but every ring is drawn as a full
+    circle anyway — stats are computed over the days present, the disk just reads cleaner.
+    Vol is realized (backward-looking), annualized from daily moves.</p>
+  </div>
+
+  <div id="tip"></div>
+</div>
+
+<div id="detail">
+  <div class="close" id="detail-close">✕</div>
+  <div class="panel">
+    <canvas id="detail-cv" width="460" height="460"></canvas>
+    <div class="stats" id="detail-stats"></div>
+  </div>
+</div>
+
+<script>
+const CLASS_COLORS = {
+  crypto: "#e8b84b", equity: "#5b8dd9", bonds: "#5fbf8a",
+  commodities: "#c97b4a", fx: "#52b8c4", volatility: "#d95b6a",
+};
+const CLASS_ORDER = ["crypto", "equity", "bonds", "commodities", "fx", "volatility"];
+
+let DATA = null, NORM = null;
+let trees = [];           // current rendered forest (array of tree objs)
+let byId = {};
+let sortKey = "featured";
+const hiddenClasses = new Set();
+const extraIds = new Set(); // user-added non-featured trees
+
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+let layout = [];          // [{tree, cx, cy, R}] for hit-testing
+let dpr = window.devicePixelRatio || 1;
+
+// ---------- color helpers ----------
+function hexToRgb(h) {
+  const n = parseInt(h.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function mix(a, b, t) { return a.map((v, i) => Math.round(v + (b[i] - v) * t)); }
+function rgb(c, alpha) { return `rgba(${c[0]},${c[1]},${c[2]},${alpha == null ? 1 : alpha})`; }
+
+// Ring color: ONE uniform color per ring, like real wood.  Hue is a diverging
+// scale on the year's log return — red (bad) -> parched tan (flat) -> green
+// (good) — normalized WITHIN class (class p5..p95) so "a good year for its
+// kind" is the same green on every tree, and equities aren't washed-out tan
+// next to crypto.  Vol darkens, also within class.  Class identity lives on
+// the bark outline + label.
+const RET_NEG = [206, 84, 92];    // deep red — bad year
+const RET_MID = [173, 158, 124];  // parched tan — flat year
+const RET_POS = [106, 184, 128];  // green — good year
+function ringFill(cls, ring) {
+  const lg = ring.log_growth;
+  const la = (NORM.lg_cls && NORM.lg_cls[cls]) || [NORM.lg_p5, NORM.lg_p95];
+  let col;
+  if (lg >= 0) {
+    const u = clamp(lg / la[1], 0, 1);            // la[1] = class p95 > 0
+    col = mix(RET_MID, RET_POS, Math.sqrt(u));    // sqrt: spread the common modest years
+  } else {
+    const u = clamp(lg / la[0], 0, 1);            // la[0] = class p5 < 0
+    col = mix(RET_MID, RET_NEG, Math.sqrt(u));
+  }
+  const va = (NORM.vol_cls && NORM.vol_cls[cls]) || [NORM.vol_p10, NORM.vol_p90];
+  const v = clamp((ring.vol - va[0]) / (va[1] - va[0]), 0, 1);
+  const light = mix(col, [216, 220, 224], 0.28 * (1 - v));  // calm -> lighter
+  return mix(light, [16, 18, 24], v * 0.45);                // violent -> darker
+}
+function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+// Log-growth -> ring thickness (monotone squash). Down years compress to a
+// thin floor, up years swell, but every ring stays visible.
+function ringThickness(lg) {
+  // signed log compression around 0, normalized by the global p5..p95 span.
+  const t = Math.sign(lg) * Math.log1p(Math.abs(lg) * 3.2);
+  const lo = Math.sign(NORM.lg_p5) * Math.log1p(Math.abs(NORM.lg_p5) * 3.2);
+  const hi = Math.sign(NORM.lg_p95) * Math.log1p(Math.abs(NORM.lg_p95) * 3.2);
+  const u = clamp((t - lo) / (hi - lo), 0, 1); // 0..1
+  return 0.28 + 1.72 * u;                       // relative units, min floor 0.28
+}
+
+// ---------- forest assembly ----------
+function rebuildForest() {
+  let list = DATA.trees.filter(t =>
+    (t.featured || extraIds.has(t.id)) && !hiddenClasses.has(t.cls));
+
+  const cmp = {
+    featured: (a, b) => (a._fidx - b._fidx),
+    age: (a, b) => b.age_years - a.age_years,
+    cagr: (a, b) => b.cagr - a.cagr,
+    worst_dd: (a, b) => a.worst_dd - b.worst_dd,       // most-scarred first (most negative)
+    uniformity: (a, b) => a.uniformity - b.uniformity, // steadiest first (lowest)
+  }[sortKey];
+  list = list.slice().sort(cmp);
+  trees = list;
+  drawForest();
+}
+
+// ---------- ring glyph drawing ----------
+// Draws a tree at (cx,cy) within max radius R. Returns nothing.
+function drawTree(g, tree, cx, cy, R, opts) {
+  opts = opts || {};
+  const labels = !!opts.labels;
+  const rings = tree.rings;
+  // Allocate radius by cumulative thickness so growth differences show.
+  const thick = rings.map(r => ringThickness(r.log_growth));
+  const totalThick = thick.reduce((a, b) => a + b, 0);
+  const core = R * 0.07;                 // small pith at center
+  const usable = R - core;
+  let r0 = core;
+  const TWO_PI = Math.PI * 2;
+  const bands = [];                      // per-ring geometry for the scar pass
+
+  for (let k = 0; k < rings.length; k++) {
+    const ring = rings[k];
+    const r1 = r0 + usable * (thick[k] / totalThick);
+    const fill = ringFill(tree.cls, ring);
+
+    // Every ring is a full circle, even the first/last (usually partial) year.
+    // Partial-ness is a calendar artifact — equities log ~252 days/yr vs
+    // crypto's 365, so a mid-year edge year falls short of the "full" gate at
+    // different times — and drawing stub arcs just made the forest look ragged.
+    // The year's stats are still computed only over the days present (honest);
+    // we just render the band all the way around.
+    const a0 = -Math.PI / 2;             // Jan at top
+    const a1 = a0 + TWO_PI;
+
+    // Base ring band.
+    g.beginPath();
+    g.arc(cx, cy, r1, a0, a1);
+    g.arc(cx, cy, r0, a1, a0, true);
+    g.closePath();
+    g.fillStyle = rgb(fill);
+    g.fill();
+
+    // Thin separator between rings for legibility.
+    g.beginPath();
+    g.arc(cx, cy, r1, a0, a1);
+    g.strokeStyle = "rgba(11,14,20,0.55)";
+    g.lineWidth = 0.6;
+    g.stroke();
+
+    bands.push({ year: ring.year, r0, r1 });
+
+    if (labels && (r1 - r0) > 7) {
+      g.fillStyle = "rgba(215,220,230,0.55)";
+      g.font = "9px ui-monospace, Menlo, monospace";
+      g.save();
+      g.translate(cx, cy - (r0 + r1) / 2);
+      g.fillText("'" + String(ring.year).slice(2), -6, 3);
+      g.restore();
+    }
+    r0 = r1;
+  }
+
+  // Bark: a thin outline in the class hue — class identity lives here and on
+  // the label, not on the ring fill.  Drawn before scars so an open wound
+  // visibly breaks the bark.
+  if (bands.length) {
+    const bk = bands[bands.length - 1];
+    g.beginPath();
+    g.arc(cx, cy, bk.r1, 0, Math.PI * 2);
+    g.strokeStyle = CLASS_COLORS[tree.cls] || "#7a8299";
+    g.lineWidth = 1.5;
+    g.stroke();
+  }
+
+  // Scars: each major drawdown episode is a radial seam — widest at the
+  // trough (its ring + date angle), radiating outward through every later
+  // ring until the recovery year, where it closes to a point like a callus.
+  // Unrecovered drawdowns stay open all the way through the bark.
+  for (const sc of (tree.scars || [])) {
+    let k0 = bands.findIndex(b => b.year >= sc.year);
+    if (k0 < 0) continue;
+    const open = sc.r_year == null;
+    let k1 = open ? bands.length - 1 : k0;
+    if (!open) {
+      for (let k = k0; k < bands.length && bands[k].year <= sc.r_year; k++) k1 = k;
+    }
+    const b0 = bands[k0];
+    const ang = -Math.PI / 2 + sc.angle * Math.PI * 2;   // Jan top, clockwise
+    const rEnd = bands[k1].r1;                            // seam runs to recovery ring
+    const depth = clamp(Math.abs(sc.depth), 0, 1);
+    const rA = b0.r0;
+    // Slim, near-constant width — real scars read as straight seams, not
+    // wedges.  Capped by local radius so inner-ring wounds can't blob.
+    const hw0 = Math.min(R * (0.008 + 0.020 * depth), rA * 0.30);
+    const hwEnd = open ? hw0 * 0.85 : hw0 * 0.30;  // healed: slight taper shut
+    const ux = Math.cos(ang), uy = Math.sin(ang);
+    const px = -uy, py = ux;                   // perpendicular (seam width axis)
+    g.beginPath();
+    g.moveTo(cx + ux * rA + px * hw0, cy + uy * rA + py * hw0);
+    g.lineTo(cx + ux * rEnd + px * hwEnd, cy + uy * rEnd + py * hwEnd);
+    g.lineTo(cx + ux * rEnd - px * hwEnd, cy + uy * rEnd - py * hwEnd);
+    g.lineTo(cx + ux * rA - px * hw0, cy + uy * rA - py * hw0);
+    g.closePath();
+    g.fillStyle = "rgba(8,9,13,0.85)";
+    g.fill();
+    // Faint callus rim so the seam reads against dark rings.
+    g.strokeStyle = "rgba(220,225,235,0.20)";
+    g.lineWidth = 0.7;
+    g.stroke();
+  }
+
+  // Pith dot.
+  g.beginPath();
+  g.arc(cx, cy, core * 0.7, 0, Math.PI * 2);
+  g.fillStyle = "rgba(120,130,150,0.5)";
+  g.fill();
+}
+
+// ---------- forest layout + render ----------
+function resize() {
+  dpr = window.devicePixelRatio || 1;
+  const r = cv.parentElement.getBoundingClientRect();
+  cv.width = r.width * dpr; cv.height = r.height * dpr;
+  if (DATA) drawForest();
+}
+window.addEventListener("resize", resize);
+
+function drawForest() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const W = cv.width / dpr, H = cv.height / dpr;
+  ctx.fillStyle = "#0b0e14";
+  ctx.fillRect(0, 0, W, H);
+
+  const n = trees.length;
+  if (!n) return;
+
+  // Grid: pick columns to roughly fill the stage. Glyph radius scales with age
+  // so old-growth trees are visibly bigger disks.
+  const pad = 18;
+  const labelH = 16;
+  let cols = Math.ceil(Math.sqrt(n * W / Math.max(H, 1)));
+  cols = clamp(cols, 4, 12);
+  let rows = Math.ceil(n / cols);
+  let cellW = (W - pad * 2) / cols;
+  let cellH = (H - pad * 2) / rows;
+  let cell = Math.min(cellW, cellH);
+  // recompute cols if cells are too small/large
+  const Rmax = (cell - labelH) / 2 - 6;
+
+  layout = [];
+  trees.forEach((tree, i) => {
+    const col = i % cols, row = Math.floor(i / cols);
+    const cx = pad + cellW * col + cellW / 2;
+    const cy = pad + cellH * row + (cellH - labelH) / 2;
+    // radius by age (sqrt so it doesn't explode), floored so young trees read.
+    const ageFrac = Math.sqrt(tree.age_years / NORM.max_age);
+    const R = Math.max(Rmax * (0.42 + 0.58 * ageFrac), 14);
+    drawTree(ctx, tree, cx, cy, R);
+    // label — tinted by class, the other carrier of class identity
+    ctx.fillStyle = rgb(mix(hexToRgb(CLASS_COLORS[tree.cls] || "#7a8299"), [215, 220, 230], 0.3));
+    ctx.font = "11px ui-monospace, Menlo, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(tree.id.toUpperCase(), cx, cy + R + 13);
+    ctx.textAlign = "left";
+    layout.push({ tree, cx, cy, R });
+  });
+}
+
+// ---------- hit-testing: which ring under the cursor ----------
+function ringAt(tree, R, dx, dy) {
+  const dist = Math.hypot(dx, dy);
+  if (dist > R) return -1;
+  const thick = tree.rings.map(r => ringThickness(r.log_growth));
+  const total = thick.reduce((a, b) => a + b, 0);
+  const core = R * 0.07, usable = R - core;
+  let r0 = core;
+  for (let k = 0; k < tree.rings.length; k++) {
+    const r1 = r0 + usable * (thick[k] / total);
+    if (dist >= r0 && dist <= r1) return k;
+    r0 = r1;
+  }
+  return -1;
+}
+
+const tip = document.getElementById("tip");
+function pct(x) { return (x * 100).toFixed(1) + "%"; }
+function spct(x) { return (x >= 0 ? "+" : "") + (x * 100).toFixed(1) + "%"; }
+
+cv.addEventListener("pointermove", e => {
+  if (!layout.length) return;
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  let hit = null, ringIdx = -1;
+  for (const L of layout) {
+    const dx = mx - L.cx, dy = my - L.cy;
+    if (Math.hypot(dx, dy) <= L.R + 2) {
+      const ri = ringAt(L.tree, L.R, dx, dy);
+      if (ri >= 0) { hit = L; ringIdx = ri; break; }
+    }
+  }
+  if (hit && ringIdx >= 0) {
+    const t = hit.tree, ring = t.rings[ringIdx];
+    const rc = ring.ret >= 0 ? "pos" : "neg";
+    tip.innerHTML =
+      `<b>${t.id.toUpperCase()}</b> · ${t.cls} · <b>${ring.year}</b>${ring.partial ? " (partial)" : ""}<br>` +
+      `return <span class="${rc}">${spct(ring.ret)}</span><br>` +
+      `vol ${pct(ring.vol)}<br>` +
+      `max DD <span class="neg">${pct(ring.max_dd)}</span> @ ${ring.scar_date}`;
+    tip.style.display = "block";
+    const st = document.getElementById("stage").getBoundingClientRect();
+    tip.style.left = Math.min(mx + 14, st.width - tip.offsetWidth - 8) + "px";
+    tip.style.top = Math.min(my + 14, st.height - tip.offsetHeight - 8) + "px";
+    cv.style.cursor = "pointer";
+  } else {
+    tip.style.display = "none";
+    cv.style.cursor = "default";
+  }
+});
+cv.addEventListener("pointerleave", () => { tip.style.display = "none"; });
+
+cv.addEventListener("click", e => {
+  const r = cv.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  for (const L of layout) {
+    if (Math.hypot(mx - L.cx, my - L.cy) <= L.R + 2) { openDetail(L.tree); return; }
+  }
+});
+
+// ---------- detail overlay ----------
+const detail = document.getElementById("detail");
+const dcv = document.getElementById("detail-cv"), dctx = dcv.getContext("2d");
+function openDetail(tree) {
+  const size = 460, ddpr = window.devicePixelRatio || 1;
+  dcv.width = size * ddpr; dcv.height = size * ddpr;
+  dcv.style.width = size + "px"; dcv.style.height = size + "px";
+  dctx.setTransform(ddpr, 0, 0, ddpr, 0, 0);
+  dctx.clearRect(0, 0, size, size);
+  drawTree(dctx, tree, size / 2, size / 2, size / 2 - 18, { labels: true });
+
+  const s = document.getElementById("detail-stats");
+  const cagrC = tree.cagr >= 0 ? "pos" : "neg";
+  const by = tree.best_year, wy = tree.worst_year;
+  s.innerHTML =
+    `<h2>${tree.id.toUpperCase()}</h2>` +
+    `<div class="cls" style="color:${CLASS_COLORS[tree.cls]}">${tree.cls}${tree.featured ? "" : " · added"}</div>` +
+    `<table>` +
+    `<tr><td>age</td><td class="v">${tree.age_years.toFixed(1)} yr (${tree.n_rings} rings)</td></tr>` +
+    `<tr><td>CAGR</td><td class="v ${cagrC}">${spct(tree.cagr)}</td></tr>` +
+    `<tr><td>worst drawdown</td><td class="v neg">${pct(tree.worst_dd)}</td></tr>` +
+    `<tr><td>best year</td><td class="v pos">${by.year} ${spct(by.ret)}</td></tr>` +
+    `<tr><td>worst year</td><td class="v neg">${wy.year} ${spct(wy.ret)}</td></tr>` +
+    `<tr><td>mean vol</td><td class="v">${pct(tree.mean_vol)}</td></tr>` +
+    `<tr><td>ring evenness</td><td class="v">${tree.uniformity.toFixed(2)} <span style="color:var(--dim)">(lower=steadier)</span></td></tr>` +
+    (tree.scars || []).map(sc =>
+      `<tr><td>scar</td><td class="v"><span class="neg">${pct(sc.depth)}</span> @ ${sc.date} · ` +
+      (sc.r_year == null ? `<span class="neg">still open</span>` : `healed ${sc.r_date}`) + `</td></tr>`
+    ).join("") +
+    `</table>` +
+    `<div class="hint">center ring = ${tree.first_year} · bark = ${tree.last_year}<br>hover a ring in the forest for that year's numbers</div>`;
+  detail.classList.add("open");
+}
+document.getElementById("detail-close").onclick = () => detail.classList.remove("open");
+detail.addEventListener("click", e => { if (e.target === detail) detail.classList.remove("open"); });
+
+// ---------- controls ----------
+document.querySelectorAll("#sort button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("#sort button").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    sortKey = b.dataset.k;
+    rebuildForest();
+  };
+});
+
+const infoBtn = document.getElementById("info-btn");
+infoBtn.onclick = () => {
+  document.getElementById("explainer").classList.toggle("open");
+  infoBtn.classList.toggle("active");
+};
+
+const search = document.getElementById("search");
+search.addEventListener("change", () => {
+  const id = search.value.trim().toLowerCase();
+  if (byId[id]) { extraIds.add(id); search.value = ""; rebuildForest(); }
+});
+
+document.getElementById("reset").onclick = () => {
+  extraIds.clear(); hiddenClasses.clear();
+  document.querySelectorAll("#classfilter span").forEach(s => s.classList.remove("off"));
+  rebuildForest();
+};
+
+function buildClassFilter() {
+  const present = new Set(DATA.trees.map(t => t.cls));
+  const wrap = document.getElementById("classfilter");
+  CLASS_ORDER.filter(c => present.has(c)).forEach(c => {
+    const sp = document.createElement("span");
+    sp.dataset.cls = c;
+    sp.innerHTML = `<i style="background:${CLASS_COLORS[c]}"></i>${c}`;
+    sp.onclick = () => {
+      hiddenClasses.has(c) ? hiddenClasses.delete(c) : hiddenClasses.add(c);
+      sp.classList.toggle("off", hiddenClasses.has(c));
+      rebuildForest();
+    };
+    wrap.appendChild(sp);
+  });
+}
+
+// ---------- legend swatches ----------
+function paintLegend() {
+  // width gradient (neutral wood tan)
+  const w = document.getElementById("lg-width").getContext("2d");
+  for (let i = 0; i < 5; i++) {
+    const h = 4 + i * 5;
+    w.fillStyle = rgb(RET_MID);
+    w.fillRect(8 + i * 22, 15 - h / 2, 16, h);
+  }
+  // top row: diverging return scale; bottom row: vol darkness on flat tan.
+  const d = document.getElementById("lg-dark").getContext("2d");
+  for (let i = 0; i < 40; i++) {
+    const u = (i / 39) * 2 - 1;
+    const col = u < 0 ? mix(RET_MID, RET_NEG, Math.sqrt(-u)) : mix(RET_MID, RET_POS, Math.sqrt(u));
+    d.fillStyle = rgb(col);
+    d.fillRect(8 + i * 2.8, 4, 3, 10);
+    const v = i / 39;
+    const dk = mix(mix(RET_MID, [216, 220, 224], 0.28 * (1 - v)), [16, 18, 24], v * 0.45);
+    d.fillStyle = rgb(dk);
+    d.fillRect(8 + i * 2.8, 17, 3, 9);
+  }
+  // scar icon — a slim straight seam radiating from an inner ring to the bark.
+  const s = document.getElementById("lg-scar").getContext("2d");
+  s.fillStyle = rgb(RET_MID);
+  s.beginPath(); s.arc(23, 23, 18, 0, Math.PI * 2); s.fill();
+  const sa = -1.05, sux = Math.cos(sa), suy = Math.sin(sa), spx = -suy, spy = sux;
+  s.fillStyle = "rgba(8,9,13,0.85)";
+  s.beginPath();
+  s.moveTo(23 + sux * 7 + spx * 2.0, 23 + suy * 7 + spy * 2.0);
+  s.lineTo(23 + sux * 18 + spx * 1.7, 23 + suy * 18 + spy * 1.7);
+  s.lineTo(23 + sux * 18 - spx * 1.7, 23 + suy * 18 - spy * 1.7);
+  s.lineTo(23 + sux * 7 - spx * 2.0, 23 + suy * 7 - spy * 2.0);
+  s.closePath(); s.fill();
+  s.strokeStyle = "rgba(220,225,235,0.25)"; s.lineWidth = 0.7; s.stroke();
+}
+
+// ---------- boot ----------
+async function boot() {
+  const res = await fetch("data/rings.json");
+  DATA = await res.json();
+  NORM = DATA.norm;
+  DATA.trees.forEach((t, i) => { byId[t.id] = t; });
+  // featured index for "curated" sort
+  let fi = 0;
+  DATA.trees.forEach(t => { t._fidx = t.featured ? fi++ : 1e9; });
+  // datalist of all tickers
+  const dl = document.getElementById("alltrees");
+  DATA.trees.map(t => t.id).sort().forEach(id => {
+    const o = document.createElement("option"); o.value = id; dl.appendChild(o);
+  });
+  // debug hook for headless verification
+  window.__rings = { get trees() { return trees; }, get layout() { return layout; }, byId };
+  document.querySelector("header .sub").textContent =
+    `assets as dendrochronology — ${DATA.n_featured} of ${DATA.n_trees} computed trees · one ring per year, real daily prices`;
+  buildClassFilter();
+  paintLegend();
+  resize();
+  rebuildForest();
+}
+boot().catch(e => { console.error("boot failed:", e && e.stack || e); });
+</script>
+</body>
+</html>

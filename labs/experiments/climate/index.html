@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Climate Years — Money Trees</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #100d0a; --panel: #17130e; --panel2: #1c170f; --border: #2e2820;
+    --ink: #e8e0d4; --dim: #9a8f7d; --accent: #c8963e;
+    --crypto: #e8b84b; --equity: #5b8dd9; --bonds: #5fbf8a;
+    --commodities: #c97b4a; --fx: #52b8c4;
+    --good: #6ab880; --bad: #d9705f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.5 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh; padding: 40px 20px 80px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  a { color: var(--accent); }
+
+  header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  h1 { font-size: 30px; letter-spacing: -0.4px; }
+  h1 .accent { color: var(--accent); }
+  header .back { font-size: 12px; color: var(--dim); text-decoration: none; }
+  header .back:hover { color: var(--ink); }
+  .sub { color: var(--dim); max-width: 700px; margin: 6px 0 22px; font-size: 13.5px; }
+
+  #info-btn {
+    margin-left: auto;
+    background: var(--panel); color: var(--dim); border: 1px solid var(--border);
+    padding: 5px 11px; border-radius: 5px; cursor: pointer; font: inherit; font-size: 12px;
+    white-space: nowrap;
+  }
+  #info-btn.active { color: var(--accent); border-color: var(--accent); }
+
+  #explainer {
+    display: none; background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 22px; margin-bottom: 24px;
+    font-size: 13px; color: #c8bea8; max-width: 760px;
+  }
+  #explainer.open { display: block; }
+  #explainer h3 { font-size: 12px; color: var(--accent); margin: 14px 0 5px; text-transform: uppercase; letter-spacing: .4px; }
+  #explainer h3:first-child { margin-top: 0; }
+  #explainer p { margin: 0 0 8px; }
+  #explainer b { color: var(--ink); }
+  #explainer code { color: var(--accent); font-size: 12px; }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 20px;
+  }
+  .panel-title {
+    font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .panel-title .hint { text-transform: none; letter-spacing: 0; font-size: 11.5px; }
+
+  /* headline stat cards */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px; margin-bottom: 22px;
+  }
+  .stat-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 15px 18px;
+  }
+  .stat-card .label { font-size: 10.5px; color: var(--dim); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; }
+  .stat-card .value { font-size: 21px; color: var(--ink); font-weight: 600; }
+  .stat-card .value .unit { font-size: 13px; color: var(--dim); font-weight: 400; }
+  .stat-card .detail { font-size: 12px; color: var(--dim); margin-top: 6px; line-height: 1.45; }
+  .stat-card .detail b { color: var(--ink); font-weight: 600; }
+  .stat-card ol { margin: 4px 0 0 16px; font-size: 12.5px; }
+  .stat-card ol li { margin-bottom: 3px; color: #c8bea8; }
+  .stat-card ol li b { color: var(--ink); }
+  .stat-card ol li .sm { color: var(--dim); font-size: 11px; }
+
+  /* timeline */
+  #timeline-wrap { position: relative; }
+  #timeline { display: block; width: 100%; height: 300px; cursor: pointer; }
+  #timeline-tip {
+    display: none; position: absolute; z-index: 5; pointer-events: none;
+    background: rgba(23,19,14,0.98); border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 11px; font-size: 11.5px; line-height: 1.5; color: #c8bea8;
+    white-space: nowrap;
+  }
+  #timeline-tip b { color: var(--ink); }
+
+  /* detail grid */
+  .detail-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 760px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  #rose-canvas { display: block; margin: 0 auto; }
+  .rose-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-top: 14px; font-size: 12.5px; }
+  .rose-stats div { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding: 3px 0; }
+  .rose-stats div span:first-child { color: var(--dim); }
+  .rose-stats div span:last-child { color: var(--ink); font-weight: 600; }
+
+  .legend-row { display: flex; gap: 16px; flex-wrap: wrap; font-size: 11px; color: var(--dim); margin-top: 12px; }
+  .legend-row i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+
+  #forest-strip {
+    max-height: 400px; overflow-y: auto; display: flex; flex-wrap: wrap;
+    gap: 4px 2px; align-content: flex-start;
+  }
+  .glyph {
+    width: 78px; text-align: center; padding: 6px 2px 8px; border-radius: 6px;
+  }
+  .glyph:hover { background: var(--panel2); }
+  .glyph canvas { display: block; margin: 0 auto; }
+  .glyph .tk { font-size: 11px; color: var(--ink); font-weight: 600; margin-top: 2px; }
+  .glyph .dd { font-size: 10.5px; color: var(--bad); }
+  .glyph .dd.rec { color: var(--dim); }
+  .glyph .dt { font-size: 9.5px; color: var(--dim); }
+  #forest-more { font-size: 11.5px; color: var(--dim); padding: 8px 4px; width: 100%; }
+
+  .empty-hint { color: var(--dim); font-size: 12.5px; padding: 30px 0; text-align: center; }
+
+  footer { margin-top: 30px; font-size: 11px; color: #6b6152; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Climate <span class="accent">Years</span></h1>
+    <a class="back" href="../../">&larr; money trees</a>
+    <button id="info-btn">&#9432; what am I looking at?</button>
+  </header>
+  <p class="sub">Every scar in the forest is anchored to its trough's calendar angle (Jan = top, clockwise).
+    A market-wide shock carves scars at the <b style="color:var(--ink)">same angle</b> across many trees in the
+    <b style="color:var(--ink)">same year</b> — a "climate year." Weather is one tree's bad year; climate is the
+    whole forest scarring in sync.</p>
+
+  <div id="explainer">
+    <h3>What it is</h3>
+    <p>A re-aggregation of <code>forest/prep.py</code>'s already-computed scars (whole-history drawdown episodes
+      past each asset's own severity gate) grouped by the calendar year their trough fell in. No new price data,
+      no new gate — just asking "how many trees scarred this year, and did their wounds land on the same date?"</p>
+    <h3>The score</h3>
+    <p><b>breadth</b> = scars this year &divide; trees alive this year — what fraction of the living forest got a
+      fresh scar.</p>
+    <p><b>R</b> (mean resultant length) = circular concentration of the scar trough angles, 0&ndash;1. Treat each
+      scar's angle as a point on a clock face; R &rarr; 1 means every scar landed in the same narrow window
+      (one dated shock), R &rarr; 0 means scars scattered evenly across the year (unrelated bad-year clustering,
+      not one event).</p>
+    <p><b>climate score</b> = breadth &times; R — how much of the forest scarred, <i>and</i> how tightly those
+      wounds line up on the calendar. High breadth with low R (see 2022 below) means lots of damage that
+      wasn't one synchronized event.</p>
+    <h3>The analogy</h3>
+    <p>Real dendrochronologists read fire scars across a forest: a scar that shows up at the same ring-position
+      across many trees marks a single historical fire; scars scattered across different years are just
+      individual trees having bad luck. Same logic here, with drawdown troughs standing in for fire.</p>
+    <h3>Caveats</h3>
+    <p><b>Survivor-biased universe</b> — only assets with a live parquet file today and &ge;3 full years become
+      trees. Anything that delisted before accumulating history can't contribute a scar to any year, so early
+      breadth is a floor, not the true rate.</p>
+    <p><b>The scar gate</b> (inherited from <code>forest/prep.py</code>) — a drawdown only counts if it clears the
+      asset's own vol-derived threshold (15%&ndash;50% of price) <i>and</i> stays underwater &ge;120 days past the
+      trough. Fast V-dips, even deep ones, never enter this dataset — breadth counts scars, not volatility.</p>
+    <p><b>Small-sample years</b> — 2010&ndash;2013 have only a handful of trees; a single scar there can post a
+      perfect R=1 with nothing else in the forest to disagree with it. Those years are shown dimmed on the
+      timeline and excluded from the ranked headline list (flagged <code>low_sample</code> in the data).</p>
+    <p><b>Data window</b> — the price lake here spans 2010&ndash;2026, so earlier climate years (2000, 2008) are
+      structurally invisible; that's a window limit, not evidence those years were calm.</p>
+  </div>
+
+  <div class="stats-row" id="stats-row"></div>
+
+  <div class="panel">
+    <div class="panel-title">
+      <span>climate score by year</span>
+      <span class="hint" id="timeline-hint" style="color:var(--dim)">click a bar to inspect that year</span>
+    </div>
+    <div id="timeline-wrap">
+      <canvas id="timeline"></canvas>
+      <div id="timeline-tip"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="detail-panel">
+    <div class="panel-title"><span id="detail-title">year detail</span></div>
+    <div class="detail-grid">
+      <div>
+        <canvas id="rose-canvas" width="300" height="300"></canvas>
+        <div class="rose-stats" id="rose-stats"></div>
+        <div class="legend-row" id="rose-legend"></div>
+      </div>
+      <div>
+        <div class="panel-title" style="margin-bottom:8px;">
+          <span id="forest-title">scarred trees this year</span>
+        </div>
+        <div id="forest-strip"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Money Trees / Climate Years &mdash; derived entirely from <code>data/rings.json</code> scars. No decoration without a decoded number.</footer>
+</div>
+
+<script>
+const CLASS_COLORS = { crypto: "#e8b84b", equity: "#5b8dd9", bonds: "#5fbf8a", commodities: "#c97b4a", fx: "#52b8c4" };
+const CLASS_LABELS = { crypto: "crypto", equity: "equity", bonds: "bonds", commodities: "commodities", fx: "fx" };
+let DATA = null;
+let selectedYear = null;
+let barRects = [];   // [{year, x, y, w, h}] for hit-testing the timeline
+
+function hexToRgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function rgba(hex, a) { const c = hexToRgb(hex); return `rgba(${c[0]},${c[1]},${c[2]},${a == null ? 1 : a})`; }
+function pct(x, d) { return (x * 100).toFixed(d == null ? 0 : d) + "%"; }
+function clamp(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+
+function dpiCanvas(cv, cssW, cssH) {
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(cssW * dpr);
+  cv.height = Math.round(cssH * dpr);
+  cv.style.width = cssW + "px";
+  cv.style.height = cssH + "px";
+  const g = cv.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return g;
+}
+
+// ---------------- headline stats ----------------
+function renderStats() {
+  const row = document.getElementById("stats-row");
+  const ranked = DATA.top_years_ranked;
+  const top3 = ranked.slice(0, 3);
+  const byYear = {};
+  DATA.years.forEach(y => byYear[y.year] = y);
+  const y2020 = byYear[2020], y2022 = byYear[2022];
+
+  let cards = "";
+
+  // Card 1: top climate years ranked
+  cards += `<div class="stat-card">
+    <div class="label">top climate years</div>
+    <ol>${top3.map((r, i) => `<li><b>${r.year}</b> — score ${r.score.toFixed(2)}
+        <span class="sm">(breadth ${pct(r.breadth)}, R ${r.R.toFixed(2)})</span></li>`).join("")}</ol>
+    <div class="detail">ranked among years with &ge; ${DATA.min_alive_for_rank} trees alive (excludes noisy early years)</div>
+  </div>`;
+
+  // Card 2: 2020 vs 2022 concentration
+  if (y2020 && y2022) {
+    const winner = y2020.R > y2022.R ? "2020" : "2022";
+    const ratio = (Math.max(y2020.R, y2022.R) / Math.max(1e-6, Math.min(y2020.R, y2022.R))).toFixed(1);
+    cards += `<div class="stat-card">
+      <div class="label">2020 vs 2022 concentration</div>
+      <div class="value">R ${y2020.R.toFixed(2)} <span class="unit">vs</span> ${y2022.R.toFixed(2)}</div>
+      <div class="detail"><b>${winner}</b> is ${ratio}&times; more concentrated. COVID's scars clustered in a
+        ~3-week window (Feb&ndash;Mar); 2022's rate-shock scars spread across the year — crypto cratered in
+        spring &amp; winter, bonds/commodities cratered in autumn — <b>higher breadth (${pct(y2022.breadth)})
+        but far lower R.</b></div>
+    </div>`;
+  }
+
+  // Card 3: raw scale
+  const totalScars = DATA.years.reduce((s, y) => s + y.n_scars, 0);
+  cards += `<div class="stat-card">
+    <div class="label">forest scale</div>
+    <div class="value">${DATA.n_trees_total} <span class="unit">trees</span></div>
+    <div class="detail"><b>${totalScars}</b> total scars logged across <b>${DATA.years.length}</b> calendar years
+      (${DATA.years[0].year}&ndash;${DATA.years[DATA.years.length - 1].year}), the span of the price lake behind
+      this dataset.</div>
+  </div>`;
+
+  row.innerHTML = cards;
+}
+
+// ---------------- timeline ----------------
+function drawTimeline() {
+  const wrap = document.getElementById("timeline-wrap");
+  const cv = document.getElementById("timeline");
+  const cssW = wrap.clientWidth, cssH = 300;
+  const g = dpiCanvas(cv, cssW, cssH);
+  g.clearRect(0, 0, cssW, cssH);
+
+  const years = DATA.years;
+  const padL = 40, padR = 14, padT = 34, padB = 42;
+  const plotW = cssW - padL - padR, plotH = cssH - padT - padB;
+  const maxScore = Math.max(...years.map(y => y.score), 0.05);
+  const bw = plotW / years.length;
+  const rankedYears = new Set(DATA.top_years_ranked.map(r => r.year));
+  const rankIdx = {};
+  DATA.top_years_ranked.forEach((r, i) => rankIdx[r.year] = i);
+
+  // gridlines
+  g.strokeStyle = "rgba(232,224,212,0.08)";
+  g.lineWidth = 1;
+  g.font = "10px ui-monospace, Menlo, monospace";
+  g.fillStyle = "#6b6152";
+  for (let i = 0; i <= 4; i++) {
+    const v = maxScore * i / 4;
+    const y = padT + plotH - (v / maxScore) * plotH;
+    g.beginPath(); g.moveTo(padL, y); g.lineTo(cssW - padR, y); g.stroke();
+    g.fillText(v.toFixed(2), 4, y + 3);
+  }
+
+  barRects = [];
+  years.forEach((y, i) => {
+    const x = padL + i * bw;
+    const h = (y.score / maxScore) * plotH;
+    const barY = padT + plotH - h;
+    const barW = bw * 0.62;
+    const bx = x + (bw - barW) / 2;
+
+    const isSel = y.year === selectedYear;
+    let fill = y.low_sample ? "rgba(200,150,62,0.28)" : rgba("#c8963e", 0.82);
+    if (isSel) fill = "#e8c878";
+
+    g.fillStyle = fill;
+    g.fillRect(bx, barY, barW, Math.max(h, 1.5));
+
+    if (y.low_sample) {
+      // hatch pattern to honestly flag thin-sample years
+      g.save();
+      g.beginPath(); g.rect(bx, barY, barW, Math.max(h, 1.5)); g.clip();
+      g.strokeStyle = "rgba(16,13,10,0.45)"; g.lineWidth = 1.5;
+      for (let sx = bx - h; sx < bx + barW + h; sx += 5) {
+        g.beginPath(); g.moveTo(sx, barY + h); g.lineTo(sx + h, barY); g.stroke();
+      }
+      g.restore();
+    }
+
+    // event labels (abbreviated -- year already sits on the x-axis below,
+    // so drop the trailing "20XX"/"20XX-YY" to keep adjacent columns from
+    // colliding into each other's text)
+    const evs = DATA.events_by_year[String(y.year)];
+    if (evs) {
+      g.fillStyle = "#9a8f7d";
+      g.font = "9px -apple-system, sans-serif";
+      g.textAlign = "center";
+      let ly = 13;
+      evs.forEach(name => {
+        const short = name.replace(/\s+\d{4}(-\d{2})?$/, "");
+        g.fillText(short, bx + barW / 2, ly); ly += 10;
+      });
+      g.textAlign = "left";
+    }
+
+    // year label + rank badge -- both live in the fixed footer zone below
+    // the axis, never the variable-height top zone, so neither can collide
+    // with a tall bar or a stacked event label.
+    g.fillStyle = y.year === selectedYear ? "#e8c878" : "#9a8f7d";
+    g.font = "10px ui-monospace, Menlo, monospace";
+    g.textAlign = "center";
+    g.fillText(String(y.year), x + bw / 2, cssH - padB + 16);
+    if (rankedYears.has(y.year) && rankIdx[y.year] < 3) {
+      g.fillStyle = "#e8c878";
+      g.font = "bold 9px ui-monospace, Menlo, monospace";
+      g.fillText("#" + (rankIdx[y.year] + 1), x + bw / 2, cssH - padB + 28);
+    }
+    g.textAlign = "left";
+
+    barRects.push({ year: y.year, x: bx, y: Math.min(barY, padT), w: barW, h: plotH + padT - Math.min(barY, padT) });
+  });
+
+  // axis line
+  g.strokeStyle = "rgba(232,224,212,0.18)";
+  g.beginPath(); g.moveTo(padL, padT + plotH); g.lineTo(cssW - padR, padT + plotH); g.stroke();
+}
+
+function timelineYearAt(px) {
+  for (const r of barRects) {
+    if (px >= r.x - 4 && px <= r.x + r.w + 4) return r.year;
+  }
+  return null;
+}
+
+function setupTimelineEvents() {
+  const cv = document.getElementById("timeline");
+  const tip = document.getElementById("timeline-tip");
+  cv.addEventListener("mousemove", e => {
+    const rect = cv.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const yr = timelineYearAt(px);
+    if (yr == null) { tip.style.display = "none"; cv.style.cursor = "default"; return; }
+    cv.style.cursor = "pointer";
+    const y = DATA.years.find(d => d.year === yr);
+    tip.style.display = "block";
+    tip.style.left = (px + 14) + "px";
+    tip.style.top = (e.clientY - rect.top - 10) + "px";
+    tip.innerHTML = `<b>${y.year}</b><br>score ${y.score.toFixed(3)}<br>breadth ${pct(y.breadth)} (${y.n_scars}/${y.n_alive})<br>R ${y.R.toFixed(3)}` +
+      (y.low_sample ? `<br><span style="color:#c8963e">small sample</span>` : "");
+  });
+  cv.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+  cv.addEventListener("click", e => {
+    const rect = cv.getBoundingClientRect();
+    const px = e.clientX - rect.left;
+    const yr = timelineYearAt(px);
+    if (yr != null) selectYear(yr);
+  });
+}
+
+// ---------------- rose diagram ----------------
+function drawRose(yearObj) {
+  const cv = document.getElementById("rose-canvas");
+  const size = 300;
+  const g = dpiCanvas(cv, size, size);
+  g.clearRect(0, 0, size, size);
+  const cx = size / 2, cy = size / 2 - 6;
+  const maxR = size / 2 - 40;
+
+  const NBINS = 24;
+  const bins = Array.from({ length: NBINS }, () => ({}));
+  yearObj.scars.forEach(sc => {
+    const bi = clamp(Math.floor(sc.angle * NBINS), 0, NBINS - 1);
+    bins[bi][sc.cls] = (bins[bi][sc.cls] || 0) + 1;
+  });
+  let maxBinTotal = 1;
+  bins.forEach(b => { const t = Object.values(b).reduce((a, c) => a + c, 0); if (t > maxBinTotal) maxBinTotal = t; });
+
+  // month spokes + labels
+  const MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+  g.strokeStyle = "rgba(232,224,212,0.10)";
+  g.lineWidth = 1;
+  g.font = "10px ui-monospace, Menlo, monospace";
+  g.fillStyle = "#6b6152";
+  g.textAlign = "center"; g.textBaseline = "middle";
+  for (let m = 0; m < 12; m++) {
+    const a = -Math.PI / 2 + (m / 12) * Math.PI * 2;
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * maxR, cy + Math.sin(a) * maxR); g.stroke();
+    const lx = cx + Math.cos(a) * (maxR + 14), ly = cy + Math.sin(a) * (maxR + 14);
+    g.fillText(MONTHS[m], lx, ly);
+  }
+  // outer circle
+  g.beginPath(); g.arc(cx, cy, maxR, 0, Math.PI * 2); g.strokeStyle = "rgba(232,224,212,0.14)"; g.stroke();
+
+  // petals, stacked by class
+  const CLASSES = ["crypto", "equity", "bonds", "commodities", "fx"];
+  const gap = 0.12; // fraction of bin angle left as gap between petals
+  for (let bi = 0; bi < NBINS; bi++) {
+    const b = bins[bi];
+    const total = Object.values(b).reduce((a, c) => a + c, 0);
+    if (total === 0) continue;
+    const a0 = -Math.PI / 2 + (bi / NBINS) * Math.PI * 2 + (gap / NBINS) * Math.PI;
+    const a1 = -Math.PI / 2 + ((bi + 1) / NBINS) * Math.PI * 2 - (gap / NBINS) * Math.PI;
+    let r0 = 6;
+    for (const cls of CLASSES) {
+      const c = b[cls] || 0;
+      if (c === 0) continue;
+      const r1 = r0 + (c / maxBinTotal) * (maxR - 6);
+      g.beginPath();
+      g.moveTo(cx + Math.cos(a0) * r0, cy + Math.sin(a0) * r0);
+      g.arc(cx, cy, r1, a0, a1);
+      g.lineTo(cx + Math.cos(a0) * r0, cy + Math.sin(a0) * r0);
+      g.arc(cx, cy, r0, a1, a0, true);
+      g.closePath();
+      g.fillStyle = rgba(CLASS_COLORS[cls], 0.88);
+      g.fill();
+      r0 = r1;
+    }
+  }
+
+  // mean-angle arrow, length scaled by R
+  if (yearObj.mean_angle != null && yearObj.n_scars > 0) {
+    const a = -Math.PI / 2 + yearObj.mean_angle * Math.PI * 2;
+    const len = maxR * yearObj.R;
+    const ex = cx + Math.cos(a) * len, ey = cy + Math.sin(a) * len;
+    g.strokeStyle = "#e8c878"; g.lineWidth = 2.2;
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(ex, ey); g.stroke();
+    const ah = 7, aa = Math.atan2(ey - cy, ex - cx);
+    g.beginPath();
+    g.moveTo(ex, ey);
+    g.lineTo(ex - ah * Math.cos(aa - 0.4), ey - ah * Math.sin(aa - 0.4));
+    g.lineTo(ex - ah * Math.cos(aa + 0.4), ey - ah * Math.sin(aa + 0.4));
+    g.closePath();
+    g.fillStyle = "#e8c878"; g.fill();
+  }
+
+  // center dot
+  g.beginPath(); g.arc(cx, cy, 3, 0, Math.PI * 2); g.fillStyle = "#e8e0d4"; g.fill();
+}
+
+function renderRoseStats(yearObj) {
+  const el = document.getElementById("rose-stats");
+  el.innerHTML = `
+    <div><span>n scars</span><span>${yearObj.n_scars} / ${yearObj.n_alive} alive</span></div>
+    <div><span>breadth</span><span>${pct(yearObj.breadth)}</span></div>
+    <div><span>R (concentration)</span><span>${yearObj.R.toFixed(3)}</span></div>
+    <div><span>climate score</span><span>${yearObj.score.toFixed(3)}</span></div>
+    <div><span>mean angle</span><span>${yearObj.mean_angle != null ? angleToDate(yearObj.mean_angle) : "—"}</span></div>
+    <div><span>sample</span><span>${yearObj.low_sample ? "small (<" + DATA.min_alive_for_rank + " trees)" : "ok"}</span></div>
+  `;
+  const leg = document.getElementById("rose-legend");
+  leg.innerHTML = Object.keys(CLASS_COLORS).map(c =>
+    `<span><i style="background:${CLASS_COLORS[c]}"></i>${CLASS_LABELS[c]}</span>`).join("");
+}
+
+function angleToDate(a) {
+  // approximate calendar label from a fraction-of-year angle (non-leap basis)
+  const MDAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const MNAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  let d = a * 365.25;
+  let m = 0;
+  while (d >= MDAYS[m] && m < 11) { d -= MDAYS[m]; m++; }
+  return `~${MNAMES[m]} ${Math.max(1, Math.round(d))}`;
+}
+
+// ---------------- mini forest strip ----------------
+function drawTreeGlyph(cv, scarEntry) {
+  const size = 48;
+  const g = dpiCanvas(cv, size, size);
+  const cx = size / 2, cy = size / 2;
+  const maxR = size / 2 - 4;
+  // radius encodes age (real quantity), sqrt-compressed so very old trees don't dominate
+  const ageU = clamp(scarEntry.age_years / (DATA.max_age_years || 16), 0, 1);
+  const R = 10 + Math.sqrt(ageU) * (maxR - 10);
+  const core = R * 0.22;
+
+  // bark: neutral wood fill, class-hued outline
+  g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2);
+  g.fillStyle = "#241d14"; g.fill();
+  g.strokeStyle = CLASS_COLORS[scarEntry.cls]; g.lineWidth = 1.6; g.stroke();
+
+  // scar seam at the real trough angle, width by depth, taper if recovered
+  const a = -Math.PI / 2 + scarEntry.angle * Math.PI * 2;
+  const depth = clamp(Math.abs(scarEntry.depth), 0, 1);
+  const hw0 = 1.1 + 2.6 * depth;
+  const hwEnd = scarEntry.recovered ? hw0 * 0.25 : hw0 * 0.8;
+  const ux = Math.cos(a), uy = Math.sin(a);
+  const px = -uy, py = ux;
+  g.beginPath();
+  g.moveTo(cx + ux * core + px * hw0, cy + uy * core + py * hw0);
+  g.lineTo(cx + ux * R + px * hwEnd, cy + uy * R + py * hwEnd);
+  g.lineTo(cx + ux * R - px * hwEnd, cy + uy * R - py * hwEnd);
+  g.lineTo(cx + ux * core - px * hw0, cy + uy * core - py * hw0);
+  g.closePath();
+  g.fillStyle = "rgba(10,8,6,0.92)"; g.fill();
+  g.strokeStyle = scarEntry.recovered ? "rgba(106,184,128,0.45)" : "rgba(217,112,95,0.65)";
+  g.lineWidth = 0.8; g.stroke();
+
+  // pith
+  g.beginPath(); g.arc(cx, cy, core * 0.5, 0, Math.PI * 2);
+  g.fillStyle = "rgba(154,143,125,0.5)"; g.fill();
+}
+
+const FOREST_CAP = 72;
+function renderForestStrip(yearObj) {
+  const el = document.getElementById("forest-strip");
+  el.innerHTML = "";
+  const sorted = yearObj.scars.slice().sort((a, b) => Math.abs(b.depth) - Math.abs(a.depth));
+  const shown = sorted.slice(0, FOREST_CAP);
+  document.getElementById("forest-title").textContent =
+    `scarred trees, ${yearObj.year} (${yearObj.scars.length} scar${yearObj.scars.length === 1 ? "" : "s"}${shown.length < sorted.length ? `, worst ${shown.length} shown` : ""})`;
+
+  if (shown.length === 0) {
+    el.innerHTML = `<div class="empty-hint">no scars troughed in this year</div>`;
+    return;
+  }
+
+  shown.forEach(sc => {
+    const div = document.createElement("div");
+    div.className = "glyph";
+    const cv = document.createElement("canvas");
+    div.appendChild(cv);
+    const tk = document.createElement("div"); tk.className = "tk"; tk.textContent = sc.id.toUpperCase();
+    const dd = document.createElement("div"); dd.className = "dd" + (sc.recovered ? " rec" : ""); dd.textContent = pct(sc.depth, 0) + (sc.recovered ? "" : " open");
+    const dt = document.createElement("div"); dt.className = "dt"; dt.textContent = sc.date;
+    div.appendChild(tk); div.appendChild(dd); div.appendChild(dt);
+    div.title = `${sc.id.toUpperCase()} (${sc.cls}) — ${pct(sc.depth, 1)} drawdown, trough ${sc.date}${sc.recovered ? "" : ", still open"}. Age ${sc.age_years}y, ${sc.n_scars_total} scar(s) total in this tree's history.`;
+    el.appendChild(div);
+    drawTreeGlyph(cv, sc);
+  });
+
+  if (shown.length < sorted.length) {
+    const more = document.createElement("div");
+    more.id = "forest-more";
+    more.textContent = `+ ${sorted.length - shown.length} more scars this year, not rendered (sorted by depth; every one still counts toward breadth/R above).`;
+    el.appendChild(more);
+  }
+}
+
+// ---------------- selection ----------------
+function selectYear(year) {
+  selectedYear = year;
+  const y = DATA.years.find(d => d.year === year);
+  if (!y) return;
+  document.getElementById("detail-title").textContent =
+    `${year} — score ${y.score.toFixed(3)}${y.low_sample ? "  (small sample)" : ""}`;
+  drawRose(y);
+  renderRoseStats(y);
+  renderForestStrip(y);
+  drawTimeline();
+}
+
+// ---------------- boot ----------------
+async function boot() {
+  const res = await fetch("data/climate.json");
+  DATA = await res.json();
+  DATA.max_age_years = Math.max(...DATA.years.flatMap(y => y.scars.map(s => s.age_years)), 10);
+
+  renderStats();
+  drawTimeline();
+  setupTimelineEvents();
+
+  document.getElementById("info-btn").addEventListener("click", function () {
+    const p = document.getElementById("explainer");
+    p.classList.toggle("open");
+    this.classList.toggle("active");
+  });
+
+  window.addEventListener("resize", () => { drawTimeline(); if (selectedYear != null) { /* rose is fixed-size */ } });
+
+  const initial = DATA.top_years_ranked[0] ? DATA.top_years_ranked[0].year : DATA.years[DATA.years.length - 1].year;
+  selectYear(initial);
+}
+boot();
+</script>
+</body>
+</html>

@@ -1,122 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Money Trees</title>
-<style>
-  :root { color-scheme: dark; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #100d0a; color: #e8e0d4;
-    font: 15px/1.55 -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    min-height: 100vh; padding: 48px 24px;
-  }
-  .wrap { max-width: 880px; margin: 0 auto; }
-  h1 { font-size: 34px; letter-spacing: -0.5px; margin-bottom: 6px; }
-  h1 .accent { color: #c8963e; }
-  .sub { color: #9a8f7d; margin-bottom: 40px; max-width: 620px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  a.card {
-    display: block; padding: 18px 20px; border: 1px solid #2e2820;
-    border-radius: 10px; background: #17130e; text-decoration: none;
-    color: inherit; transition: border-color .15s, transform .15s;
-  }
-  a.card:hover { border-color: #c8963e; transform: translateY(-2px); }
-  .card h2 { font-size: 17px; margin-bottom: 4px; color: #e8d9bd; }
-  .card p { font-size: 13px; color: #9a8f7d; }
-  .soon { opacity: 0.45; pointer-events: none; }
-  .tag { display: inline-block; font-size: 11px; color: #c8963e; border: 1px solid #4a3b22;
-         border-radius: 4px; padding: 1px 7px; margin-bottom: 10px; letter-spacing: .5px; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Explore financial histories as tree rings: one annual band per year, encoded by growth, volatility, and drawdown scars.">
+  <title>Money Trees — Financial history in annual rings</title>
+  <link rel="stylesheet" href="shared/tokens.css">
+  <link rel="stylesheet" href="app/arboretum.css">
 </head>
 <body>
-<div class="wrap">
-  <h1>Money <span class="accent">Trees</span></h1>
-  <p class="sub">Every asset is a tree — one ring per year, growth as width, violence
-  as darkness, drawdowns as scars. A market history you can read like a core sample.</p>
-  <div class="grid">
-    <a class="card" href="forest/">
-      <span class="tag">SEED</span>
-      <h2>The Forest</h2>
-      <p>484 assets as tree cross-sections. Sort by age, growth, scarring; climate years scar the whole forest at once.</p>
-    </a>
-    <a class="card" href="grove/">
-      <span class="tag">PROTOTYPE</span>
-      <h2>Your Grove</h2>
-      <p>Type your portfolio, get your personal forest — plus a composite portfolio tree. Shareable as a link.</p>
-    </a>
-    <a class="card" href="core/">
-      <span class="tag">PROTOTYPE</span>
-      <h2>Core Samples</h2>
-      <p>Rings laid flat as lab strips on a shared year axis — climate years line up straight down the bench.</p>
-    </a>
-    <a class="card" href="climate/">
-      <span class="tag">PROTOTYPE</span>
-      <h2>Climate Years</h2>
-      <p>Which years scarred the whole forest at once? Circular statistics on scar angles: 2020 is the tightest climate year on record.</p>
-    </a>
-    <a class="card" href="fire/">
-      <span class="tag">PROTOTYPE</span>
-      <h2>Fire Ecology</h2>
-      <p>Serotiny — assets that grow their widest rings right after a burn — plus post-crash regrowth curves by class.</p>
-    </a>
-    <a class="card" href="chronology/">
-      <span class="tag">PROTOTYPE</span>
-      <h2>Master Chronology</h2>
-      <p>One reference tree per class and a per-year agreement score. Bonds are the tightest chronology — until duration split them in 2022.</p>
-    </a>
-    <a class="card" href="game/">
-      <span class="tag">PROTOTYPE</span>
-      <h2>Name That Tree</h2>
-      <p>Guess the asset from its unlabeled rings alone. If you can't, the encoding is working.</p>
-    </a>
-    <a class="card" href="poster/">
-      <span class="tag">PROTOTYPE</span>
-      <h2>Poster</h2>
-      <p>A print-resolution cross-section of any asset — 4096px, downloadable, grain driven by real volatility.</p>
-    </a>
-    <a class="card" href="growth/">
-      <span class="tag">NEW PROTOTYPE</span>
-      <h2>The Forest Grows</h2>
-      <p>Play market history forward one ring at a time and watch synchronized scars appear across the forest.</p>
-    </a>
-    <a class="card" href="standing/">
-      <span class="tag">NEW PROTOTYPE</span>
-      <h2>Standing Forest</h2>
-      <p>Financial histories inferred as living silhouettes — then cut open to reveal the ring evidence underneath.</p>
-    </a>
-    <a class="card" href="living-grove/">
-      <span class="tag">NEW PROTOTYPE</span>
-      <h2>Living Grove</h2>
-      <p>Plant a portfolio as standing trees. Plot width is allocation; morphology preserves each asset's history.</p>
-    </a>
-    <a class="card" href="atlas/">
-      <span class="tag">FOREST RIFF</span>
-      <h2>Forest Atlas</h2>
-      <p>A roomier candidate home: larger rings, playback, sorting, density controls, and specimen inspection.</p>
-    </a>
-    <a class="card" href="clearings/">
-      <span class="tag">FOREST RIFF</span>
-      <h2>Forest Clearings</h2>
-      <p>Reorganize the forest by class, listing era, volatility temperament, or shared 2022 damage.</p>
-    </a>
-    <a class="card" href="terrain/">
-      <span class="tag">FOREST RIFF</span>
-      <h2>Market Terrain</h2>
-      <p>Position carries the comparison: explore growth, volatility, age, consistency, and drawdown without abandoning the rings.</p>
-    </a>
-    <a class="card" href="arboretum/">
-      <span class="tag">DETAIL RIFF</span>
-      <h2>Detailed Arboretum</h2>
-      <p>All 50 featured assets in a sortable 2/3/4-column collection, now with Poster-style grain and partial-year bark.</p>
-    </a>
-    <a class="card" href="specimen-wall/">
-      <span class="tag">DETAIL RIFF</span>
-      <h2>Specimen Wall</h2>
-      <p>Four enormous, ranked specimens per page—with grain, year axes, scars, and summary statistics fully legible.</p>
-    </a>
+<main class="page">
+  <header>
+    <div>
+      <div class="eyebrow">Money Trees · financial dendrochronology</div>
+      <h1 id="headline">Explore fifty financial specimens</h1>
+      <p class="dek">Rank the collection, inspect individual annual bands, or cross-date the same year across every visible tree. Click any specimen for its full record.</p>
+    </div>
+    <a class="back" href="labs/">Open the lab →</a>
+  </header>
+  <div class="toolbar">
+    <div class="lens-row" id="lenses">
+      <span class="count">ranked lens</span>
+      <button class="active" data-lens="curated">All specimens</button>
+      <button data-lens="growth">Fast growers</button>
+      <button data-lens="quiet">Quiet compounders</button>
+      <button data-lens="age">Old growth</button>
+      <button data-lens="drawdown">Deep scars</button>
+      <button data-lens="positive">Most positive</button>
+      <button data-lens="wounded">Still wounded</button>
+    </div>
+    <div class="filter-row">
+      <label>class <select id="class"><option value="all">all classes</option><option value="crypto">crypto</option><option value="equity">equity</option><option value="bonds">bonds</option><option value="commodities">commodities</option><option value="fx">FX</option></select></label>
+      <label>across <select id="cols"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></label>
+      <input id="search" type="text" placeholder="find ticker" aria-label="Find ticker">
+      <label>cross-date <select id="cross"><option value="">all rings</option></select></label>
+      <span class="cross-note" id="status"></span>
+    </div>
   </div>
-</div>
+  <section class="grid" id="grid"></section>
+  <div class="tooltip" id="tip"></div>
+</main>
+<script src="shared/tree-renderer.js"></script>
+<script src="app/arboretum.js"></script>
 </body>
 </html>

@@ -1,0 +1,33 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Market Terrain — Money Trees</title><link rel="stylesheet" href="shared/living.css">
+<style>.stage{min-height:700px}.controls select{color:#eee9dd;background:#0d1713;border:1px solid #34443a;border-radius:7px;padding:7px 9px}.insight{color:#d8c38d;min-width:290px}</style></head><body><main class="page">
+<header><div><div class="eyebrow">Prototype 13 · meaningful position</div><h1 id="title">Growth rises with risk—but not evenly</h1><p class="dek">The forest becomes a scatter plot: position carries the primary comparison, while every point remains a readable financial cross-section.</p></div><a class="back" href="../../">← all prototypes</a></header>
+<div class="controls">
+  <label>terrain <select id="preset"><option value="risk">growth × volatility</option><option value="damage">age × worst drawdown</option><option value="consistency">positive years × growth</option></select></label>
+  <label>class <select id="class"><option value="all">all classes</option><option value="crypto">crypto</option><option value="equity">equity</option><option value="bonds">bonds</option><option value="commodities">commodities</option><option value="fx">FX</option></select></label>
+  <label>glyph <select id="size"><option value="22">small</option><option value="30" selected>medium</option><option value="39">large</option></select></label>
+  <span class="year" id="year">2026</span><input id="timeline" type="range" min="2010" max="2026" value="2026"><span class="insight" id="insight"></span>
+</div>
+<section class="stage"><canvas id="canvas"></canvas><div class="tooltip" id="tip"></div></section>
+</main><script src="shared/living.js"></script><script>
+const cv=document.getElementById('canvas'),presetEl=document.getElementById('preset'),classEl=document.getElementById('class'),sizeEl=document.getElementById('size'),slider=document.getElementById('timeline'),tip=document.getElementById('tip');
+let trees=[],year=2026,layout=[],redraw=()=>{};
+const PRESETS={
+ risk:{x:m=>m.meanVol,y:m=>m.cagr,xLabel:'MEAN REALIZED VOLATILITY',yLabel:'ANNUALIZED GROWTH',fmt:v=>(v*100).toFixed(0)+'%',title:'Growth rises with risk—but not evenly'},
+ damage:{x:m=>m.years,y:m=>m.worst,xLabel:'YEARS OBSERVED',yLabel:'WORST DRAWDOWN · HIGHER IS SHALLOWER',fmtX:v=>v.toFixed(0),fmt:v=>(v*100).toFixed(0)+'%',title:'Age does not guarantee shallower scars'},
+ consistency:{x:m=>m.positive,y:m=>m.cagr,xLabel:'SHARE OF POSITIVE YEARS',yLabel:'ANNUALIZED GROWTH',fmt:v=>(v*100).toFixed(0)+'%',title:'Consistency and growth are different traits'}
+};
+function visible(){return trees.filter(t=>t.first_year<=year&&(classEl.value==='all'||t.cls===classEl.value)).map(t=>({t,m:LivingTrees.metrics(t,year)}))}
+function extent(a,key){let lo=Math.min(...a.map(key)),hi=Math.max(...a.map(key));if(lo===hi){lo-=1;hi+=1}const pad=(hi-lo)*.09;return[lo-pad,hi+pad]}
+function draw(g,w,h){g.clearRect(0,0,w,h);layout=[];const p=PRESETS[presetEl.value],list=visible(),ml=86,mr=92,mt=38,mb=78,pw=w-ml-mr,ph=h-mt-mb;if(!list.length)return;const ex=extent(list,d=>p.x(d.m)),ey=extent(list,d=>p.y(d.m)),sx=v=>ml+(v-ex[0])/(ex[1]-ex[0])*pw,sy=v=>mt+ph-(v-ey[0])/(ey[1]-ey[0])*ph;
+  g.strokeStyle='rgba(229,221,203,.10)';g.fillStyle='rgba(222,216,201,.48)';g.font='10px ui-monospace,Menlo,monospace';for(let i=0;i<=5;i++){const tx=ml+pw*i/5,ty=mt+ph*i/5;g.beginPath();g.moveTo(tx,mt);g.lineTo(tx,mt+ph);g.moveTo(ml,ty);g.lineTo(ml+pw,ty);g.stroke();g.textAlign='center';const xv=ex[0]+(ex[1]-ex[0])*i/5;g.fillText((p.fmtX||p.fmt)(xv),tx,mt+ph+19);g.textAlign='right';const yv=ey[1]-(ey[1]-ey[0])*i/5;g.fillText(p.fmt(yv),ml-10,ty+3)}
+  g.fillStyle='rgba(238,233,221,.72)';g.textAlign='center';g.font='11px ui-monospace,Menlo,monospace';g.fillText(p.xLabel,ml+pw/2,h-18);g.save();g.translate(18,mt+ph/2);g.rotate(-Math.PI/2);g.fillText(p.yLabel,0,0);g.restore();
+  const R=+sizeEl.value;list.sort((a,b)=>b.m.years-a.m.years).forEach(d=>{const x=sx(p.x(d.m)),y=sy(p.y(d.m));LivingTrees.drawRings(g,d.t,x,y,R,year,.88);layout.push({x,y,R,...d})});
+  // Direct labels on the four highest y-values reduce legend hunting.
+  list.slice().sort((a,b)=>p.y(b.m)-p.y(a.m)).slice(0,4).forEach(d=>{const hit=layout.find(x=>x.t===d.t);g.textAlign='left';g.font='10px ui-monospace,Menlo,monospace';g.fillStyle=LivingTrees.CLASS_COLORS[d.t.cls];g.fillText(d.t.id.toUpperCase(),hit.x+R+4,hit.y+3)});
+}
+function copy(){const p=PRESETS[presetEl.value],list=visible();document.getElementById('title').textContent=p.title;if(!list.length){document.getElementById('insight').textContent='No visible trees';return}const top=list.slice().sort((a,b)=>p.y(b.m)-p.y(a.m))[0];document.getElementById('insight').textContent=`Highest on the vertical measure: ${top.t.id.toUpperCase()}`}
+redraw=LivingTrees.fitCanvas(cv,draw);presetEl.onchange=()=>{copy();redraw()};classEl.onchange=()=>{copy();redraw()};sizeEl.onchange=redraw;slider.oninput=e=>{year=+e.target.value;document.getElementById('year').textContent=year;copy();redraw()};
+cv.onmousemove=e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const hits=layout.filter(p=>Math.hypot(x-p.x,y-p.y)<=p.R);if(!hits.length){tip.style.opacity=0;return}hits.sort((a,b)=>Math.hypot(x-a.x,y-a.y)-Math.hypot(x-b.x,y-b.y));const d=hits[0];tip.innerHTML=`<b>${d.t.id.toUpperCase()}</b> · ${LivingTrees.CLASS_NAMES[d.t.cls]}<br>${d.m.years} rings · ${(d.m.cagr*100).toFixed(1)}% CAGR<br>${(d.m.meanVol*100).toFixed(1)}% mean vol · ${(d.m.worst*100).toFixed(1)}% worst drawdown`;tip.style.left=Math.min(r.width-255,x+13)+'px';tip.style.top=Math.max(8,y+13)+'px';tip.style.opacity=1};cv.onmouseleave=()=>tip.style.opacity=0;
+LivingTrees.load().then(d=>{trees=d.trees.filter(t=>t.featured);copy();redraw()}).catch(console.error);
+</script></body></html>

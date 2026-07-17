@@ -1,43 +1,39 @@
-# money-trees
+# Money Trees
 
-Every asset is a tree. One ring per calendar year — width is that year's growth,
-color and darkness its violence, scars its major drawdowns. A market history you
-can read like a dendrochronologist reads a core sample.
+Money Trees turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The main product is the Detailed Arboretum at `/`; selecting a tree opens its complete record at `/specimen/?id=TICKER`.
 
-Graduated from [physics-of-assets](https://github.com/empty-block/physics-of-assets)
-(experiment #12, "tree rings") into its own project. Same architecture: a pure
-**data-contract consumer** of the empty-data parquet lake. Each visualization is a
-`prep.py` that bakes a JSON artifact into `data/`, plus an `index.html` that renders
-it (vanilla canvas, no build step, no deps).
-
-## The gate
-
-Every visual feature must decode to a **real quantity computed on real data**.
-Styling an analogy doesn't count. Ring width = log total return, scar depth =
-drawdown magnitude, scar angle = calendar trough date. Nothing decorative.
+The hard gate is that every visual feature must decode to a real quantity computed from real data. Ring width is annual log growth, color is annual return, darkness is realized volatility, and scars are qualifying drawdown episodes. See [`docs/ENCODING.md`](docs/ENCODING.md) for the complete contract and caveats.
 
 ## Structure
 
-```
-index.html          gallery / entry point
-data/               baked JSON artifacts (committed — the app runs standalone)
-shared/             shared config (spans.json — canonical event windows)
-forest/             the seed viz: the full forest (from physics-of-assets rings)
-<proto>/            one prototype per directory: index.html + prep.py
+```text
+index.html                 production Arboretum shell
+app/                       Arboretum and Full Specimen UI modules
+specimen/                  shareable full-record route
+shared/                    production renderer and design tokens
+data/rings.json            canonical committed production artifact
+scripts/bake-rings.py      canonical price-lake → rings bake
+labs/                      experiment catalog and frozen studies
+  experiments/<slug>/      self-contained HTML, assets, data, optional prep
+docs/ENCODING.md           visual/data grammar
 ```
 
-## Running
+Production never imports from `labs/`. Lab experiments own frozen copies of every asset and dataset they need, so they remain runnable while the main app evolves.
 
-```
+## Run locally
+
+```bash
 python3 -m http.server 8081
 ```
 
-then open <http://localhost:8081>.
+Open <http://localhost:8081> for the app or <http://localhost:8081/labs/> for the archive. There is no build step and no frontend dependency install.
 
-## Re-baking
+## Re-bake production data
 
-`prep.py` scripts read the empty-data lake. Default path is
-`/Users/nmadd/Dropbox/code/empty-data/data`; override with the `EMPTY_DATA`
-env var. Price parquets: one file per ticker, columns `hour` (daily UTC
-timestamp), `price`, `volume`. Asset classes roll up from `groups.json`
-(crypto / equity / bonds / commodities / fx).
+```bash
+.venv/bin/python scripts/bake-rings.py
+```
+
+The script reads the empty-data lake from `/Users/nmadd/Dropbox/code/empty-data/data` by default. Override it with `EMPTY_DATA`. Price parquet files contain `hour`, `price`, and `volume`; asset classes roll up from `groups.json`.
+
+Lab prep scripts are deliberately local to their experiments and write only to that experiment's `data/` directory.

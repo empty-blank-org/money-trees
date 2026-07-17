@@ -1,0 +1,61 @@
+{
+  "_doc": "Single source of truth for time-window presets across all experiments. Pages fetch('../shared/spans.json') for labels + ordering; prep.py scripts read it for date ranges. Convention: a prep emits data keyed by span key for whichever subset it supports; the page renders buttons only for keys present in its data JSON, in the order listed here. Event spans have fixed dates; trailing spans are relative to the data end date (prep resolves them at build time). Display convention: trailing spans render LEFT of event spans (trailing-first, since Last-1y is the default), labels are bare '1y'/'5y'/'10y'.",
+  "events": [
+    {
+      "key": "covid2020",
+      "name": "COVID 2020",
+      "start": "2020-02-05",
+      "end": "2020-05-31"
+    },
+    {
+      "key": "cryptotop2021",
+      "name": "Crypto top 2021",
+      "start": "2021-10-15",
+      "end": "2022-02-01"
+    },
+    {
+      "key": "terraluna2022",
+      "name": "Terra/Luna 2022",
+      "start": "2022-04-25",
+      "end": "2022-07-15"
+    },
+    {
+      "key": "yencarry2024",
+      "name": "Yen-carry 2024",
+      "start": "2024-07-15",
+      "end": "2024-09-30"
+    },
+    {
+      "key": "meltup2024",
+      "name": "Melt-up 2024-25",
+      "start": "2024-10-15",
+      "end": "2025-02-15"
+    },
+    {
+      "key": "tariffs2025",
+      "name": "Tariffs 2025",
+      "start": "2025-03-15",
+      "end": "2025-06-15"
+    }
+  ],
+  "trailing": [
+    {
+      "key": "span1y",
+      "name": "1y",
+      "years": 1,
+      "step_days": 1
+    },
+    {
+      "key": "span5y",
+      "name": "5y",
+      "years": 5,
+      "step_days": 7
+    },
+    {
+      "key": "span10y",
+      "name": "10y",
+      "years": 10,
+      "step_days": 7
+    }
+  ]
+}
