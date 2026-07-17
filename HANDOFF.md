@@ -4,14 +4,14 @@ Last updated: 2026-07-17
 
 ## Current product
 
-The Detailed Arboretum is now the main app at `/`. It provides question-shaped rank lenses, animated reordering, class/search/density filters, URL-persisted state, band inspection, and cross-date comparison. Every card opens the shareable Full Specimen route at `/specimen/?id=TICKER`.
+The Detailed Arboretum is now the main app at `/`. It provides question-shaped rank lenses, animated reordering, class/family/search/density filters, URL-persisted state, band inspection, and cross-date comparison. Every card opens the shareable Full Specimen route at `/specimen/?id=TICKER`, where computed field notes and structural relatives turn inspection into continued discovery.
 
 Historical playback was intentionally left out: the 2010–2026, mostly post-2016 sample is more valuable for direct comparison than animation.
 
 ## Architecture
 
 - `index.html` is the small production shell.
-- `app/arboretum.*` and `app/specimen.*` own product behavior and page-specific styles.
+- `app/arboretum.*` and `app/specimen.*` own product behavior and page-specific styles; `app/tree-insights.js` owns the shared family, annotation, and similarity grammar.
 - `shared/tree-renderer.js` and `shared/tokens.css` are the only shared production presentation layer.
 - `data/rings.json` is the sole production data artifact; `scripts/bake-rings.py` creates it.
 - `labs/` is a standalone catalog. Every experiment is frozen and self-contained. Production imports nothing from it.

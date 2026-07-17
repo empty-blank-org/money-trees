@@ -43,20 +43,18 @@ daily price data.  Nothing is decorative:
                    (COVID = late March 2020) still carves scars at the SAME
                    angle across the forest — visible "climate years."
 
-  * MONTHLY returns (`mr`) are still emitted per featured ring, but only to
-                   drive partial-year arcs (first/last years render just the
-                   months present).  The per-month tint overlay was cut: it
-                   made rings read as red/green noise instead of wood, and a
-                   ring should be one color.
+  * MONTHLY returns (`mr`) are still emitted per featured ring for research
+                   and archived experiments. The production tree always draws
+                   a complete circular band; partial-year status is surfaced
+                   in inspection text, not by removing a wedge of wood.
 
 Partial years
 -------------
-The first and last calendar year of an asset are almost never complete.  We
-RENDER them as partial rings: the ring is drawn only across the angular arc of
-months actually present (a partial-circumference band, not a full circle), and
-the per-year stats are computed only over the days present.  This is honest —
-a 3-month stub IPO year looks like a thin quarter-ring, not a full year.  The
-ring's `partial` flag + `months` list drives the partial arc in the renderer.
+The first and last calendar year of an asset are almost never complete. Their
+statistics are computed only over the days actually present and the `partial`
+flag remains in the artifact. The production renderer still draws a complete
+circular band: real tree rings do not lose a half- or quarter-circle because a
+measurement window ended mid-year. Inspection text identifies partial years.
 
 Universe
 --------

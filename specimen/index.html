@@ -16,10 +16,11 @@
   <div class="controls"><button id="prev">←</button><select id="ticker" aria-label="Asset ticker"></select><button id="next">→</button><span class="note">Hover any annual band to inspect it · arrow keys change specimen</span></div>
   <section class="viewer">
     <div class="art" id="art"><canvas id="canvas"></canvas><div class="tooltip" id="tip"></div></div>
-    <aside class="ledger"><h2 id="name"></h2><div class="classline" id="classline"></div><div class="facts" id="facts"></div><h3>Scar ledger</h3><div id="scars"></div><p class="grain-key"><i></i>Four internal contours per annual band. Their amplitude is proportional to that year’s realized volatility.</p></aside>
+    <aside class="ledger"><h2 id="name"></h2><div class="classline" id="classline"></div><div class="facts" id="facts"></div><h3>Field notes</h3><div class="field-notes" id="field-notes"></div><h3>Trees like this</h3><div class="kin" id="kin"></div><h3>Scar ledger</h3><div id="scars"></div><p class="grain-key"><i></i>Each visible boundary is one calendar year. Boundary irregularity and sparse radial fibers increase with realized volatility.</p></aside>
   </section>
 </main>
 <script src="../shared/tree-renderer.js"></script>
+<script src="../app/tree-insights.js"></script>
 <script src="../app/specimen.js"></script>
 </body>
 </html>

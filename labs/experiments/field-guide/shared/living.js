@@ -232,7 +232,7 @@
     g.fillStyle="rgba(0,0,0,.68)"; g.fillText(text,x+1,y+1); g.fillStyle=accent; g.fillText(text,x,y);
   }
 
-  async function load(url="../data/rings.json") {
+  async function load(url="data/rings.json") {
     const res=await fetch(url); if(!res.ok) throw new Error(`rings.json: ${res.status}`);
     const data=await res.json(); NORM=data.norm; return data;
   }
