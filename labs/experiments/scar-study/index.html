@@ -33,23 +33,23 @@
     <div>
       <div class="eyebrow">Money Trees · lab study</div>
       <h1>Scar Study</h1>
-      <p class="dek">A scar is a major drawdown from a prior all-time high, open until that high is reclaimed. This keeps the current radial seam but reshapes its width: a recovered wound <em>tapers to a point at both ends</em> (a closed lens); an unrecovered one tapers only at the trough and <em>stays open to the bark</em>.</p>
+      <p class="dek">A scar is a major drawdown from a prior all-time high, open until that high is reclaimed. Real scars and cracks in a cross-section are <em>hairline-thin</em> (see the radial fissures in any fire-scarred section). These are teardrops that taper to a point at both ends when recovered, open at the bark when not — at two thinnesses to calibrate.</p>
     </div>
     <a class="home" href="../../">← The lab</a>
   </header>
   <div class="bar"><label for="ticker">specimen</label><select id="ticker"></select><span id="scarnote" style="color:var(--muted);font-size:12px"></span></div>
   <section class="grid" id="grid">
-    <div class="panel"><div class="cap"><h2>Current seam</h2><span class="tag">baseline</span></div><div class="art"><canvas data-style="seam"></canvas></div><p>Today's production: wide at the trough, tapering only toward recovery — open on the inner end. Recovered and unrecovered look nearly the same.</p></div>
-    <div class="panel"><div class="cap"><h2>Tapered — lens</h2><span class="tag">both ends</span></div><div class="art"><canvas data-style="lens"></canvas></div><p>Recovered wounds taper to a point at both ends (a symmetric closed lens). Unrecovered ones taper at the trough and stay open to the bark.</p></div>
-    <div class="panel"><div class="cap"><h2>Tapered — teardrop</h2><span class="tag">both ends</span></div><div class="art"><canvas data-style="teardrop"></canvas></div><p>Same idea, but widest about a third of the way out (nearer the trough, where the damage is deepest), tapering to points on both ends.</p></div>
+    <div class="panel"><div class="cap"><h2>Current seam</h2><span class="tag">baseline</span></div><div class="art"><canvas data-style="seam"></canvas></div><p>Today's production, for reference — wide at the trough, one-ended taper. Clearly heavier than any real scar.</p></div>
+    <div class="panel"><div class="cap"><h2>Teardrop — thin</h2><span class="tag">recommended</span></div><div class="art"><canvas data-style="teardrop-thin"></canvas></div><p>Teardrop taper, both ends, ~40% of the old width. A fine dark seam that reads as a crack, not a wedge.</p></div>
+    <div class="panel"><div class="cap"><h2>Teardrop — hairline</h2><span class="tag">thinnest</span></div><div class="art"><canvas data-style="teardrop-hairline"></canvas></div><p>The same, thinner still (~25%) — closest to the hairline radial cracks in a real fire-scarred section.</p></div>
   </section>
 </main>
 <script src="shared/renderer.js"></script>
 <script>
 const STYLES={
   'seam':{mode:'seam'},
-  'lens':{mode:'taper',shape:'lens'},
-  'teardrop':{mode:'taper',shape:'teardrop'},
+  'teardrop-thin':{mode:'taper',shape:'teardrop',w:.42},
+  'teardrop-hairline':{mode:'taper',shape:'teardrop',w:.26},
 };
 let trees=[],tree=null;
 function renderPanel(cv){

@@ -36,8 +36,9 @@
 
   // Shared seam geometry: builds the two organic edges + fills. `widthAt(t)` maps
   // position-along-span (0=trough/inner … 1=recovery-or-bark/outer) to a 0..1 width.
-  function paintSeam(g,cx,cy,R,rStart,span,depth,baseAngle,seed,widthAt){
-    const half=Math.min(R*(.008+.017*depth),Math.max(1.6,rStart*.26)),n=Math.round(clamp(span/3.5,10,32)),rng=rand(hash(seed)),p1=rng()*Math.PI*2,p2=rng()*Math.PI*2,left=[],right=[],center=[];
+  // `halfScale` thins the whole wound (real cracks/scars are hairline-fine).
+  function paintSeam(g,cx,cy,R,rStart,span,depth,baseAngle,seed,widthAt,halfScale=1){
+    const half=Math.min(R*(.008+.017*depth),Math.max(1.6,rStart*.26))*halfScale,n=Math.round(clamp(span/3.5,10,32)),rng=rand(hash(seed)),p1=rng()*Math.PI*2,p2=rng()*Math.PI*2,left=[],right=[],center=[];
     for(let i=0;i<=n;i++){
       const t=i/n,r=rStart+span*t,w=clamp(widthAt(t),0,1);
       const wander=R*(.004+.010*depth)*w*(.72*Math.sin(p1+t*Math.PI*2.1)+.28*Math.sin(p2+t*Math.PI*5.3));
@@ -65,8 +66,9 @@
   }
 
   // (2) TAPERED: taper to a point at BOTH ends when recovered (a closed lens); taper
-  // only the trough end and stay open to the bark when unrecovered.
-  function drawTaperedSeam(g,cx,cy,R,bands,sc,year,shape){
+  // only the trough end and stay open to the bark when unrecovered. `w` thins it
+  // toward a real hairline crack.
+  function drawTaperedSeam(g,cx,cy,R,bands,sc,year,shape,w){
     const G=seamGeom(bands,sc,year);if(!G)return;
     let widthAt;
     if(G.recovered){
@@ -76,11 +78,11 @@
     } else {
       widthAt = (t=>Math.pow(clamp(t/.34,0,1),.8));           // point at trough, open to the bark
     }
-    paintSeam(g,cx,cy,R,G.rStart,G.span,G.depth,G.baseAngle,`tap|${sc.date||sc.year}|${sc.depth}`,widthAt);
+    paintSeam(g,cx,cy,R,G.rStart,G.span,G.depth,G.baseAngle,`tap|${sc.date||sc.year}|${sc.depth}`,widthAt,w||.4);
   }
 
   function drawScar(g,cx,cy,R,bands,sc,year,style){
-    if(style.mode==='taper')drawTaperedSeam(g,cx,cy,R,bands,sc,year,style.shape||'lens');
+    if(style.mode==='taper')drawTaperedSeam(g,cx,cy,R,bands,sc,year,style.shape||'lens',style.w);
     else drawSeam(g,cx,cy,R,bands,sc,year);
   }
 
