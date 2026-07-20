@@ -16,7 +16,7 @@
     .bar{display:flex;align-items:center;gap:10px;margin:20px 0 16px}
     .bar label{color:var(--muted);font-size:12px}
     select{font:inherit;color:var(--ink);background:#0d1713;border:1px solid #34443a;border-radius:7px;padding:7px 10px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
     .panel{border:1px solid var(--line);border-radius:13px;background:linear-gradient(150deg,rgba(20,30,24,.7),rgba(9,15,12,.8));padding:14px 14px 16px}
     .panel .cap{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
     .panel h2{font:500 17px Georgia,serif;margin:0}
@@ -33,25 +33,23 @@
     <div>
       <div class="eyebrow">Money Trees · lab study</div>
       <h1>Scar Study</h1>
-      <p class="dek">A scar is a major drawdown from a prior all-time high, open until that high is reclaimed. The production seam draws every scar as the same radial gash — this compares four ways to render the same wounds, building toward one that <em>heals shut</em> and lets the rings <em>curl around it</em>.</p>
+      <p class="dek">A scar is a major drawdown from a prior all-time high, open until that high is reclaimed. This keeps the current radial seam but reshapes its width: a recovered wound <em>tapers to a point at both ends</em> (a closed lens); an unrecovered one tapers only at the trough and <em>stays open to the bark</em>.</p>
     </div>
     <a class="home" href="../../">← The lab</a>
   </header>
   <div class="bar"><label for="ticker">specimen</label><select id="ticker"></select><span id="scarnote" style="color:var(--muted);font-size:12px"></span></div>
   <section class="grid" id="grid">
-    <div class="panel"><div class="cap"><h2>Current seam</h2><span class="tag">baseline</span></div><div class="art"><canvas data-style="seam"></canvas></div><p>Today's production: a radial gash from the trough ring out to recovery. Organic edges, but every scar is the same spoke.</p></div>
-    <div class="panel"><div class="cap"><h2>Catface</h2><span class="tag">heals shut</span></div><div class="art"><canvas data-style="catface"></canvas></div><p>A lens that widens past the trough and pinches closed at recovery (pale callus lip). Unrecovered wounds stay torn open to the bark.</p></div>
-    <div class="panel"><div class="cap"><h2>Catface + ring deflection</h2><span class="tag">rings curl</span></div><div class="art"><canvas data-style="deflect+catface"></canvas></div><p>The annual boundaries themselves pinch inward through the underwater years and bulge out in a callus at recovery — the rings grow <em>around</em> the wound.</p></div>
-    <div class="panel"><div class="cap"><h2>Composite</h2><span class="tag">recommended</span></div><div class="art"><canvas data-style="deflect+catface+scorch"></canvas></div><p>All three: deflected rings, a healing catface, and a soft scorch darkening the wood across the drawdown. No two scars alike.</p></div>
+    <div class="panel"><div class="cap"><h2>Current seam</h2><span class="tag">baseline</span></div><div class="art"><canvas data-style="seam"></canvas></div><p>Today's production: wide at the trough, tapering only toward recovery — open on the inner end. Recovered and unrecovered look nearly the same.</p></div>
+    <div class="panel"><div class="cap"><h2>Tapered — lens</h2><span class="tag">both ends</span></div><div class="art"><canvas data-style="lens"></canvas></div><p>Recovered wounds taper to a point at both ends (a symmetric closed lens). Unrecovered ones taper at the trough and stay open to the bark.</p></div>
+    <div class="panel"><div class="cap"><h2>Tapered — teardrop</h2><span class="tag">both ends</span></div><div class="art"><canvas data-style="teardrop"></canvas></div><p>Same idea, but widest about a third of the way out (nearer the trough, where the damage is deepest), tapering to points on both ends.</p></div>
   </section>
 </main>
 <script src="shared/renderer.js"></script>
 <script>
 const STYLES={
-  'seam':{seam:true},
-  'catface':{catface:true},
-  'deflect+catface':{deflect:true,catface:true},
-  'deflect+catface+scorch':{deflect:true,catface:true,scorch:true},
+  'seam':{mode:'seam'},
+  'lens':{mode:'taper',shape:'lens'},
+  'teardrop':{mode:'taper',shape:'teardrop'},
 };
 let trees=[],tree=null;
 function renderPanel(cv){
