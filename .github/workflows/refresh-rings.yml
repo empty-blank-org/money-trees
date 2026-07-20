@@ -1,0 +1,66 @@
+name: Refresh tree rings
+
+# Re-bakes data/rings.json from the empty-data lake (on R2) so newly-added assets
+# flow into Money Trees without a manual bake. Commits the new rings.json if it
+# changed; that push triggers the Cloudflare Pages deploy. Runs daily and on demand.
+#
+# Freshness note: this reads the lake as it exists ON R2. Until the empty-data
+# pipeline auto-syncs to R2, new assets appear here only after the lake is pushed
+# to R2 (see the empty-data Phase-1 write path).
+#
+# Requires repo secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
+
+on:
+  schedule:
+    - cron: "0 11 * * *"   # daily ~11:00 UTC
+  workflow_dispatch: {}     # manual "Run workflow" button
+
+concurrency:
+  group: refresh-rings
+  cancel-in-progress: false
+
+permissions:
+  contents: write           # so the bot can commit + push the new rings.json
+
+jobs:
+  bake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install --quiet numpy pandas pyarrow
+
+      - name: Sync lake from R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+        run: |
+          ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          mkdir -p lake/prices
+          aws s3 sync s3://empty-data-lake/prices lake/prices \
+            --endpoint-url "$ENDPOINT" --no-progress
+          aws s3 cp s3://empty-data-lake/groups.json lake/groups.json \
+            --endpoint-url "$ENDPOINT"
+
+      - name: Bake rings
+        run: EMPTY_DATA="$PWD/lake" python scripts/bake-rings.py
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- data/rings.json; then
+            echo "rings.json unchanged — nothing to deploy."
+          else
+            git config user.name  "money-trees-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add data/rings.json
+            git commit -m "data: refresh tree rings from lake"
+            git push
+            echo "Committed new rings.json — Cloudflare Pages will deploy it."
+          fi

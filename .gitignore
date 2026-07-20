@@ -1,0 +1,4 @@
+dist/
+lake/
+*.bak
+.DS_Store
