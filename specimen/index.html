@@ -10,17 +10,30 @@
 <body>
 <main class="page">
   <header>
-    <div><div class="eyebrow">Full specimen · one true band per year</div><h1 id="title">Loading specimen…</h1></div>
-    <div class="backrow"><a id="back" href="../">← collection</a><a href="../labs/">lab</a></div>
+    <div>
+      <nav class="crumbs"><a id="back" class="crumb">← Arboretum</a><span id="crumb-context" class="crumb-context"></span></nav>
+      <h1 id="title">Loading specimen…</h1>
+    </div>
+    <a class="lab-link" href="../labs/">lab ↗</a>
   </header>
-  <div class="controls"><button id="prev">←</button><select id="ticker" aria-label="Asset ticker"></select><button id="next">→</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors run from loss through near zero to gain"><div class="legend-scale"><i></i><i></i><i></i></div><div class="legend-labels"><span>loss</span><span>near 0</span><span>gain</span></div></div><span class="note">Hover any annual band to inspect it · arrow keys change specimen</span></div>
+  <div class="controls"><button id="prev" aria-label="Previous specimen">←</button><select id="ticker" aria-label="Jump to specimen"></select><button id="next" aria-label="Next specimen">→</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors run from loss through near zero to gain"><div class="legend-scale"><i></i><i></i><i></i></div><div class="legend-labels"><span>loss</span><span>near 0</span><span>gain</span></div></div><span class="note">Hover a band to inspect it · ← → keys change specimen</span></div>
   <section class="viewer">
     <div class="art" id="art"><canvas id="canvas"></canvas><div class="tooltip" id="tip"></div></div>
-    <aside class="ledger"><h2 id="name"></h2><div class="classline" id="classline"></div><div class="facts" id="facts"></div><h3>Field notes</h3><div class="field-notes" id="field-notes"></div><h3>Trees like this</h3><div class="kin" id="kin"></div><h3>Scar ledger</h3><div id="scars"></div><p class="grain-key"><i></i>Each visible boundary is one calendar year. Boundary irregularity and sparse radial fibers increase with realized volatility.</p></aside>
+    <aside class="ledger">
+      <h2 id="name"></h2>
+      <div class="classline" id="classline"></div>
+      <div class="hero" id="hero"></div>
+      <div class="facts" id="facts"></div>
+      <div class="field-notes" id="field-notes"></div>
+      <details class="disclose" id="kin-block"><summary>Trees like this</summary><div class="kin" id="kin"></div></details>
+      <details class="disclose" id="scar-block"><summary>Scar ledger <span class="badge" id="scar-count"></span></summary><div id="scars"></div></details>
+      <p class="grain-key"><i></i>Each visible boundary is one calendar year. Boundary irregularity and sparse radial fibers increase with realized volatility.</p>
+    </aside>
   </section>
 </main>
 <script src="../shared/tree-renderer.js"></script>
 <script src="../app/tree-insights.js"></script>
+<script src="../shared/collection.js"></script>
 <script src="../app/specimen.js"></script>
 </body>
 </html>
