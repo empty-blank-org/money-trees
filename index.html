@@ -35,6 +35,8 @@
       <label>across <select id="cols"><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option></select></label>
       <input id="search" type="text" placeholder="find ticker" aria-label="Find ticker">
       <label>cross-date <select id="cross"><option value="">all rings</option></select></label>
+      <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
+      <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors run from loss through near zero to gain"><div class="legend-scale"><i></i><i></i><i></i></div><div class="legend-labels"><span>loss</span><span>near 0</span><span>gain</span></div></div>
       <span class="cross-note" id="status"></span>
     </div>
   </div>

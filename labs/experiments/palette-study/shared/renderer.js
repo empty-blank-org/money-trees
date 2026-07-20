@@ -5,8 +5,11 @@
   };
   const CLASS_NAMES = {crypto:"Crypto", equity:"Equity", bonds:"Bonds", commodities:"Commodities", fx:"FX", portfolio:"Portfolio"};
   const PALETTES = {
-    wood: {neg:[83,55,38], mid:[162,119,72], pos:[225,184,111]},
-    market: {neg:[202,92,102], mid:[173,158,124], pos:[88,169,145]}
+    market: {neg:[202,92,102], mid:[173,158,124], pos:[88,169,145]},
+    natural: {neg:[83,55,38], mid:[162,119,72], pos:[225,184,111]},
+    botanical: {neg:[106,65,47], mid:[158,128,79], pos:[126,145,76]},
+    wood: {neg:[76,57,43], mid:[151,113,72], pos:[224,190,133]},
+    overlay: {neg:[92,70,52], mid:[153,118,79], pos:[211,177,123]}
   };
   let NORM = null;
 
@@ -38,8 +41,8 @@
     return .28+1.72*clamp((t-lo)/(hi-lo),0,1);
   }
 
-  function ringFill(cls, ring, palette="wood") {
-    const p=PALETTES[palette]||PALETTES.wood;
+  function ringFill(cls, ring, palette="market") {
+    const p=PALETTES[palette]||PALETTES.market;
     const la=(NORM?.lg_cls&&NORM.lg_cls[cls])||[NORM?.lg_p5||-.45,NORM?.lg_p95||.55];
     let col;
     if (ring.log_growth>=0) col=mix(p.mid,p.pos,Math.sqrt(clamp(ring.log_growth/la[1],0,1)));
@@ -49,7 +52,7 @@
     return mix(mix(col,[216,220,224],.24*(1-v)),[12,17,15],.42*v);
   }
 
-  function drawRings(g, tree, cx, cy, R, year=9999, alpha=1, palette="wood") {
+  function drawRings(g, tree, cx, cy, R, year=9999, alpha=1) {
     const m=metrics(tree,year); if (!m) return;
     const total=m.rings.reduce((s,r)=>s+ringThickness(r.log_growth),0);
     let r0=R*.07; const usable=R-r0, bands=[];
@@ -57,7 +60,7 @@
     for (const ring of m.rings) {
       const r1=r0+usable*ringThickness(ring.log_growth)/total;
       g.beginPath(); g.arc(cx,cy,r1,0,Math.PI*2); g.arc(cx,cy,r0,Math.PI*2,0,true); g.closePath();
-      g.fillStyle=rgba(ringFill(tree.cls,ring,palette)); g.fill();
+      g.fillStyle=rgba(ringFill(tree.cls,ring)); g.fill();
       g.beginPath(); g.arc(cx,cy,r1,0,Math.PI*2); g.strokeStyle="rgba(5,9,8,.55)"; g.lineWidth=.7; g.stroke();
       bands.push({year:ring.year,r0,r1}); r0=r1;
     }
@@ -145,7 +148,7 @@
     const outer=bands[bands.length-1];if(outer){g.beginPath();tracePoints(g,outer.outerPts);g.strokeStyle=CLASS_COLORS[tree.cls]||'#aaa';g.lineWidth=Math.max(1.5,R*.004);g.stroke();}
     for(const sc of m.scars){g.globalAlpha=baseAlpha*((opts.focusYear&&sc.year!==opts.focusYear) ? 0.22 : 1);drawOrganicScar(g,cx,cy,R,bands,sc,year);}
     g.globalAlpha=baseAlpha;
-    if(opts.highlightYear){const b=bands.find(x=>x.year===opts.highlightYear);if(b){ringPath(g,b.outerPts,b.innerPts);g.fillStyle='rgba(245,215,142,.16)';g.fill();g.strokeStyle='rgba(255,232,170,.9)';g.lineWidth=Math.max(1.2,R*.004);g.stroke();}}
+    if(opts.highlightYear){const b=bands.find(x=>x.year===opts.highlightYear);if(b){ringPath(g,b.outerPts,b.innerPts);if(opts.palette==='overlay'){const ring=m.rings.find(r=>r.year===b.year);g.fillStyle=rgba(ringFill(tree.cls,ring,'market'),.72);}else g.fillStyle='rgba(245,215,142,.16)';g.fill();g.strokeStyle='rgba(255,232,170,.9)';g.lineWidth=Math.max(1.2,R*.004);g.stroke();}}
     if(opts.years&&R>=90){g.strokeStyle='rgba(235,228,211,.23)';g.fillStyle='rgba(235,228,211,.62)';g.font=`${Math.max(8,Math.round(R*.055))}px ui-monospace,Menlo,monospace`;g.textAlign='right';bands.forEach((b,i)=>{if(bands.length>15&&i%2&&i!==bands.length-1)return;const y=cy-(b.r0+b.r1)/2;g.beginPath();g.moveTo(cx-4,y);g.lineTo(cx+4,y);g.stroke();g.fillText(String(b.year),cx-9,y+3);});}
     g.restore();return {core,bands,barkR:outer?.r1||0};
   }
@@ -236,7 +239,7 @@
     g.fillStyle="rgba(0,0,0,.68)"; g.fillText(text,x+1,y+1); g.fillStyle=accent; g.fillText(text,x,y);
   }
 
-  async function load(url="../data/rings.json") {
+  async function load(url="data/rings.json") {
     const res=await fetch(url); if(!res.ok) throw new Error(`rings.json: ${res.status}`);
     const data=await res.json(); NORM=data.norm; return data;
   }

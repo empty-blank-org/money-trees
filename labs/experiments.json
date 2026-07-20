@@ -6,6 +6,7 @@
     {"slug":"specimen-wall","title":"Specimen Wall","category":"main","status":"precursor","description":"Four maximum-detail specimens at a time; the direct precursor to the Arboretum."},
     {"slug":"forest-original","title":"Tree Ring Forest","category":"main","status":"origin","description":"The original grid: many small cross-sections and the earliest version of the visual grammar."},
     {"slug":"field-guide","title":"Field Guide","category":"concept","status":"active prototype","description":"Computed specimen notes, structural families and nearest relatives, plus market events traced through every affected tree."},
+    {"slug":"palette-study","title":"Wood Palette Study","category":"concept","status":"active prototype","description":"Compares five return encodings on the same specimen: market, natural wood, botanical, single-spectrum wood, and a hover-revealed financial overlay."},
     {"slug":"poster","title":"Tree Ring Poster","category":"concept","status":"influential","description":"Large, highly detailed rings that introduced visible grain contours and specimen-scale inspection."},
     {"slug":"grove","title":"Portfolio Grove","category":"concept","status":"study","description":"Composes holdings into a grove and explores portfolio structure through the tree metaphor."},
     {"slug":"growth","title":"Animated Growth","category":"concept","status":"study","description":"Lets annual rings accumulate over time as a literal growth animation."},
