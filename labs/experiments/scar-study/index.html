@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Scar Study — Money Trees Lab</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07100d;--panel:#0e1712;--ink:#e8e1d2;--muted:#9a9488;--line:#28332b;--gold:#d3b46f}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -15%,#1b2a20 0,transparent 42%),var(--bg);color:var(--ink);font:14px/1.5 system-ui,sans-serif}
+    main{max-width:1180px;margin:auto;padding:30px 22px 70px}
+    header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:8px}
+    .eyebrow{font:11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.14em;color:var(--gold)}
+    h1{font:500 clamp(30px,5vw,50px)/1 Georgia,serif;margin:7px 0 10px}
+    .dek{max-width:720px;color:#b8b1a3;font-size:15px;margin:0}
+    .home{color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:8px 11px;white-space:nowrap}
+    .bar{display:flex;align-items:center;gap:10px;margin:20px 0 16px}
+    .bar label{color:var(--muted);font-size:12px}
+    select{font:inherit;color:var(--ink);background:#0d1713;border:1px solid #34443a;border-radius:7px;padding:7px 10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .panel{border:1px solid var(--line);border-radius:13px;background:linear-gradient(150deg,rgba(20,30,24,.7),rgba(9,15,12,.8));padding:14px 14px 16px}
+    .panel .cap{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .panel h2{font:500 17px Georgia,serif;margin:0}
+    .panel .tag{font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)}
+    .panel p{color:var(--muted);font-size:12px;margin:8px 2px 0}
+    .art{position:relative;width:100%;aspect-ratio:1/1;background:radial-gradient(circle,rgba(38,49,39,.26),rgba(4,9,7,.2) 68%);border-radius:9px;overflow:hidden}
+    canvas{display:block;width:100%;height:100%}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}header{display:block}.home{display:inline-block;margin-top:10px}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <div class="eyebrow">Money Trees · lab study</div>
+      <h1>Scar Study</h1>
+      <p class="dek">A scar is a major drawdown from a prior all-time high, open until that high is reclaimed. The production seam draws every scar as the same radial gash — this compares four ways to render the same wounds, building toward one that <em>heals shut</em> and lets the rings <em>curl around it</em>.</p>
+    </div>
+    <a class="home" href="../../">← The lab</a>
+  </header>
+  <div class="bar"><label for="ticker">specimen</label><select id="ticker"></select><span id="scarnote" style="color:var(--muted);font-size:12px"></span></div>
+  <section class="grid" id="grid">
+    <div class="panel"><div class="cap"><h2>Current seam</h2><span class="tag">baseline</span></div><div class="art"><canvas data-style="seam"></canvas></div><p>Today's production: a radial gash from the trough ring out to recovery. Organic edges, but every scar is the same spoke.</p></div>
+    <div class="panel"><div class="cap"><h2>Catface</h2><span class="tag">heals shut</span></div><div class="art"><canvas data-style="catface"></canvas></div><p>A lens that widens past the trough and pinches closed at recovery (pale callus lip). Unrecovered wounds stay torn open to the bark.</p></div>
+    <div class="panel"><div class="cap"><h2>Catface + ring deflection</h2><span class="tag">rings curl</span></div><div class="art"><canvas data-style="deflect+catface"></canvas></div><p>The annual boundaries themselves pinch inward through the underwater years and bulge out in a callus at recovery — the rings grow <em>around</em> the wound.</p></div>
+    <div class="panel"><div class="cap"><h2>Composite</h2><span class="tag">recommended</span></div><div class="art"><canvas data-style="deflect+catface+scorch"></canvas></div><p>All three: deflected rings, a healing catface, and a soft scorch darkening the wood across the drawdown. No two scars alike.</p></div>
+  </section>
+</main>
+<script src="shared/renderer.js"></script>
+<script>
+const STYLES={
+  'seam':{seam:true},
+  'catface':{catface:true},
+  'deflect+catface':{deflect:true,catface:true},
+  'deflect+catface+scorch':{deflect:true,catface:true,scorch:true},
+};
+let trees=[],tree=null;
+function renderPanel(cv){
+  const style=STYLES[cv.dataset.style],r=cv.parentElement.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,r.width,r.height);
+  const s=Math.min(r.width,r.height);ScarLab.drawDetailedRings(g,tree,r.width/2,r.height/2,s*.46,9999,{palette:'wood',scar:style,years:true});
+}
+function renderAll(){document.querySelectorAll('#grid canvas').forEach(renderPanel);}
+function pick(id){tree=trees.find(t=>t.id===id)||trees[0];document.getElementById('ticker').value=tree.id;const n=(tree.scars||[]).length;document.getElementById('scarnote').textContent=`${tree.id.toUpperCase()} · ${n} scar${n===1?'':'s'}`;renderAll();}
+ScarLab.load('data/rings.json').then(d=>{
+  trees=d.trees.filter(t=>t.featured&&(t.scars||[]).length).sort((a,b)=>(b.scars||[]).length-(a.scars||[]).length);
+  document.getElementById('ticker').innerHTML=trees.map(t=>`<option value="${t.id}">${t.id.toUpperCase()} · ${ScarLab.CLASS_NAMES[t.cls]} (${(t.scars||[]).length})</option>`).join('');
+  document.getElementById('ticker').onchange=e=>pick(e.target.value);
+  pick('btc');window.addEventListener('resize',()=>{clearTimeout(window._t);window._t=setTimeout(renderAll,120)});
+}).catch(e=>{document.body.insertAdjacentHTML('beforeend',`<p style="color:#c66;padding:20px">Could not load rings.json: ${e.message}</p>`);});
+</script>
+</body>
+</html>

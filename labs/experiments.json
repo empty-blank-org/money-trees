@@ -1,5 +1,6 @@
 {
   "experiments": [
+    {"slug":"scar-study","title":"Scar Study","category":"concept","status":"active prototype","description":"Compares four ways to render drawdown scars on the same specimen — the current radial seam, a catface that heals shut, rings that deflect around the wound, and a composite — toward a less formulaic scar."},
     {"slug":"atlas","title":"Forest Atlas","category":"main","status":"superseded","description":"A roomier forest with playback, sorting, density controls, and specimen inspection."},
     {"slug":"clearings","title":"Forest Clearings","category":"main","status":"superseded","description":"Groups the forest by asset class, age, temperament, and shared damage."},
     {"slug":"terrain","title":"Market Terrain","category":"main","status":"study","description":"Turns the forest into a risk-versus-growth scatter plot without giving up the ring glyphs."},
