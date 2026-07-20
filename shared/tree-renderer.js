@@ -93,10 +93,12 @@
     }
   }
 
-  // A drawdown scar behaves like damaged wood being grown around, not a
-  // ruler-straight radial mark. The wound follows a deterministic, gently
-  // wandering path with asymmetric edges. Recovered scars taper shut at the
-  // recovery ring; open scars stay wide enough to visibly interrupt the bark.
+  // A drawdown scar is a thin, hairline-fine crack in the wood — calibrated against
+  // real fire-scarred cross-sections (see labs/scar-study). It follows a deterministic,
+  // gently wandering path and tapers to a point at BOTH ends when the drawdown recovered
+  // (a closed teardrop, widest ~a third out where the damage is deepest); when it hasn't
+  // recovered it tapers at the trough and stays open to the bark. Thinness is size-aware:
+  // hairline on a large specimen, a touch heavier on small cards so it stays legible.
   function drawOrganicScar(g,cx,cy,R,bands,sc,year) {
     const k0=bands.findIndex(b=>b.year>=sc.year);if(k0<0)return;
     const recovered=sc.r_year!=null&&sc.r_year<=year;
@@ -104,23 +106,26 @@
     if(recovered){k1=k0;while(k1+1<bands.length&&bands[k1+1].year<=sc.r_year)k1++;}
     const rStart=bands[k0].r0,rEnd=bands[k1].r1,span=Math.max(1,rEnd-rStart);
     const depth=clamp(Math.abs(sc.depth||0),0,1),baseAngle=-Math.PI/2+(sc.angle||0)*Math.PI*2;
-    const half=Math.min(R*(.007+.016*depth),Math.max(1.4,rStart*.24));
-    const n=Math.round(clamp(span/3.5,8,28)),rng=rand(hash(`scar|${sc.date||sc.year}|${sc.depth}`));
+    const wScale=clamp(.42-(R-120)*.16/170,.26,.44);
+    const half=Math.min(R*(.008+.017*depth),Math.max(1.6,rStart*.26))*wScale;
+    const widthAt=recovered
+      ? (t=>Math.pow(Math.sin(Math.PI*t),.60)*(1-.34*t))   // closed teardrop, points both ends
+      : (t=>Math.pow(clamp(t/.34,0,1),.8));                // point at trough, open to the bark
+    const n=Math.round(clamp(span/3.5,8,30)),rng=rand(hash(`scar|${sc.date||sc.year}|${sc.depth}`));
     const p1=rng()*Math.PI*2,p2=rng()*Math.PI*2,left=[],right=[],center=[];
     for(let i=0;i<=n;i++){
-      const t=i/n,r=rStart+span*t,envelope=Math.sin(Math.PI*t);
-      const wander=R*(.004+.010*depth)*envelope*(.72*Math.sin(p1+t*Math.PI*2.1)+.28*Math.sin(p2+t*Math.PI*5.3));
+      const t=i/n,r=rStart+span*t,w=clamp(widthAt(t),0,1);
+      const wander=R*(.004+.010*depth)*w*(.72*Math.sin(p1+t*Math.PI*2.1)+.28*Math.sin(p2+t*Math.PI*5.3));
       const a=baseAngle+wander/Math.max(r,8),x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
-      const profile=recovered?(.10+.90*Math.pow(1-t,.72)):(.82+.12*Math.sin(Math.PI*t));
-      const rough=(rng()-.5)*.34,wl=half*profile*(1+rough),wr=half*profile*(1-rough*.7+(rng()-.5)*.15);
+      const rough=(rng()-.5)*.30,wl=half*w*(1+rough),wr=half*w*(1-rough*.7+(rng()-.5)*.15);
       const px=-Math.sin(a),py=Math.cos(a);
       left.push([x+px*wl,y+py*wl]);right.push([x-px*wr,y-py*wr]);center.push([x,y]);
     }
     g.beginPath();g.moveTo(...left[0]);for(let i=1;i<left.length;i++)g.lineTo(...left[i]);for(let i=right.length-1;i>=0;i--)g.lineTo(...right[i]);g.closePath();
     g.fillStyle='rgba(5,7,6,.88)';g.fill();
-    const edge=pts=>{g.beginPath();g.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);g.strokeStyle='rgba(213,193,151,.24)';g.lineWidth=Math.max(.55,R*.0022);g.stroke();};
+    const edge=pts=>{g.beginPath();g.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);g.strokeStyle='rgba(213,193,151,.22)';g.lineWidth=Math.max(.5,R*.0018);g.stroke();};
     edge(left);edge(right);
-    g.beginPath();g.moveTo(...center[0]);for(let i=1;i<center.length;i++)g.lineTo(...center[i]);g.strokeStyle='rgba(0,0,0,.46)';g.lineWidth=Math.max(.45,R*.0015);g.stroke();
+    g.beginPath();g.moveTo(...center[0]);for(let i=1;i<center.length;i++)g.lineTo(...center[i]);g.strokeStyle='rgba(0,0,0,.44)';g.lineWidth=Math.max(.4,R*.0013);g.stroke();
   }
 
   // Detailed renderer: one visible boundary per calendar year. Volatility
