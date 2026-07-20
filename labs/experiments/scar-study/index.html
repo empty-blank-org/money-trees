@@ -11,18 +11,21 @@
     header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:8px}
     .eyebrow{font:11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.14em;color:var(--gold)}
     h1{font:500 clamp(30px,5vw,50px)/1 Georgia,serif;margin:7px 0 10px}
-    .dek{max-width:720px;color:#b8b1a3;font-size:15px;margin:0}
+    .dek{max-width:760px;color:#b8b1a3;font-size:15px;margin:0}
     .home{color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:8px 11px;white-space:nowrap}
     .bar{display:flex;align-items:center;gap:10px;margin:20px 0 16px}
     .bar label{color:var(--muted);font-size:12px}
     select{font:inherit;color:var(--ink);background:#0d1713;border:1px solid #34443a;border-radius:7px;padding:7px 10px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .panel{border:1px solid var(--line);border-radius:13px;background:linear-gradient(150deg,rgba(20,30,24,.7),rgba(9,15,12,.8));padding:14px 14px 16px}
-    .panel .cap{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}
-    .panel h2{font:500 17px Georgia,serif;margin:0}
+    .panel .cap{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .panel h2{font:500 18px Georgia,serif;margin:0}
     .panel .tag{font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)}
-    .panel p{color:var(--muted);font-size:12px;margin:8px 2px 0}
+    .panel p{color:var(--muted);font-size:12px;margin:10px 2px 0}
+    .scale-label{font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.1em;color:#6f7a6f;margin:12px 2px 5px}
     .art{position:relative;width:100%;aspect-ratio:1/1;background:radial-gradient(circle,rgba(38,49,39,.26),rgba(4,9,7,.2) 68%);border-radius:9px;overflow:hidden}
+    .cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .card{position:relative;aspect-ratio:1/1;background:radial-gradient(circle,rgba(38,49,39,.3),rgba(4,9,7,.15) 68%);border:1px solid var(--line);border-radius:8px;overflow:hidden}
     canvas{display:block;width:100%;height:100%}
     @media(max-width:720px){.grid{grid-template-columns:1fr}header{display:block}.home{display:inline-block;margin-top:10px}}
   </style>
@@ -32,36 +35,48 @@
   <header>
     <div>
       <div class="eyebrow">Money Trees · lab study</div>
-      <h1>Scar Study</h1>
-      <p class="dek">A scar is a major drawdown from a prior all-time high, open until that high is reclaimed. Real scars and cracks in a cross-section are <em>hairline-thin</em> (see the radial fissures in any fire-scarred section). These are teardrops that taper to a point at both ends when recovered, open at the bark when not — at two thinnesses to calibrate.</p>
+      <h1>Scar Study — sizing</h1>
+      <p class="dek">The teardrop scar, settled. The open question: hold one width everywhere, or let it go finer on the big specimen and a touch heavier on the small cards so it's always at the legibility edge? Each option below shows the same treatment at <em>specimen scale</em> (large) and <em>arboretum-card scale</em> (small).</p>
     </div>
     <a class="home" href="../../">← The lab</a>
   </header>
-  <div class="bar"><label for="ticker">specimen</label><select id="ticker"></select><span id="scarnote" style="color:var(--muted);font-size:12px"></span></div>
+  <div class="bar"><label for="ticker">large specimen</label><select id="ticker"></select><span id="scarnote" style="color:var(--muted);font-size:12px"></span></div>
   <section class="grid" id="grid">
-    <div class="panel"><div class="cap"><h2>Current seam</h2><span class="tag">baseline</span></div><div class="art"><canvas data-style="seam"></canvas></div><p>Today's production, for reference — wide at the trough, one-ended taper. Clearly heavier than any real scar.</p></div>
-    <div class="panel"><div class="cap"><h2>Teardrop — thin</h2><span class="tag">recommended</span></div><div class="art"><canvas data-style="teardrop-thin"></canvas></div><p>Teardrop taper, both ends, ~40% of the old width. A fine dark seam that reads as a crack, not a wedge.</p></div>
-    <div class="panel"><div class="cap"><h2>Teardrop — hairline</h2><span class="tag">thinnest</span></div><div class="art"><canvas data-style="teardrop-hairline"></canvas></div><p>The same, thinner still (~25%) — closest to the hairline radial cracks in a real fire-scarred section.</p></div>
+    <div class="panel">
+      <div class="cap"><h2>Thin everywhere</h2><span class="tag">one width</span></div>
+      <div class="scale-label">specimen scale · w 0.42</div>
+      <div class="art"><canvas data-w=".42" data-big="1"></canvas></div>
+      <div class="scale-label">card scale · w 0.42</div>
+      <div class="cards"><div class="card"><canvas data-w=".42" data-card="0"></canvas></div><div class="card"><canvas data-w=".42" data-card="1"></canvas></div><div class="card"><canvas data-w=".42" data-card="2"></canvas></div></div>
+      <p>Same thinness at both scales. Simplest. On the big specimen it's slightly heavier than a real hairline crack; on cards it's comfortably legible.</p>
+    </div>
+    <div class="panel">
+      <div class="cap"><h2>Size-aware</h2><span class="tag">scales with render</span></div>
+      <div class="scale-label">specimen scale · w 0.26 (hairline)</div>
+      <div class="art"><canvas data-w=".26" data-big="1"></canvas></div>
+      <div class="scale-label">card scale · w 0.42 (thin)</div>
+      <div class="cards"><div class="card"><canvas data-w=".42" data-card="0"></canvas></div><div class="card"><canvas data-w=".42" data-card="1"></canvas></div><div class="card"><canvas data-w=".42" data-card="2"></canvas></div></div>
+      <p>Hairline on the large specimen (true to real cracks), thin on the small cards (so it survives). Always at the legibility edge — at the cost of one size-dependent line of code.</p>
+    </div>
   </section>
 </main>
 <script src="shared/renderer.js"></script>
 <script>
-const STYLES={
-  'seam':{mode:'seam'},
-  'teardrop-thin':{mode:'taper',shape:'teardrop',w:.42},
-  'teardrop-hairline':{mode:'taper',shape:'teardrop',w:.26},
-};
-let trees=[],tree=null;
-function renderPanel(cv){
-  const style=STYLES[cv.dataset.style],r=cv.parentElement.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+let trees=[],tree=null,cardIds=[];
+function renderCanvas(cv){
+  const w=parseFloat(cv.dataset.w),big=cv.dataset.big==='1',r=cv.parentElement.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+  const subj=cv.dataset.card!=null?trees.find(t=>t.id===cardIds[+cv.dataset.card]):tree;
+  if(!subj)return;
   cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
   const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,r.width,r.height);
-  const s=Math.min(r.width,r.height);ScarLab.drawDetailedRings(g,tree,r.width/2,r.height/2,s*.46,9999,{palette:'wood',scar:style,years:true});
+  const s=Math.min(r.width,r.height);
+  ScarLab.drawDetailedRings(g,subj,r.width/2,r.height/2,s*(big?.46:.44),9999,{palette:'wood',scar:{mode:'taper',shape:'teardrop',w},years:big});
 }
-function renderAll(){document.querySelectorAll('#grid canvas').forEach(renderPanel);}
-function pick(id){tree=trees.find(t=>t.id===id)||trees[0];document.getElementById('ticker').value=tree.id;const n=(tree.scars||[]).length;document.getElementById('scarnote').textContent=`${tree.id.toUpperCase()} · ${n} scar${n===1?'':'s'}`;renderAll();}
+function renderAll(){document.querySelectorAll('#grid canvas').forEach(renderCanvas);}
+function pick(id){tree=trees.find(t=>t.id===id)||trees[0];document.getElementById('ticker').value=tree.id;const n=(tree.scars||[]).length;document.getElementById('scarnote').textContent=`${tree.id.toUpperCase()} · ${n} scar${n===1?'':'s'} · cards: ${cardIds.map(x=>x.toUpperCase()).join(', ')}`;renderAll();}
 ScarLab.load('data/rings.json').then(d=>{
   trees=d.trees.filter(t=>t.featured&&(t.scars||[]).length).sort((a,b)=>(b.scars||[]).length-(a.scars||[]).length);
+  cardIds=trees.slice(0,3).map(t=>t.id);
   document.getElementById('ticker').innerHTML=trees.map(t=>`<option value="${t.id}">${t.id.toUpperCase()} · ${ScarLab.CLASS_NAMES[t.cls]} (${(t.scars||[]).length})</option>`).join('');
   document.getElementById('ticker').onchange=e=>pick(e.target.value);
   pick('btc');window.addEventListener('resize',()=>{clearTimeout(window._t);window._t=setTimeout(renderAll,120)});
