@@ -16,15 +16,15 @@ daily price data.  Nothing is decorative:
                    stays visible (a hard minimum width).  Monotone in log-return,
                    so a wider ring is unambiguously a better year.
 
-  * ring COLOR   = one uniform color per ring, like real wood.  Hue runs a
-                   diverging scale on the year's log return — red (bad year)
-                   through parched tan (flat) to green (good) — normalized
-                   WITHIN the asset class (class p5..p95), so "a good year for
-                   its kind" is the same green on every tree and equities
-                   aren't all washed-out tan next to crypto.  Realized vol
-                   darkens the ring, normalized WITHIN class (class p10..p90):
-                   calm years are light, violent years deep and dark, and
-                   crypto isn't uniformly black.  The asset CLASS lives on
+  * ring COLOR   = one uniform color per ring, like real wood. The production
+                   renderer defaults to separated heartwood/sapwood ramps for
+                   negative/positive years and offers separated red/green ramps
+                   in an optional market palette. Only a truly flat year uses
+                   the middle tan/ochre. Magnitude is normalized WITHIN asset class
+                   (class p5..p95), so "a good year for its kind" remains
+                   legible beside crypto. Realized vol darkens the ring within
+                   class (class p10..p90); wood-mode darkening is bounded so it
+                   cannot erase the sign distinction. The asset CLASS lives on
                    the bark outline + label hue (crypto amber / equity blue /
                    bonds green / commodities rust / fx teal), not the fill.
 

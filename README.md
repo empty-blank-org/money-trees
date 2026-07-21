@@ -1,8 +1,8 @@
 # Money Trees
 
-Money Trees turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The main product is the Detailed Arboretum at `/`; selecting a tree opens its complete record at `/specimen/?id=TICKER`.
+Money Trees turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The main product is the Detailed Arboretum at `/`; selecting a tree opens its complete record at `/specimen/?id=TICKER`, where it can also be exported as a high-resolution poster PNG.
 
-The hard gate is that every visual feature must decode to a real quantity computed from real data. Ring width is annual log growth, color is annual return, darkness is realized volatility, and scars are qualifying drawdown episodes. See [`docs/ENCODING.md`](docs/ENCODING.md) for the complete contract and caveats.
+The hard gate is that every visual feature must decode to a real quantity computed from real data. Ring width is annual log growth, color is annual return, darkness is realized volatility, and scars are qualifying drawdown episodes. Natural wood is the default return encoding; an optional market mode provides the familiar red/green analytical view. See [`docs/ENCODING.md`](docs/ENCODING.md) for the complete contract and caveats.
 
 ## Structure
 
@@ -27,6 +27,12 @@ python3 -m http.server 8081
 ```
 
 Open <http://localhost:8081> for the app or <http://localhost:8081/labs/> for the archive. There is no build step and no frontend dependency install.
+
+## Build and deployment
+
+Cloudflare Pages runs `./build.sh` and publishes `dist/`. The build copies the production app and canonical data while excluding the development-only lab archive and stripping lab links from public pages. `dist/` is generated and ignored by Git.
+
+The GitHub Actions workflow at `.github/workflows/refresh-rings.yml` runs daily and on demand. It synchronizes the price lake from R2, re-bakes `data/rings.json`, and commits the artifact only when its contents change; that push triggers the public deployment. The workflow requires the documented R2 repository secrets.
 
 ## Re-bake production data
 

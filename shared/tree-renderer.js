@@ -5,8 +5,8 @@
   };
   const CLASS_NAMES = {crypto:"Crypto", equity:"Equity", bonds:"Bonds", commodities:"Commodities", fx:"FX", portfolio:"Portfolio"};
   const PALETTES = {
-    wood: {neg:[83,55,38], mid:[162,119,72], pos:[225,184,111]},
-    market: {neg:[202,92,102], mid:[173,158,124], pos:[88,169,145]}
+    wood: {neg:[69,45,30], negNear:[132,92,54], mid:[157,116,71], posNear:[184,142,85], pos:[235,198,128]},
+    market: {neg:[190,57,73], negNear:[204,121,119], mid:[173,158,124], posNear:[113,172,145], pos:[43,143,111]}
   };
   let NORM = null;
 
@@ -42,11 +42,20 @@
     const p=PALETTES[palette]||PALETTES.wood;
     const la=(NORM?.lg_cls&&NORM.lg_cls[cls])||[NORM?.lg_p5||-.45,NORM?.lg_p95||.55];
     let col;
-    if (ring.log_growth>=0) col=mix(p.mid,p.pos,Math.sqrt(clamp(ring.log_growth/la[1],0,1)));
+    if(p.negNear&&p.posNear){
+      // Both palettes use separated ramps: every down year starts on the loss
+      // side and every up year starts on the gain side. Magnitude varies within
+      // each side, so near-zero years can no longer blur the sign boundary.
+      const strength=Math.pow(clamp(ring.log_growth/(ring.log_growth>0?la[1]:la[0]),0,1),1.15);
+      if(ring.log_growth>0)col=mix(p.posNear,p.pos,strength);
+      else if(ring.log_growth<0)col=mix(p.negNear,p.neg,strength);
+      else col=p.mid;
+    }else if(ring.log_growth>=0)col=mix(p.mid,p.pos,Math.sqrt(clamp(ring.log_growth/la[1],0,1)));
     else col=mix(p.mid,p.neg,Math.sqrt(clamp(ring.log_growth/la[0],0,1)));
     const va=(NORM?.vol_cls&&NORM.vol_cls[cls])||[NORM?.vol_p10||.1,NORM?.vol_p90||.7];
     const v=clamp((ring.vol-va[0])/(va[1]-va[0]),0,1);
-    return mix(mix(col,[216,220,224],.24*(1-v)),[12,17,15],.42*v);
+    if(palette==='wood')return mix(mix(col,[220,207,179],.08*(1-v)),[18,14,10],.12*v);
+    return mix(mix(col,[216,220,224],.08*(1-v)),[12,17,15],.20*v);
   }
 
   function drawRings(g, tree, cx, cy, R, year=9999, alpha=1, palette="wood") {

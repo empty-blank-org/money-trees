@@ -16,7 +16,7 @@
     </div>
     <a class="lab-link" href="../labs/">lab ↗</a>
   </header>
-  <div class="controls"><button id="prev" aria-label="Previous specimen">←</button><select id="ticker" aria-label="Jump to specimen"></select><button id="next" aria-label="Next specimen">→</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors run from loss through near zero to gain"><div class="legend-scale"><i></i><i></i><i></i></div><div class="legend-labels"><span>loss</span><span>near 0</span><span>gain</span></div></div><span class="note">Hover a band to inspect it · ← → keys change specimen</span></div>
+  <div class="controls"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div><div class="palette-toggle" id="year-labels" role="group" aria-label="Year labels"><span>years</span><button class="active" data-labels="show" aria-pressed="true">show</button><button data-labels="hide" aria-pressed="false">hide</button></div><button class="download-poster" id="download-poster">Download poster</button><span class="note">Hover a band to inspect it · arrow keys move through trees</span></div>
   <section class="viewer">
     <div class="art" id="art"><canvas id="canvas"></canvas><div class="tooltip" id="tip"></div></div>
     <aside class="ledger">
@@ -25,9 +25,9 @@
       <div class="hero" id="hero"></div>
       <div class="facts" id="facts"></div>
       <div class="field-notes" id="field-notes"></div>
-      <details class="disclose" id="kin-block"><summary>Trees like this</summary><div class="kin" id="kin"></div></details>
-      <details class="disclose" id="scar-block"><summary>Scar ledger <span class="badge" id="scar-count"></span></summary><div id="scars"></div></details>
-      <p class="grain-key"><i></i>Each visible boundary is one calendar year. Boundary irregularity and sparse radial fibers increase with realized volatility.</p>
+      <section class="ledger-section" id="kin-block"><h3>Trees like this</h3><div class="kin" id="kin"></div></section>
+      <section class="ledger-section" id="scar-block"><h3>Scar ledger <span class="badge" id="scar-count"></span></h3><div id="scars"></div></section>
+      <section class="ledger-section reading-key"><h3>How to read this tree</h3><div class="reading-grid"><div class="reading-item"><span class="key-mark width-mark"><i></i><i></i></span><span><b>Ring width</b> Wider means stronger annual growth.</span></div><div class="reading-item"><span class="key-mark color-mark"></span><span><b>Color</b> Down year → flat → up year.</span></div><div class="reading-item"><span class="key-mark vol-mark"></span><span><b>Darkness + grain</b> More means higher volatility.</span></div><div class="reading-item"><span class="key-mark scar-mark"></span><span><b>Scar</b> Major drawdown; reaching bark means unrecovered.</span></div><div class="reading-item"><span class="key-mark year-mark">1Y</span><span><b>One band</b> One calendar year.</span></div></div></section>
     </aside>
   </section>
 </main>
