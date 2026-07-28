@@ -78,6 +78,19 @@ LAKE = os.path.abspath(os.environ.get("EMPTY_DATA", os.path.join(REPO, "..", "em
 PRICES = os.path.join(LAKE, "prices")
 OUT = os.path.join(REPO, "data", "rings.json")
 
+# Licensing floor for lake-sourced assets.
+#
+# The site's stock feed is migrating to Twelve Data, whose daily history begins
+# 1970-01-02.  The pre-1970 rows still sitting in the lake (KO/GE/XOM back to
+# 1962) came from Tiingo and are not licensed for public redistribution, so they
+# must not reach the published artifact.  Every asset read from the $EMPTY_DATA
+# lake is therefore truncated at this date.
+#
+# This floor is deliberately source-scoped: the open-data trees built by
+# scripts/build-open-lake.py are derived from the Kenneth R. French Data Library,
+# which is freely redistributable, and keep their full 1926-> history.
+LAKE_HISTORY_FLOOR = "1970-01-01"
+
 MIN_FULL_YEARS = 3          # need this many calendar years to be a "tree"
 FULL_YEAR_MIN_DAYS = 150    # trading days for a year to count as "full"
 PARTIAL_YEAR_MIN_DAYS = 20  # below this, drop the partial stub entirely
@@ -184,7 +197,7 @@ def daily_close(ticker):
     s = df.groupby(d)["price"].last()
     s.index = s.index.tz_localize(None)
     s = s[s > 0].sort_index()
-    return s
+    return s[s.index >= LAKE_HISTORY_FLOOR]
 
 
 # ---- per-year ring stats ----------------------------------------------------
