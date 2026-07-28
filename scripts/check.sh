@@ -2,7 +2,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-python3 scripts/validate.py
+# --expect-featured keeps CI catching a production asset that fell out of the
+# bake. Drop the flag to validate an experimental forest's structure alone.
+python3 scripts/validate.py --expect-featured
 python3 -c "from pathlib import Path; [compile(p.read_text(), str(p), 'exec') for p in map(Path, ('scripts/bake-rings.py', 'scripts/validate.py'))]"
 
 for file in app/*.js shared/*.js; do
