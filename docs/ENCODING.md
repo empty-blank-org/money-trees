@@ -10,6 +10,10 @@ The cross-section is a compact financial record, not decorative generative art. 
 - **Boundary irregularity — volatility texture.** Every visible concentric boundary remains one calendar year. Its subtle waviness increases with that year's class-normalized realized volatility, reinforcing the darkness channel without introducing false rings. At Full Specimen scale only, a few restrained radial fibers add the same volatility texture without running parallel to the annual boundaries.
 - **Incomplete calendar years.** First and last years still render as complete circular bands. Their statistics use only the days actually observed, and inspection text labels them as partial. The data window should not make a tree look as though a wedge of wood is missing.
 
+## Disc size
+
+- **Radius — length of record (Arboretum only).** On the collection wall a tree's disc radius is `Rmax · min(1, (years / 100) ^ 0.35)`: an elder is visibly an elder and a short record is visibly a sapling. The 100-year reference is FIXED, never normalized to the oldest tree currently on screen, so adding an older specimen later cannot silently resize the whole collection. The 0.35 exponent compresses the range enough that a 15-year record still reads at roughly half radius with legible bands. Full Specimen ignores this — a single specimen is sized to the viewport, because there is nothing on the page to compare it against.
+
 Asset class is encoded on the bark and label, not the band fill: crypto amber, equity blue, bonds green, commodities orange, and FX magenta.
 
 ## Scars
@@ -25,9 +29,9 @@ This makes synchronized market events appear at similar angles across different 
 
 ## Product interactions
 
-The Arboretum treats structural family as the primary browsing taxonomy, then lets the collection be arranged by compound annual growth, mean volatility, number of visible years, worst drawdown, or positive-year share. Cross-date mode highlights the same calendar year across every visible tree. A shared visual key explains width, color, darkness/grain, scars, and annual bands.
+The Arboretum treats structural family as the primary browsing taxonomy, then lets the collection be arranged by compound annual growth, mean volatility, number of visible years, worst drawdown, or positive-year share. Cross-date mode dims every other year and rings the selected one in gold on every visible tree, so it stays findable on a long record where one year is a hairline. Trees whose record does not reach that year simply show no highlight. A shared visual key explains width, color, darkness/grain, scars, and annual bands.
 
-Full Specimen uses the identical renderer and data contract at a larger scale, preserves the originating collection context for navigation, and lets readers show or hide calendar-year labels. Its poster export renders the current specimen, palette, and label preference to a 2400×3000 PNG with summary statistics and the same encoding key; it does not screenshot or rasterize the surrounding interface.
+Full Specimen uses the identical renderer and data contract at a larger scale, preserves the originating collection context for navigation, and lets readers show or hide calendar-year labels. Its poster export renders the current specimen, palette, and label preference to a 2400×3000 PNG with summary statistics and the same encoding key; it does not screenshot or rasterize the surrounding interface. A full-screen immersive view (`?view=full`) re-renders the same specimen at the zoomed resolution rather than CSS-scaling it, so magnification buys detail; hairlines and scar edges stay pinned to screen width while the wood scales.
 
 ## Data limits
 

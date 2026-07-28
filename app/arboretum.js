@@ -8,7 +8,14 @@ sortEl.innerHTML=Collection.SORT_ORDER.map(k=>`<option value="${k}">${Collection
 function list(){return Collection.order(trees,insights,{sort,cls:classEl.value,family,q:searchEl.value})}
 function focusedRing(t){return crossYear?t.rings.find(r=>r.year===crossYear):null}
 function cardStats(t){const r=focusedRing(t);if(r)return `<b>${r.ret>=0?'+':''}${(r.ret*100).toFixed(1)}%</b> in ${crossYear}<br><b>${(r.vol*100).toFixed(1)}%</b> volatility`;const m=metric(t),sortValue=Collection.SORTS[sort].value(t);return sortValue?`<b>${sortValue}</b><br>${(m.worst*100).toFixed(1)}% worst DD`:`<b>${(m.cagr*100).toFixed(1)}%</b> CAGR<br><b>${(m.worst*100).toFixed(1)}%</b> worst DD`}
-function paintOne(cv){const t=trees.find(x=>x.id===cv.dataset.id),s=cv.clientWidth,dpr=Math.min(devicePixelRatio||1,1.6);cv.style.height=s+'px';cv.width=Math.round(s*dpr);cv.height=Math.round(s*dpr);const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,s,s);cv._size=s;cv._geo=LivingTrees.drawDetailedRings(g,t,s/2,s/2,s*.42,9999,{palette,years:false,focusYear:crossYear,highlightYear:cv._hoverYear})}
+// Age-anchored disc radius. A tree's size on the wall is its age, measured against a
+// FIXED 100-year reference — never against the oldest tree currently on screen, so
+// adding an older specimen later cannot resize the whole collection. The 0.35 exponent
+// is the compromise from the century-tuning study: enough compression that a 15-ring sapling
+// still reads (~51% radius, rings legible) while a century elder is visibly the elder.
+const AGE_REF_YEARS=100,AGE_EXP=.35;
+function ageScale(t){return Math.min(1,Math.pow((t.n_rings||t.rings.length)/AGE_REF_YEARS,AGE_EXP))}
+function paintOne(cv){const t=trees.find(x=>x.id===cv.dataset.id),s=cv.clientWidth,dpr=Math.min(devicePixelRatio||1,1.6);cv.style.height=s+'px';cv.width=Math.round(s*dpr);cv.height=Math.round(s*dpr);const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,s,s);cv._size=s;cv._geo=LivingTrees.drawDetailedRings(g,t,s/2,s/2,s*.42*ageScale(t),9999,{palette,years:false,focusYear:crossYear,highlightYear:cv._hoverYear||crossYear})}
 function paint(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>document.querySelectorAll('.specimen canvas').forEach(paintOne))}
 function animateFrom(first){requestAnimationFrame(()=>document.querySelectorAll('.specimen').forEach(card=>{const old=first.get(card.dataset.id);if(!old)return;const now=card.getBoundingClientRect(),dx=old.left-now.left,dy=old.top-now.top;if(Math.abs(dx)>1||Math.abs(dy)>1)card.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'translate(0,0)'}],{duration:520,easing:'cubic-bezier(.2,.75,.25,1)'})}))}
 function composeHeadline(){if(family==='all'&&sort==='curated')return 'A living collection of financial histories';const subject=family==='all'?'The collection':TreeInsights.FAMILY_LABELS[family];return sort==='curated'?subject:`${subject}, ${Collection.SORTS[sort].headline}`}
