@@ -331,6 +331,23 @@ def build_tree(ticker, cls):
 
     rings.sort(key=lambda r: r["year"])
 
+    # Never bridge a multi-year hole (dead/relisted tickers, feed gaps): a tree
+    # cannot skip rings, so keep only the most recent contiguous run of years
+    # and let the asset fail the age gate if what remains is too young.
+    runs = [[rings[0]]]
+    for r in rings[1:]:
+        if r["year"] - runs[-1][-1]["year"] > 1:
+            runs.append([])
+        runs[-1].append(r)
+    if len(runs) > 1:
+        rings = runs[-1]
+        print(f"  ! {ticker}: year gap in history — kept {rings[0]['year']}-{rings[-1]['year']}, "
+              f"dropped {sum(len(run) for run in runs[:-1])} earlier ring(s)")
+        full_rings = [r for r in rings if not r["partial"]]
+        if len(full_rings) < MIN_FULL_YEARS:
+            return None
+        s = s[s.index.year >= rings[0]["year"]]
+
     # Whole-tree summary stats (for the enlarged single-tree panel + sorting).
     px_first = s.iloc[0]
     px_last = s.iloc[-1]
