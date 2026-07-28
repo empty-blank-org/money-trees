@@ -30,12 +30,18 @@
     return {rings, years:rings.length, sumLg, cagr, meanVol, positive, scars, worst, thickness};
   }
 
-  function ringThickness(lg) {
-    const lo0=NORM?.lg_p5 ?? -.45, hi0=NORM?.lg_p95 ?? .55;
-    const t=Math.sign(lg)*Math.log1p(Math.abs(lg)*3.2);
-    const lo=Math.sign(lo0)*Math.log1p(Math.abs(lo0)*3.2);
-    const hi=Math.sign(hi0)*Math.log1p(Math.abs(hi0)*3.2);
-    return .28+1.72*clamp((t-lo)/(hi-lo),0,1);
+  // Ring width curve. `w` is an optional override:
+  // {squash, floor, max, lo, hi}. The shipped curve is log1p squash 3.2 between the
+  // forest's p5/p95 growth anchors, floor .15, max 2.0. The low floor is what lets a
+  // century tree breathe: 100 rings in one radius means the weakest years have to
+  // collapse to a hairline or the strong years have no room left to read as strong.
+  function ringThickness(lg, w) {
+    const squash=w&&w.squash!=null?w.squash:3.2;
+    const floor=w&&w.floor!=null?w.floor:.15, max=w&&w.max!=null?w.max:2.0;
+    const lo0=(w&&w.lo!=null)?w.lo:(NORM?.lg_p5 ?? -.45), hi0=(w&&w.hi!=null)?w.hi:(NORM?.lg_p95 ?? .55);
+    const sq=v=>Math.sign(v)*Math.log1p(Math.abs(v)*squash);
+    const t=sq(lg),lo=sq(lo0),hi=sq(hi0);
+    return floor+(max-floor)*clamp((t-lo)/(hi-lo),0,1);
   }
 
   function ringFill(cls, ring, palette="wood") {
@@ -93,12 +99,14 @@
 
   function ringPath(g,outer,inner) {g.beginPath();tracePoints(g,outer);tracePoints(g,inner,true);g.closePath();}
 
-  function drawRadialFibers(g,cx,cy,r0,r1,vol01,seed) {
-    if(r1-r0<5)return;const rng=rand(hash(seed)),count=2+Math.floor(vol01*5);
+  // `hair` (<1 under magnification) keeps fibers screen-thin and, because the
+  // random walk is seeded, adds grain rather than reshuffling it as you zoom in.
+  function drawRadialFibers(g,cx,cy,r0,r1,vol01,seed,hair=1) {
+    if(r1-r0<5)return;const rng=rand(hash(seed)),count=Math.round((2+Math.floor(vol01*5))*clamp(1/hair,1,9));
     for(let i=0;i<count;i++){
       const a=rng()*Math.PI*2,pad=(r1-r0)*(.18+.14*rng()),start=r0+pad,end=r1-pad*(.7+.15*rng());
       g.beginPath();g.moveTo(cx+Math.cos(a)*start,cy+Math.sin(a)*start);g.lineTo(cx+Math.cos(a)*end,cy+Math.sin(a)*end);
-      g.strokeStyle=i%2?'rgba(245,238,218,.08)':'rgba(3,5,4,.16)';g.lineWidth=Math.max(.55,(r1-r0)*.025);g.stroke();
+      g.strokeStyle=i%2?'rgba(245,238,218,.08)':'rgba(3,5,4,.16)';g.lineWidth=Math.max(.55,(r1-r0)*.025*hair);g.stroke();
     }
   }
 
@@ -108,7 +116,11 @@
   // (a closed teardrop, widest ~a third out where the damage is deepest); when it hasn't
   // recovered it tapers at the trough and stays open to the bark. Thinness is size-aware:
   // hairline on a large specimen, a touch heavier on small cards so it stays legible.
-  function drawOrganicScar(g,cx,cy,R,bands,sc,year) {
+  // `sr` is the reference radius for hairline strokes: it equals R for a plain
+  // render, but the immersive viewer holds it near the fit-to-screen radius so
+  // edge lines stay hairlines instead of fattening with magnification.
+  function drawOrganicScar(g,cx,cy,R,bands,sc,year,sr) {
+    if(sr==null)sr=R;
     const k0=bands.findIndex(b=>b.year>=sc.year);if(k0<0)return;
     const recovered=sc.r_year!=null&&sc.r_year<=year;
     let k1=bands.length-1;
@@ -132,9 +144,9 @@
     }
     g.beginPath();g.moveTo(...left[0]);for(let i=1;i<left.length;i++)g.lineTo(...left[i]);for(let i=right.length-1;i>=0;i--)g.lineTo(...right[i]);g.closePath();
     g.fillStyle='rgba(5,7,6,.88)';g.fill();
-    const edge=pts=>{g.beginPath();g.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);g.strokeStyle='rgba(213,193,151,.22)';g.lineWidth=Math.max(.5,R*.0018);g.stroke();};
+    const edge=pts=>{g.beginPath();g.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);g.strokeStyle='rgba(213,193,151,.22)';g.lineWidth=Math.max(.5,sr*.0018);g.stroke();};
     edge(left);edge(right);
-    g.beginPath();g.moveTo(...center[0]);for(let i=1;i<center.length;i++)g.lineTo(...center[i]);g.strokeStyle='rgba(0,0,0,.44)';g.lineWidth=Math.max(.4,R*.0013);g.stroke();
+    g.beginPath();g.moveTo(...center[0]);for(let i=1;i<center.length;i++)g.lineTo(...center[i]);g.strokeStyle='rgba(0,0,0,.44)';g.lineWidth=Math.max(.4,sr*.0013);g.stroke();
   }
 
   // Detailed renderer: one visible boundary per calendar year. Volatility
@@ -142,25 +154,71 @@
   // concentric contours inside the annual band.
   function drawDetailedRings(g,tree,cx,cy,R,year=9999,opts={}) {
     const m=metrics(tree,year);if(!m)return null;
-    const total=m.rings.reduce((s,r)=>s+ringThickness(r.log_growth),0),core=R*.055,usable=R-core,bands=[];
+    const wc=opts.width;   // opt-in ring-width curve override; undefined = shipped curve
+    const total=m.rings.reduce((s,r)=>s+ringThickness(r.log_growth,wc),0),core=R*.055,usable=R-core,bands=[];
     const baseAlpha=opts.alpha==null?1:opts.alpha;
-    let r0=core,innerPts=boundaryPoints(cx,cy,core,R,0,0,'core');g.save();g.globalAlpha=baseAlpha;
-    m.rings.forEach((ring,k)=>{
-      const r1=r0+usable*ringThickness(ring.log_growth)/total,a0=-Math.PI/2,a1=a0+Math.PI*2;
-      const fill=ringFill(tree.cls,ring,opts.palette),va=(NORM?.vol_cls&&NORM.vol_cls[tree.cls])||[NORM?.vol_p10||.1,NORM?.vol_p90||.7],vol01=clamp((ring.vol-va[0])/(va[1]-va[0]),0,1);
-      g.globalAlpha=baseAlpha*((opts.focusYear&&ring.year!==opts.focusYear) ? 0.20 : 1);
-      const outerPts=boundaryPoints(cx,cy,r1,R,vol01,r1-r0,tree.id+'|'+ring.year);
-      ringPath(g,outerPts,innerPts);g.fillStyle=rgba(fill);g.fill();
-      if(opts.fibers)drawRadialFibers(g,cx,cy,r0,r1,vol01,tree.id+'|fiber|'+ring.year);
-      g.beginPath();tracePoints(g,outerPts);g.strokeStyle='rgba(8,11,10,.68)';g.lineWidth=Math.max(.7,R*.00135);g.stroke();
-      bands.push({year:ring.year,r0,r1,a0,a1,partial:!!ring.partial,innerPts,outerPts});r0=r1;innerPts=outerPts;
+    // Hairline reference radius: a magnified render (immersive zoom) passes the
+    // fit-to-screen radius so boundary lines stay hairlines instead of fattening.
+    const sr=opts.strokeR||R,hair=sr/R;
+    // Optional screen-rect clip: with a deeply zoomed tree most annuli fall
+    // entirely outside the viewport, and generating their (very fine) boundary
+    // polylines is the whole cost of a frame. Skip those; keep their geometry
+    // in `bands` so hit-testing and the scar/label passes stay complete.
+    const clip=opts.clip;let rNear=0,rFar=Infinity;
+    if(clip){
+      const dx=[clip.x0-cx,clip.x1-cx],dy=[clip.y0-cy,clip.y1-cy];
+      rFar=Math.max(...dx.map(a=>Math.max(...dy.map(b=>Math.hypot(a,b)))))+2;
+      rNear=Math.hypot(Math.max(clip.x0-cx,0,cx-clip.x1),Math.max(clip.y0-cy,0,cy-clip.y1))-2;
+    }
+    const onScreen=(a,b)=>!clip||(b>=rNear&&a<=rFar);
+    const va=(NORM?.vol_cls&&NORM.vol_cls[tree.cls])||[NORM?.vol_p10||.1,NORM?.vol_p90||.7];
+    let r0=core,innerPts=null,prev={r:core,vol:0,th:0,seed:'core'};g.save();g.globalAlpha=baseAlpha;
+    m.rings.forEach(ring=>{
+      const r1=r0+usable*ringThickness(ring.log_growth,wc)/total,a0=-Math.PI/2,a1=a0+Math.PI*2;
+      const vol01=clamp((ring.vol-va[0])/(va[1]-va[0]),0,1),self={r:r1,vol:vol01,th:r1-r0,seed:tree.id+'|'+ring.year};
+      if(onScreen(r0,r1)){
+        const fill=ringFill(tree.cls,ring,opts.palette);
+        g.globalAlpha=baseAlpha*((opts.focusYear&&ring.year!==opts.focusYear) ? 0.20 : 1);
+        if(!innerPts)innerPts=boundaryPoints(cx,cy,prev.r,R,prev.vol,prev.th,prev.seed);
+        const outerPts=boundaryPoints(cx,cy,r1,R,vol01,r1-r0,self.seed);
+        ringPath(g,outerPts,innerPts);g.fillStyle=rgba(fill);g.fill();
+        if(opts.fibers)drawRadialFibers(g,cx,cy,r0,r1,vol01,tree.id+'|fiber|'+ring.year,hair);
+        g.beginPath();tracePoints(g,outerPts);g.strokeStyle='rgba(8,11,10,.68)';g.lineWidth=Math.max(.7,sr*.00135);g.stroke();
+        bands.push({year:ring.year,r0,r1,a0,a1,partial:!!ring.partial,innerPts,outerPts});innerPts=outerPts;
+      }else{
+        bands.push({year:ring.year,r0,r1,a0,a1,partial:!!ring.partial,innerPts:null,outerPts:null});innerPts=null;
+      }
+      prev=self;r0=r1;
     });
     g.globalAlpha=baseAlpha;
-    const outer=bands[bands.length-1];if(outer){g.beginPath();tracePoints(g,outer.outerPts);g.strokeStyle=CLASS_COLORS[tree.cls]||'#aaa';g.lineWidth=Math.max(1.5,R*.004);g.stroke();}
-    for(const sc of m.scars){g.globalAlpha=baseAlpha*((opts.focusYear&&sc.year!==opts.focusYear) ? 0.22 : 1);drawOrganicScar(g,cx,cy,R,bands,sc,year);}
+    const outer=bands[bands.length-1];if(outer&&outer.outerPts){g.beginPath();tracePoints(g,outer.outerPts);g.strokeStyle=CLASS_COLORS[tree.cls]||'#aaa';g.lineWidth=Math.max(1.5,sr*.004);g.stroke();}
+    for(const sc of m.scars){g.globalAlpha=baseAlpha*((opts.focusYear&&sc.year!==opts.focusYear) ? 0.22 : 1);drawOrganicScar(g,cx,cy,R,bands,sc,year,sr);}
     g.globalAlpha=baseAlpha;
-    if(opts.highlightYear){const b=bands.find(x=>x.year===opts.highlightYear);if(b){ringPath(g,b.outerPts,b.innerPts);g.fillStyle='rgba(245,215,142,.16)';g.fill();g.strokeStyle='rgba(255,232,170,.9)';g.lineWidth=Math.max(1.2,R*.004);g.stroke();}}
-    if(opts.years&&R>=90){g.strokeStyle='rgba(235,228,211,.23)';g.fillStyle='rgba(235,228,211,.62)';g.font=`${Math.max(8,Math.round(R*.055))}px ui-monospace,Menlo,monospace`;g.textAlign='right';bands.forEach((b,i)=>{if(bands.length>15&&i%2&&i!==bands.length-1)return;const y=cy-(b.r0+b.r1)/2;g.beginPath();g.moveTo(cx-4,y);g.lineTo(cx+4,y);g.stroke();g.fillText(String(b.year),cx-9,y+3);});}
+    if(opts.highlightYear){const b=bands.find(x=>x.year===opts.highlightYear);if(b&&b.outerPts){ringPath(g,b.outerPts,b.innerPts);g.fillStyle='rgba(245,215,142,.16)';g.fill();g.strokeStyle='rgba(255,232,170,.9)';g.lineWidth=Math.max(1.2,sr*.004);g.stroke();}}
+    // Year labels: thin them by the SPACE each label needs, not by a fixed
+    // every-other-ring stride. A century-long tree packs 100 bands into the same
+    // radius, so a fixed stride piles 50 labels into an unreadable smear; gating
+    // on the type's own line height keeps them legible at any ring count.
+    // opts.labelPx pins the type to a screen size (immersive zoom), which is what
+    // lets a magnified century tree reveal more of its years rather than fewer.
+    // opts.labelAngle swings the label rail off 12 o'clock, so a zoomed-and-panned
+    // view can still carry years even when the pith is off screen.
+    if(opts.years&&(opts.labelPx||R>=90)){
+      const fs=opts.labelPx||Math.max(8,Math.round(R*.055)),ang=opts.labelAngle==null?-Math.PI/2:opts.labelAngle;
+      const ux=Math.cos(ang),uy=Math.sin(ang),qx=-uy,qy=ux;   // q: across the rail
+      // Space needed between labels is the label box measured along the rail.
+      const minGap=Math.abs(ux)*fs*3.0+Math.abs(uy)*fs*1.15,ox=-qx*9,oy=-qy*9;
+      g.strokeStyle='rgba(235,228,211,.23)';g.fillStyle='rgba(240,233,216,.78)';g.font=`${fs}px ui-monospace,Menlo,monospace`;
+      g.textAlign=ox<-1?'right':ox>1?'left':'center';g.textBaseline='middle';
+      let last=-Infinity;   // walk bark -> pith; the key grows as radius shrinks
+      for(let i=bands.length-1;i>=0;i--){const b=bands[i],rm=(b.r0+b.r1)/2,px=cx+ux*rm,py=cy+uy*rm;
+        if(-rm-last<minGap)continue;
+        last=-rm;if(clip&&(px<clip.x0-60||px>clip.x1+60||py<clip.y0-2*fs||py>clip.y1+2*fs))continue;
+        g.lineWidth=1;g.strokeStyle='rgba(235,228,211,.23)';g.beginPath();g.moveTo(px-qx*4,py-qy*4);g.lineTo(px+qx*4,py+qy*4);g.stroke();
+        // Magnified views sit on pale latewood, so give the type a dark halo.
+        if(opts.labelPx){g.lineWidth=3;g.strokeStyle='rgba(4,8,6,.5)';g.strokeText(String(b.year),px+ox,py+oy);}
+        g.fillText(String(b.year),px+ox,py+oy);}
+      g.textBaseline='alphabetic';}
     g.restore();return {core,bands,barkR:outer?.r1||0};
   }
 

@@ -22,7 +22,7 @@
     </div>
     <a class="lab-link" href="../labs/">lab ↗</a>
   </header>
-  <div class="controls"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div><div class="palette-toggle" id="year-labels" role="group" aria-label="Year labels"><span>years</span><button data-labels="show" aria-pressed="false">show</button><button class="active" data-labels="hide" aria-pressed="true">hide</button></div><button class="download-poster" id="download-poster">Download poster</button><span class="note">Hover a band to inspect it · arrow keys move through trees</span></div>
+  <div class="controls"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div><div class="palette-toggle" id="year-labels" role="group" aria-label="Year labels"><span>years</span><button data-labels="show" aria-pressed="false">show</button><button class="active" data-labels="hide" aria-pressed="true">hide</button></div><button id="immerse" class="immerse-btn" aria-label="Open full-screen view">⤢ Full view <kbd>F</kbd></button><button class="download-poster" id="download-poster">Download poster</button><span class="note">Hover a band to inspect it · arrow keys move through trees</span></div>
   <section class="viewer">
     <div class="art" id="art"><canvas id="canvas" tabindex="0" role="img" aria-label="Interactive annual tree rings" aria-describedby="ring-help ring-readout"></canvas><div class="tooltip" id="tip"></div><div class="ring-readout" id="ring-readout" aria-live="polite">Tap or focus the tree, then use ← and → to inspect annual rings.</div></div>
     <aside class="ledger">
@@ -41,9 +41,24 @@
   </section>
   <section class="load-error" id="load-error" hidden role="alert"><h2>This specimen couldn’t load</h2><p>The tree-ring data may be temporarily unavailable.</p><button type="button" id="retry-load">Try again</button></section>
 </main>
+<div class="immersive" id="immersive" hidden>
+  <div class="imm-stage" id="imm-stage" tabindex="0" role="img" aria-label="Full-screen annual tree rings, zoomable"><div class="imm-layers" id="imm-layers"><canvas id="imm-canvas"></canvas><canvas id="imm-overlay"></canvas></div></div>
+  <div class="imm-title" id="imm-title"></div>
+  <div class="imm-controls" role="group" aria-label="Zoom controls">
+    <span class="imm-key">zoom</span>
+    <button type="button" data-imm="out" aria-label="Zoom out">−</button>
+    <span class="imm-zoom" id="imm-zoom">1.0×</span>
+    <button type="button" data-imm="in" aria-label="Zoom in">+</button>
+    <button type="button" data-imm="reset">reset</button>
+    <button type="button" data-imm="exit" aria-label="Exit full view">close <kbd>esc</kbd></button>
+  </div>
+  <div class="imm-readout" id="imm-readout" aria-live="polite"></div>
+  <div class="imm-hint" id="imm-hint">scroll to zoom · drag to pan · double-click to magnify · ← → step rings</div>
+</div>
 <script src="../shared/tree-renderer.js?v=20260721-1"></script>
 <script src="../app/tree-insights.js?v=20260721-1"></script>
 <script src="../shared/collection.js?v=20260721-1"></script>
+<script src="../app/immersive.js?v=20260721-1"></script>
 <script src="../app/specimen.js?v=20260721-1"></script>
 </body>
 </html>
