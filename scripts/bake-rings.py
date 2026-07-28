@@ -479,7 +479,7 @@ FEATURED = [
     # fx
     "uup", "fxe", "fxy", "fxa", "fxb", "fxc", "fxf",
     # open-data century trees (Ken French, 1926->) — see scripts/build-open-lake.py
-    "us-market", "nondurables", "durables", "manufacturing", "energy",
+    "us-market", "durables", "manufacturing", "energy",
     "chemicals", "tech", "telecom", "utilities", "retail", "healthcare",
     "finance",
 ]

@@ -53,8 +53,8 @@ FF3_ZIP = "F-F_Research_Data_Factors_daily_CSV.zip"
 # "Other" (mines, construction, transport, hotels, business services, ...) is
 # deliberately omitted: it is the catch-all bucket left over after the eleven
 # named industries, so its ring record describes no readable sector.
+# "NoDur" (consumer nondurables) is omitted by curatorial choice.
 INDUSTRIES = {
-    "NoDur": ("nondurables",   "Consumer Nondurables"),
     "Durbl": ("durables",      "Consumer Durables"),
     "Manuf": ("manufacturing", "Manufacturing"),
     "Enrgy": ("energy",        "Oil, Gas & Coal"),
