@@ -3,9 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Explore a financial asset’s complete annual tree-ring record, including growth, volatility, and drawdown scars.">
+  <meta name="theme-color" content="#07100d"><meta property="og:type" content="website"><meta property="og:site_name" content="Money Trees">
+  <meta property="og:title" content="Full Specimen — Money Trees"><meta property="og:description" content="A complete financial history rendered as annual tree rings.">
+  <meta property="og:url" content="__SITE_URL__/specimen/"><meta property="og:image" content="__SITE_URL__/assets/og-money-trees.png">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="__SITE_URL__/assets/og-money-trees.png">
+  <link rel="canonical" href="__SITE_URL__/specimen/"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
   <title>Full Specimen — Money Trees</title>
-  <link rel="stylesheet" href="../shared/tokens.css">
-  <link rel="stylesheet" href="../app/specimen.css">
+  <link rel="stylesheet" href="../shared/tokens.css?v=20260721-1">
+  <link rel="stylesheet" href="../app/specimen.css?v=20260721-1">
 </head>
 <body>
 <main class="page">
@@ -16,9 +22,9 @@
     </div>
     <a class="lab-link" href="../labs/">lab ↗</a>
   </header>
-  <div class="controls"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div><div class="palette-toggle" id="year-labels" role="group" aria-label="Year labels"><span>years</span><button class="active" data-labels="show" aria-pressed="true">show</button><button data-labels="hide" aria-pressed="false">hide</button></div><button class="download-poster" id="download-poster">Download poster</button><span class="note">Hover a band to inspect it · arrow keys move through trees</span></div>
+  <div class="controls"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div><div class="palette-toggle" id="year-labels" role="group" aria-label="Year labels"><span>years</span><button data-labels="show" aria-pressed="false">show</button><button class="active" data-labels="hide" aria-pressed="true">hide</button></div><button class="download-poster" id="download-poster">Download poster</button><span class="note">Hover a band to inspect it · arrow keys move through trees</span></div>
   <section class="viewer">
-    <div class="art" id="art"><canvas id="canvas"></canvas><div class="tooltip" id="tip"></div></div>
+    <div class="art" id="art"><canvas id="canvas" tabindex="0" role="img" aria-label="Interactive annual tree rings" aria-describedby="ring-help ring-readout"></canvas><div class="tooltip" id="tip"></div><div class="ring-readout" id="ring-readout" aria-live="polite">Tap or focus the tree, then use ← and → to inspect annual rings.</div></div>
     <aside class="ledger">
       <h2 id="name"></h2>
       <div class="classline" id="classline"></div>
@@ -28,12 +34,16 @@
       <section class="ledger-section" id="kin-block"><h3>Trees like this</h3><div class="kin" id="kin"></div></section>
       <section class="ledger-section" id="scar-block"><h3>Scar ledger <span class="badge" id="scar-count"></span></h3><div id="scars"></div></section>
       <section class="ledger-section reading-key"><h3>How to read this tree</h3><div class="reading-grid"><div class="reading-item"><span class="key-mark width-mark"><i></i><i></i></span><span><b>Ring width</b> Wider means stronger annual growth.</span></div><div class="reading-item"><span class="key-mark color-mark"></span><span><b>Color</b> Down year → flat → up year.</span></div><div class="reading-item"><span class="key-mark vol-mark"></span><span><b>Darkness + grain</b> More means higher volatility.</span></div><div class="reading-item"><span class="key-mark scar-mark"></span><span><b>Scar</b> Major drawdown; reaching bark means unrecovered.</span></div><div class="reading-item"><span class="key-mark year-mark">1Y</span><span><b>One band</b> One calendar year.</span></div></div></section>
+      <p class="sr-only" id="ring-help">Use left and right arrow keys while the tree is focused to inspect one annual ring at a time.</p>
+      <details class="ledger-section year-ledger"><summary>Year-by-year record</summary><div class="year-table-wrap" id="year-table-wrap"></div></details>
+      <section class="ledger-section specimen-source"><h3>Data notes</h3><p id="freshness">Loading data coverage…</p><p>Derived from daily closing prices. <a href="../methodology/">Methodology and limitations</a>.</p><p>Educational, not investment advice.</p></section>
     </aside>
   </section>
+  <section class="load-error" id="load-error" hidden role="alert"><h2>This specimen couldn’t load</h2><p>The tree-ring data may be temporarily unavailable.</p><button type="button" id="retry-load">Try again</button></section>
 </main>
-<script src="../shared/tree-renderer.js"></script>
-<script src="../app/tree-insights.js"></script>
-<script src="../shared/collection.js"></script>
-<script src="../app/specimen.js"></script>
+<script src="../shared/tree-renderer.js?v=20260721-1"></script>
+<script src="../app/tree-insights.js?v=20260721-1"></script>
+<script src="../shared/collection.js?v=20260721-1"></script>
+<script src="../app/specimen.js?v=20260721-1"></script>
 </body>
 </html>

@@ -4,9 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Explore financial histories as tree rings: one annual band per year, encoded by growth, volatility, and drawdown scars.">
+  <meta name="theme-color" content="#07100d">
+  <meta property="og:type" content="website"><meta property="og:site_name" content="Money Trees">
+  <meta property="og:title" content="Money Trees — Financial history in annual rings">
+  <meta property="og:description" content="Explore 86 financial histories as tree rings, with annual growth, volatility, and drawdowns carved into the wood.">
+  <meta property="og:url" content="__SITE_URL__/"><meta property="og:image" content="__SITE_URL__/assets/og-money-trees.png">
+  <meta property="og:image:width" content="924"><meta property="og:image:height" content="485">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Money Trees — Financial history in annual rings">
+  <meta name="twitter:description" content="Explore 86 financial histories as tree rings."><meta name="twitter:image" content="__SITE_URL__/assets/og-money-trees.png">
+  <link rel="canonical" href="__SITE_URL__/"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="manifest" href="site.webmanifest">
   <title>Money Trees — Financial history in annual rings</title>
-  <link rel="stylesheet" href="shared/tokens.css">
-  <link rel="stylesheet" href="app/arboretum.css">
+  <link rel="stylesheet" href="shared/tokens.css?v=20260721-1">
+  <link rel="stylesheet" href="app/arboretum.css?v=20260721-1">
 </head>
 <body>
 <main class="page">
@@ -19,6 +28,14 @@
     <a class="back" href="labs/">Open the lab →</a>
   </header>
   <div class="toolbar">
+    <div class="ticker-search">
+      <label for="search">Find a tree</label>
+      <div class="ticker-search-field">
+        <span aria-hidden="true">⌕</span>
+        <input id="search" type="search" placeholder="Search ticker or name — BTC, Bitcoin, Apple…" aria-label="Find a tree by ticker or name" autocomplete="off" spellcheck="false">
+      </div>
+      <span class="ticker-search-hint">Search the collection</span>
+    </div>
     <div class="family-row" id="families">
       <span class="row-label">family</span>
       <button class="active" data-family="all">All specimens</button>
@@ -32,7 +49,6 @@
     <div class="filter-row">
       <label>arrange <select id="sort"></select></label>
       <label>class <select id="class"><option value="all">all classes</option><option value="crypto">crypto</option><option value="equity">equity</option><option value="bonds">bonds</option><option value="commodities">commodities</option><option value="fx">FX</option></select></label>
-      <input id="search" type="text" placeholder="find ticker" aria-label="Find ticker">
       <label>cross-date <select id="cross"><option value="">all rings</option></select></label>
       <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
       <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div>
@@ -40,12 +56,14 @@
       <span class="cross-note" id="status"></span>
     </div>
   </div>
+  <section class="load-error" id="load-error" hidden role="alert"><h2>The arboretum couldn’t load</h2><p>The tree-ring data may be temporarily unavailable.</p><button type="button" id="retry-load">Try again</button></section>
   <section class="grid" id="grid"></section>
   <div class="tooltip" id="tip"></div>
+  <footer class="site-footer"><span id="freshness">Loading data coverage…</span><span>Derived from daily closing prices · <a href="methodology/">Methodology &amp; data notes</a> · Educational, not investment advice</span></footer>
 </main>
-<script src="shared/tree-renderer.js"></script>
-<script src="app/tree-insights.js"></script>
-<script src="shared/collection.js"></script>
-<script src="app/arboretum.js"></script>
+<script src="shared/tree-renderer.js?v=20260721-1"></script>
+<script src="app/tree-insights.js?v=20260721-1"></script>
+<script src="shared/collection.js?v=20260721-1"></script>
+<script src="app/arboretum.js?v=20260721-1"></script>
 </body>
 </html>

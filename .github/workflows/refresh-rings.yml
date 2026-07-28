@@ -33,6 +33,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: requirements-bake.txt
 
       - name: Install deps
         run: pip install --quiet --requirement requirements-bake.txt

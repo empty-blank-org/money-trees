@@ -74,7 +74,7 @@ import numpy as np
 import pandas as pd
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LAKE = os.environ.get("EMPTY_DATA", "/Users/nmadd/Dropbox/code/empty-data/data")
+LAKE = os.path.abspath(os.environ.get("EMPTY_DATA", os.path.join(REPO, "..", "empty-data", "data")))
 PRICES = os.path.join(LAKE, "prices")
 OUT = os.path.join(REPO, "data", "rings.json")
 
@@ -84,6 +84,66 @@ PARTIAL_YEAR_MIN_DAYS = 20  # below this, drop the partial stub entirely
 MIN_SCAR_HEAL_DAYS = 120    # quick V-recoveries are flesh wounds, not scars
 
 TRADING_DAYS = 252
+
+# Canonical display names for the public collection. Equity metadata is also
+# pulled from the lake when available (see load_asset_names); these entries
+# cover instruments whose names live in source-specific pipeline config.
+DISPLAY_NAMES = {
+    "btc": "Bitcoin", "eth": "Ethereum", "sol": "Solana", "xrp": "XRP",
+    "bnb": "BNB", "ada": "Cardano", "doge": "Dogecoin", "ltc": "Litecoin",
+    "link": "Chainlink", "avax": "Avalanche", "shib": "Shiba Inu",
+    "pepe": "Pepe", "uni": "Uniswap", "aave": "Aave",
+    "xlm": "Stellar", "xmr": "Monero", "zec": "Zcash",
+    "etc": "Ethereum Classic", "eos": "EOS", "trx": "TRON",
+    "bch": "Bitcoin Cash", "lunc": "Terra Classic", "mana": "Decentraland",
+    "mkr": "Maker", "atom": "Cosmos", "stx": "Stacks",
+    "fil": "Filecoin", "axs": "Axie Infinity", "dot": "Polkadot",
+    "near": "NEAR Protocol", "inj": "Injective", "ton": "Toncoin",
+    "render": "Render", "op": "Optimism",
+    "spy": "SPDR S&P 500 ETF Trust", "qqq": "Invesco QQQ Trust",
+    "iwm": "iShares Russell 2000 ETF", "aapl": "Apple", "msft": "Microsoft",
+    "nvda": "Nvidia", "tsla": "Tesla", "amzn": "Amazon", "meta": "Meta Platforms",
+    "googl": "Alphabet", "coin": "Coinbase", "mstr": "Strategy",
+    "mara": "MARA Holdings", "pltr": "Palantir", "amd": "Advanced Micro Devices",
+    "ko": "Coca-Cola", "ge": "General Electric", "dis": "Disney",
+    "xom": "Exxon Mobil", "wmt": "Walmart", "jpm": "JPMorgan Chase",
+    "o": "Realty Income", "intc": "Intel", "asml": "ASML",
+    "brk.b": "Berkshire Hathaway", "nflx": "Netflix",
+    "ewj": "iShares MSCI Japan ETF", "eem": "iShares MSCI Emerging Markets ETF",
+    "tlt": "iShares 20+ Year Treasury Bond ETF", "ief": "iShares 7–10 Year Treasury Bond ETF",
+    "shy": "iShares 1–3 Year Treasury Bond ETF", "agg": "iShares Core U.S. Aggregate Bond ETF",
+    "lqd": "iShares Investment Grade Corporate Bond ETF", "hyg": "iShares High Yield Corporate Bond ETF",
+    "tip": "iShares TIPS Bond ETF", "emb": "JPMorgan USD Emerging Markets Bond ETF",
+    "mbb": "iShares MBS ETF",
+    "gld": "SPDR Gold Shares", "slv": "iShares Silver Trust", "uso": "United States Oil Fund",
+    "dbc": "Invesco DB Commodity Index Tracking Fund", "ung": "United States Natural Gas Fund",
+    "dba": "Invesco DB Agriculture Fund", "cper": "United States Copper Index Fund",
+    "pplt": "abrdn Physical Platinum Shares ETF",
+    "uup": "Invesco DB U.S. Dollar Index Bullish Fund",
+    "fxa": "Invesco CurrencyShares Australian Dollar Trust",
+    "fxb": "Invesco CurrencyShares British Pound Trust",
+    "fxc": "Invesco CurrencyShares Canadian Dollar Trust",
+    "fxf": "Invesco CurrencyShares Swiss Franc Trust",
+    "eurusd": "Euro / U.S. Dollar", "usdjpy": "U.S. Dollar / Japanese Yen",
+    "gbpusd": "British Pound / U.S. Dollar", "usdchf": "U.S. Dollar / Swiss Franc",
+    "fxe": "Invesco CurrencyShares Euro Trust", "fxy": "Invesco CurrencyShares Japanese Yen Trust",
+}
+
+
+def load_asset_names():
+    """Merge lake equity names into the stable cross-asset display-name map."""
+    names = dict(DISPLAY_NAMES)
+    meta_path = os.path.join(LAKE, "fundamentals", "meta.parquet")
+    if os.path.exists(meta_path):
+        try:
+            meta = pd.read_parquet(meta_path, columns=["ticker", "name"]).dropna()
+            for row in meta.itertuples(index=False):
+                ticker = str(row.ticker).lower()
+                if ticker not in names:
+                    names[ticker] = str(row.name)
+        except Exception as exc:
+            print(f"warning: could not load asset names from {meta_path}: {exc}")
+    return names
 
 
 # ---- asset-class map (top-level rollup of data/groups.json) -----------------
@@ -310,6 +370,7 @@ def build_tree(ticker, cls):
     return {
         "id": ticker,
         "cls": cls,
+        "data_through": s.index[-1].strftime("%Y-%m-%d"),
         "rings": rings,
         "scars": scars,
         "scar_thr": round(scar_thr, 3),
@@ -329,26 +390,31 @@ def build_tree(ticker, cls):
 
 # ---- featured forest selection ---------------------------------------------
 # Majors across classes + a few extremes.  Everything else is computed and
-# swappable via the selector; this is just the default ~50-glyph forest.
+# swappable via the selector; this is the curated public arboretum.
 
 FEATURED = [
     # crypto majors + extremes
     "btc", "eth", "sol", "xrp", "bnb", "ada", "doge", "ltc", "link", "avax",
-    "shib", "pepe", "uni", "aave",
+    "shib", "pepe", "uni", "aave", "xlm", "xmr", "zec", "etc", "bch", "eos",
+    "trx", "lunc", "mana", "mkr", "atom", "stx", "fil", "axs", "dot", "near",
+    "inj", "ton", "render", "op",
     # equity index + megacap + extremes
     "spy", "qqq", "iwm", "aapl", "msft", "nvda", "tsla", "amzn", "meta", "googl",
     "coin", "mstr", "mara", "pltr", "amd",
+    "ko", "ge", "dis", "xom", "wmt", "jpm", "o", "intc", "asml", "brk.b",
+    "nflx", "ewj", "eem",
     # bonds (old-growth, tight pale rings)
-    "tlt", "ief", "shy", "agg", "lqd", "hyg", "tip", "emb",
+    "tlt", "ief", "shy", "agg", "lqd", "hyg", "tip", "emb", "mbb",
     # commodities
-    "gld", "slv", "uso", "dbc", "ung", "dba",
+    "gld", "slv", "uso", "dbc", "ung", "dba", "cper", "pplt",
     # fx
-    "uup", "eurusd", "usdjpy", "gbpusd", "usdchf", "fxe", "fxy",
+    "uup", "fxe", "fxy", "fxa", "fxb", "fxc", "fxf",
 ]
 
 
 def main():
     tk2cls = load_class_map()
+    asset_names = load_asset_names()
     have = sorted(f[:-8] for f in os.listdir(PRICES) if f.endswith(".parquet"))
 
     trees = []
@@ -362,6 +428,7 @@ def main():
         if tree is None:
             skipped += 1
             continue
+        tree["name"] = asset_names.get(t, t.upper())
         trees.append(tree)
 
     feat_set = set(FEATURED)
@@ -415,8 +482,13 @@ def main():
         "max_age": max(tr["age_years"] for tr in trees),
     }
 
+    data_through = max(tr["data_through"] for tr in trees)
     out = {
-        "generated": pd.Timestamp.now("UTC").strftime("%Y-%m-%d %H:%M UTC"),
+        "schema_version": 1,
+        # Derived from source data rather than wall-clock bake time so an
+        # unchanged lake produces byte-identical output and no empty CI commit.
+        "generated": f"{data_through} market close",
+        "data_through": data_through,
         "n_trees": len(trees),
         "n_featured": n_feat,
         "norm": norm,

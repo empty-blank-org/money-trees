@@ -24,7 +24,7 @@
     return trees.filter(t =>
       (cls === 'all' || t.cls === cls) &&
       (family === 'all' || TreeInsights.familyOf(insights, t) === family) &&
-      (!query || t.id.includes(query))
+      (!query || t.id.includes(query) || (t.name || '').toLowerCase().includes(query))
     ).slice().sort(cfg.compare);
   }
 

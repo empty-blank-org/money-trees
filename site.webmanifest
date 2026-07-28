@@ -1,0 +1,10 @@
+{
+  "name": "Money Trees",
+  "short_name": "Money Trees",
+  "description": "Financial history rendered as annual tree rings.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07100d",
+  "theme_color": "#07100d",
+  "icons": [{"src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml"}]
+}

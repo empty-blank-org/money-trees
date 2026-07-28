@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Methodology, data provenance, and limitations for Money Trees financial tree-ring visualizations.">
+  <meta name="theme-color" content="#07100d">
+  <title>Methodology &amp; data notes — Money Trees</title>
+  <link rel="canonical" href="__SITE_URL__/methodology/">
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../shared/tokens.css?v=20260721-1">
+  <link rel="stylesheet" href="../app/methodology.css?v=20260721-1">
+</head>
+<body>
+<main class="method-page">
+  <a class="method-back" href="../">← Arboretum</a>
+  <div class="eyebrow">Money Trees · methodology</div>
+  <h1>How financial history becomes wood</h1>
+  <p class="method-lede">Money Trees is an interpretive visualization of historical market data. Every annual band is computed from observed daily closing prices; the organic treatment adds texture, not invented events.</p>
+
+  <section><h2>Annual rings</h2><dl><dt>Width</dt><dd>Annual log growth, mapped monotonically with a minimum width so severe down years remain visible.</dd><dt>Color</dt><dd>Annual return direction and magnitude. Wood and market palettes use separate loss and gain ramps, normalized within asset class.</dd><dt>Darkness and grain</dt><dd>Annualized realized volatility, normalized within asset class. Higher volatility produces darker, more irregular wood.</dd><dt>One band</dt><dd>One calendar year. Partial first and current years use only the observations available and are marked during inspection.</dd></dl></section>
+
+  <section><h2>Drawdown scars</h2><p>A scar is a whole-history drawdown episode. It qualifies when depth exceeds the asset’s median full-year volatility threshold, clamped between 15% and 50%, and remains underwater for at least 120 days after its trough or is still open. Its angle follows the trough date and its length continues until recovery.</p></section>
+
+  <section><h2>Data provenance</h2><p>The production artifact is baked from the Empty Data price lake. It contains derived annual returns, realized volatility, maximum drawdowns, recovery dates, and summary statistics—not the underlying daily price series. Coverage and latest observation dates vary by asset.</p><p>The interface reports the latest included price date globally and on each specimen. The committed artifact is validated before deployment.</p><p><a href="https://www.tiingo.com/" rel="external">Data sourced by Tiingo</a>. Crypto market data includes information <a href="https://www.coingecko.com/en/api" rel="external">provided by CoinGecko</a>. Additional source-specific provenance is maintained in the upstream data lake.</p></section>
+
+  <section><h2>Important limitations</h2><ul><li>Returns are based on the lake’s available closing-price series and may not represent dividend-reinvested total returns for every instrument.</li><li>Partial calendar years are not directly comparable with complete years.</li><li>The universe is curated and survivor-biased; absent or delisted assets cannot appear.</li><li>Class-relative normalization improves legibility within an asset class but is not an absolute comparison of volatility between classes.</li><li>Historical performance is not predictive. Money Trees is educational and is not investment advice.</li></ul></section>
+
+  <section><h2>Open methodology</h2><p>The complete encoding contract is maintained with the source code. Visual encodings should change only when their corresponding data contract and documentation change together.</p></section>
+  <section><h2>Privacy</h2><p>Money Trees does not use accounts, advertising trackers, or application cookies, and it does not collect user-submitted personal information. The hosting provider may process routine request metadata for security and delivery.</p></section>
+  <footer><a href="../">Return to the Arboretum</a><span>Financial history rendered as annual tree rings.</span></footer>
+</main>
+</body>
+</html>

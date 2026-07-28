@@ -57,7 +57,7 @@ import numpy as np
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LAKE = os.environ.get("EMPTY_DATA", "/Users/nmadd/Dropbox/code/empty-data/data")
+LAKE = os.path.abspath(os.environ.get("EMPTY_DATA", os.path.join(HERE, "..", "..", "..", "..", "empty-data", "data")))
 PRICES = os.path.join(LAKE, "prices")
 SPANS = os.path.join(HERE, "shared", "spans.json")
 OUT = os.path.join(HERE, "data", "fire.json")

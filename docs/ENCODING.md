@@ -31,9 +31,11 @@ Full Specimen uses the identical renderer and data contract at a larger scale, p
 
 ## Data limits
 
-- The current lake covers roughly 2010–2026, with much of the cross-asset universe beginning around 2016. This is why historical playback is not a primary product interaction.
+- Coverage varies substantially by asset. The oldest featured equities begin in 1962, currency funds generally begin in 2006–2007, Bitcoin begins in 2010, and younger crypto assets begin at their own market inception. This uneven coverage is why historical playback is not a primary product interaction.
 - The universe is survivor-biased: delisted and failed assets absent from the lake cannot contribute rings or scars.
-- Monthly returns are emitted only for the 50 featured assets. Production does not use them to remove ring geometry; they remain available to archived research experiments.
+- Monthly returns are emitted only for the 86 featured assets. Production does not use them to remove ring geometry; they remain available to archived research experiments.
+- Equity and fund returns use the closing-price series available in the lake and should not be assumed to include dividend reinvestment for every instrument.
+- First and current calendar years can be partial. Inspection and the accessible annual ledger mark these records explicitly.
 - Class-relative normalization supports comparison of each asset with its peers, but color darkness should not be read as an absolute cross-class volatility scale.
 
 The canonical implementation lives in `scripts/bake-rings.py` and `shared/tree-renderer.js`. Encoding changes should update both code and this document in the same commit.

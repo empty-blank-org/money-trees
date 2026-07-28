@@ -1,0 +1,38 @@
+name: Validate production
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-bake.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install bake dependencies
+        run: pip install --requirement requirements-bake.txt
+
+      - name: Validate data and public build
+        run: ./scripts/check.sh
+
+      - name: Install browser test runner
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run browser smoke tests
+        run: npm run test:browser

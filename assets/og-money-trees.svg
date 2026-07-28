@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="924" height="485" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="bg" cx="72%" cy="22%" r="80%"><stop stop-color="#263b2e"/><stop offset=".52" stop-color="#0b1713"/><stop offset="1" stop-color="#07100d"/></radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity=".45"/></filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g transform="translate(875 315)" filter="url(#shadow)">
+    <circle r="240" fill="#261b13" stroke="#d2a35e" stroke-width="5"/>
+    <circle r="214" fill="none" stroke="#573923" stroke-width="28"/>
+    <circle r="182" fill="none" stroke="#8a6039" stroke-width="26"/>
+    <circle r="150" fill="none" stroke="#c09559" stroke-width="32"/>
+    <circle r="114" fill="none" stroke="#634229" stroke-width="24"/>
+    <circle r="83" fill="none" stroke="#e0b873" stroke-width="31"/>
+    <circle r="45" fill="none" stroke="#93683f" stroke-width="24"/>
+    <circle r="20" fill="#c99a5d"/>
+    <path d="M-18-230C-8-158-22-90-4-14S8 111 18 235" fill="none" stroke="#f6e4ba" stroke-opacity=".28" stroke-width="5"/>
+  </g>
+  <text x="86" y="132" fill="#e6b85c" font-family="ui-monospace,Menlo,monospace" font-size="20" letter-spacing="5">FINANCIAL DENDROCHRONOLOGY</text>
+  <text x="82" y="247" fill="#f2ecdf" font-family="Georgia,serif" font-size="76">Money Trees</text>
+  <text x="88" y="315" fill="#b5ae9f" font-family="Arial,sans-serif" font-size="27">Financial history, rendered in annual rings.</text>
+  <text x="88" y="434" fill="#d8c38d" font-family="ui-monospace,Menlo,monospace" font-size="19">GROWTH · VOLATILITY · DRAWDOWN SCARS</text>
+  <text x="88" y="496" fill="#858e86" font-family="Arial,sans-serif" font-size="18">86 specimens · equities · crypto · bonds · commodities · currencies</text>
+</svg>
