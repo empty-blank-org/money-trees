@@ -183,7 +183,16 @@
         const outerPts=boundaryPoints(cx,cy,r1,R,vol01,r1-r0,self.seed);
         ringPath(g,outerPts,innerPts);g.fillStyle=rgba(fill);g.fill();
         if(opts.fibers)drawRadialFibers(g,cx,cy,r0,r1,vol01,tree.id+'|fiber|'+ring.year,hair);
-        g.beginPath();tracePoints(g,outerPts);g.strokeStyle='rgba(8,11,10,.68)';g.lineWidth=Math.max(.7,sr*.00135);g.stroke();
+        // Decade reference lines. Dendrochronologists mark every tenth ring so the
+        // eye can count a long series without losing its place; the outer edge of a
+        // year ending in 0 gets a slightly heavier, slightly darker boundary. It has
+        // to whisper — texture at card scale, gentle latitude lines at specimen scale —
+        // so this is a small step up from the annual hairline, not a rule.
+        const decade=opts.decades!==false&&ring.year%10===0;
+        g.beginPath();tracePoints(g,outerPts);
+        g.strokeStyle=decade?'rgba(5,8,7,.9)':'rgba(8,11,10,.68)';
+        g.lineWidth=decade?Math.max(1.5,sr*.0032):Math.max(.7,sr*.00135);
+        g.stroke();
         bands.push({year:ring.year,r0,r1,a0,a1,partial:!!ring.partial,innerPts,outerPts});innerPts=outerPts;
       }else{
         bands.push({year:ring.year,r0,r1,a0,a1,partial:!!ring.partial,innerPts:null,outerPts:null});innerPts=null;
