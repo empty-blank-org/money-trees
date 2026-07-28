@@ -13,6 +13,7 @@ specimen/                  shareable full-record route
 shared/                    production renderer and design tokens
 data/rings.json            canonical committed production artifact
 scripts/bake-rings.py      canonical price-lake → rings bake
+scripts/build-open-lake.py open-data (Ken French) mini-lake builder
 labs/                      experiment catalog and frozen studies
   experiments/<slug>/      self-contained HTML, assets, data, optional prep
 docs/ENCODING.md           visual/data grammar
@@ -43,8 +44,11 @@ The GitHub Actions workflow at `.github/workflows/refresh-rings.yml` runs daily 
 
 ```bash
 python3 -m pip install --requirement requirements-bake.txt
+python3 scripts/build-open-lake.py     # open-data century trees (gitignored mini-lake)
 python3 scripts/bake-rings.py
 ```
+
+The bake reads **two** price sources. Assets from the `$EMPTY_DATA` lake are floored at 1970-01-01 (`LAKE_HISTORY_FLOOR`): the stock feed is Twelve Data, whose history begins 1970-01-02, and the older rows still in the lake are Tiingo-sourced and not licensed for public redistribution. The second source is `openlake/data`, a gitignored mini-lake that `scripts/build-open-lake.py` compounds from the Kenneth R. French Data Library (daily market factor + 12 Industry Portfolios). Those series are freely redistributable, bypass the floor, and give the arboretum twelve genuine 1926→ century trees.
 
 The script reads the sibling `../empty-data/data` lake by default (dev). Override it with `EMPTY_DATA`. In CI, `.github/workflows/refresh-rings.yml` instead syncs the lake slice from the `empty-data-lake` R2 bucket and **gates on `health.json.generated_at`** (fails if the snapshot is >3 days old) before rebaking — the standard empty-data consumer contract (see empty-data's `context/technical-architecture.md` § *Consumer contract v1*). Price parquet files contain `hour`, `price`, and `volume`; asset classes roll up from `groups.json`. Display names come from lake fundamentals metadata when available, with a stable cross-asset map for curated instruments.
 

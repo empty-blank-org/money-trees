@@ -9,6 +9,11 @@ name: Refresh tree rings
 # gates on health.json's generated_at — if the snapshot is older than
 # MAX_LAKE_AGE_DAYS the job FAILS instead of silently rebaking stale data.
 #
+# The forest also carries open-data century trees (Ken French daily market +
+# industry series, 1926->). That mini-lake is gitignored, so the job rebuilds it
+# with scripts/build-open-lake.py before every bake; the source zips are cached
+# per calendar month so Dartmouth's monthly update still lands.
+#
 # Requires repo secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
 
 on:
@@ -70,10 +75,26 @@ jobs:
                        "empty-data's R2 publish (Stage 11) has stopped; refusing to rebake.")
           EOF
 
+      # The open-data mini-lake (Ken French daily industry + market series) is
+      # gitignored and rebuilt on every run; only the source zips are cached, so
+      # a monthly Dartmouth update still lands within the cache's week-long key.
+      - name: Ken French cache key
+        id: kf
+        run: echo "month=$(date -u +%Y-%m)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Ken French downloads
+        uses: actions/cache@v4
+        with:
+          path: openlake/_src
+          key: kenfrench-${{ steps.kf.outputs.month }}
+
+      - name: Build open-data lake
+        run: python scripts/build-open-lake.py
+
       - name: Bake rings
         run: |
           EMPTY_DATA="$PWD/lake" python scripts/bake-rings.py
-          python scripts/validate.py
+          python scripts/validate.py --expect-featured
 
       - name: Commit if changed
         run: |
