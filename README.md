@@ -1,6 +1,6 @@
 # Money Trees
 
-Money Trees turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Arboretum currently contains 86 specimens; selecting one opens its complete record at `/specimen/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
+Money Trees turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Arboretum currently contains 97 specimens; selecting one opens its complete record at `/specimen/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
 
 The hard gate is that every visual feature must decode to a real quantity computed from real data. Ring width is annual log growth, color is annual return, darkness is realized volatility, and scars are qualifying drawdown episodes. Natural wood is the default return encoding; an optional market mode provides the familiar red/green analytical view. See [`docs/ENCODING.md`](docs/ENCODING.md) for the complete contract and caveats.
 
@@ -13,7 +13,6 @@ specimen/                  shareable full-record route
 shared/                    production renderer and design tokens
 data/rings.json            canonical committed production artifact
 scripts/bake-rings.py      canonical price-lake → rings bake
-scripts/build-open-lake.py open-data (Ken French) mini-lake builder
 labs/                      experiment catalog and frozen studies
   experiments/<slug>/      self-contained HTML, assets, data, optional prep
 docs/ENCODING.md           visual/data grammar
@@ -44,13 +43,14 @@ The GitHub Actions workflow at `.github/workflows/refresh-rings.yml` runs daily 
 
 ```bash
 python3 -m pip install --requirement requirements-bake.txt
-python3 scripts/build-open-lake.py     # open-data century trees (gitignored mini-lake)
 python3 scripts/bake-rings.py
 ```
 
-The bake reads **two** price sources. Assets from the `$EMPTY_DATA` lake are floored at 1970-01-01 (`LAKE_HISTORY_FLOOR`): the stock feed is Twelve Data, whose history begins 1970-01-02, and the older rows still in the lake are Tiingo-sourced and not licensed for public redistribution. The second source is `openlake/data`, a gitignored mini-lake that `scripts/build-open-lake.py` compounds from the Kenneth R. French Data Library (daily market factor + 12 Industry Portfolios). Those series are freely redistributable, bypass the floor, and give the arboretum twelve genuine 1926→ century trees.
+The bake reads the empty-data lake's **two price namespaces**. Everything the site draws except crypto comes from `$EMPTY_DATA/prices_public/` — Twelve Data equities/ETFs/bonds/commodities/FX (daily history begins 1970-01-02) plus the Kenneth R. French Data Library century series (daily market factor + 12 Industry Portfolios, 1926→), compounded upstream into total-return indexes. That namespace is licensed for public display; its per-asset class and display names come from `$EMPTY_DATA/prices_public.json`. Crypto comes from the **crypto slice only** of the private `$EMPTY_DATA/prices/` (CoinGecko, the one series that does not exist in the public namespace); the rest of that namespace is Tiingo-sourced and may not be publicly displayed, so the bake never reads it and `LAKE_HISTORY_FLOOR` (1970-01-01) stays on that read path as belt-and-suspenders.
 
-The script reads the sibling `../empty-data/data` lake by default (dev). Override it with `EMPTY_DATA`. In CI, `.github/workflows/refresh-rings.yml` instead syncs the lake slice from the `empty-data-lake` R2 bucket and **gates on `health.json.generated_at`** (fails if the snapshot is >3 days old) before rebaking — the standard empty-data consumer contract (see empty-data's `context/technical-architecture.md` § *Consumer contract v1*). Price parquet files contain `hour`, `price`, and `volume`; asset classes roll up from `groups.json`. Display names come from lake fundamentals metadata when available, with a stable cross-asset map for curated instruments.
+Published returns are quantized to a whole percent (`RET_QUANT`) so the artifact cannot be inverted back to a vendor's adjusted closes; see [`docs/ENCODING.md`](docs/ENCODING.md) § *Published precision*.
+
+The script reads the sibling `../empty-data/data` lake by default (dev). Override it with `EMPTY_DATA`. In CI, `.github/workflows/refresh-rings.yml` instead syncs the lake slice from the `empty-data-lake` R2 bucket and **gates on `health.json.generated_at`** (fails if the snapshot is >3 days old) before rebaking — the standard empty-data consumer contract (see empty-data's `context/technical-architecture.md` § *Consumer contract v1*). Price parquet files contain `hour`, `price`, and `volume` in both namespaces; asset classes and display names come from `prices_public.json`, falling back to `groups.json`'s group prefixes and a stable cross-asset name map for crypto.
 
 ## Validate before publishing
 
