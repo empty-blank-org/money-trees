@@ -2,8 +2,8 @@
 
 ## Required before first public announcement
 
-- [ ] Confirm written Tiingo display/redistribution permission covers the derived annual metrics published by Money Trees. Tiingo's standard internal-use plans do not grant redistribution rights.
-- [ ] Confirm the CoinGecko account/license covers public display of derived crypto metrics and retain the required attribution on the methodology page.
+- [x] Equity/ETF/bond/commodity/FX history now comes from Twelve Data via the upstream public namespace (`prices_public/`), whose free tier permits public display of derived data. Tiingo no longer feeds the published artifact. Keep the "Data provided by Twelve Data" attribution (dofollow link) on the methodology page and near the data on the main site, and keep published returns quantized to a whole percent (`RET_QUANT` in the bake) so the artifact cannot be inverted to vendor closes.
+- [ ] Confirm the CoinGecko account/license covers public display of derived crypto metrics and retain the required attribution on the methodology page and site footer.
 - [ ] Audit any additional upstream providers represented in the featured universe and record their public-display requirements in the Empty Data source catalog.
 - [ ] Add `moneytrees.fun` to Cloudflare and attach it to the Money Trees Pages project as the production custom domain.
 - [ ] Redirect `www.moneytrees.fun` to `https://moneytrees.fun` (or deliberately choose the inverse) so there is one canonical host.

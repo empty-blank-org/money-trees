@@ -33,11 +33,21 @@ The Arboretum treats structural family as the primary browsing taxonomy, then le
 
 Full Specimen uses the identical renderer and data contract at a larger scale, preserves the originating collection context for navigation, and lets readers show or hide calendar-year labels. Its poster export renders the current specimen, palette, and label preference to a 2400×3000 PNG with summary statistics and the same encoding key; it does not screenshot or rasterize the surrounding interface. A full-screen immersive view (`?view=full`) re-renders the same specimen at the zoomed resolution rather than CSS-scaling it, so magnification buys detail; hairlines and scar edges stay pinned to screen width while the wood scales.
 
+## Published precision
+
+The published artifact carries derived statistics, never the underlying daily closes, and its returns are deliberately coarse so it cannot be inverted back into them:
+
+- **Annual returns (`ret`) and monthly returns (`mr`) are rounded to a whole percent.** An exact annual return plus a single known price recovers the vendor's year-end adjusted close, and exact monthly returns recover the whole month-end ladder; a whole-percent grid does not. This is a licensing requirement of the equity data vendor, applied uniformly to every asset rather than per source.
+- **`log_growth` is derived from the rounded return**, so the width and color encodings are exactly consistent with the number the interface reports.
+- **Realized volatility, maximum drawdown, and CAGR keep their full precision.** They are path statistics over hundreds of observations and do not reconstruct a price series.
+
+The visual cost is sub-pixel: band widths shift imperceptibly, and roughly two percent of bands whose true return fell inside ±0.5% now render as an exactly flat year.
+
 ## Data limits
 
-- Coverage varies substantially by asset. The oldest featured equities begin in 1962, currency funds generally begin in 2006–2007, Bitcoin begins in 2010, and younger crypto assets begin at their own market inception. This uneven coverage is why historical playback is not a primary product interaction.
+- Coverage varies substantially by asset. The century market and industry series begin in 1926, individual equities begin no earlier than 1970 (the first daily bar the equity vendor carries), currency funds generally begin in 2006–2007, Bitcoin begins in 2010, and younger crypto assets begin at their own market inception. This uneven coverage is why historical playback is not a primary product interaction.
 - The universe is survivor-biased: delisted and failed assets absent from the lake cannot contribute rings or scars.
-- Monthly returns are emitted only for the 86 featured assets. Production does not use them to remove ring geometry; they remain available to archived research experiments.
+- Monthly returns are emitted only for the 97 featured assets. Production does not use them to remove ring geometry; they remain available to archived research experiments.
 - Equity and fund returns use the closing-price series available in the lake and should not be assumed to include dividend reinvestment for every instrument.
 - First and current calendar years can be partial. Inspection and the accessible annual ledger mark these records explicitly.
 - Class-relative normalization supports comparison of each asset with its peers, but color darkness should not be read as an absolute cross-class volatility scale.
