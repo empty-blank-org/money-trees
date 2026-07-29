@@ -4,15 +4,19 @@ name: Refresh tree rings
 # flow into Money Trees without a manual bake. Commits the new rings.json if it
 # changed; that push triggers the Cloudflare Pages deploy. Runs daily and on demand.
 #
-# Freshness contract: the empty-data pipeline publishes prices/ + groups.json +
-# health.json to R2 after every run (Stage 11, scripts/sync-r2.sh). This job
-# gates on health.json's generated_at — if the snapshot is older than
-# MAX_LAKE_AGE_DAYS the job FAILS instead of silently rebaking stale data.
+# Freshness contract: the empty-data pipeline publishes prices/, prices_public/,
+# groups.json, prices_public.json and health.json to R2 after every run
+# (Stage 11, scripts/sync-r2.sh). This job gates on health.json's generated_at —
+# if the snapshot is older than MAX_LAKE_AGE_DAYS the job FAILS instead of
+# silently rebaking stale data.
 #
-# The forest also carries open-data century trees (Ken French daily market +
-# industry series, 1926->). That mini-lake is gitignored, so the job rebuilds it
-# with scripts/build-open-lake.py before every bake; the source zips are cached
-# per calendar month so Dartmouth's monthly update still lands.
+# What this job pulls, and why only that:
+#   * prices_public/ + prices_public.json — the publishable namespace (Twelve
+#     Data equities/ETFs/bonds/commodities/FX 1970->, plus the Kenneth R. French
+#     century series 1926->). Everything the site draws except crypto.
+#   * the CRYPTO slice of prices/ + groups.json — CoinGecko history, which only
+#     exists in the private namespace. The rest of prices/ is Tiingo-sourced and
+#     must never reach a public artifact, so it is not even downloaded.
 #
 # Requires repo secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
 
@@ -51,13 +55,26 @@ jobs:
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
         run: |
           ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
-          mkdir -p lake/prices
-          aws s3 sync s3://empty-data-lake/prices lake/prices \
+          mkdir -p lake/prices lake/prices_public
+
+          # Publishable namespace: everything.
+          aws s3 sync s3://empty-data-lake/prices_public lake/prices_public \
             --endpoint-url "$ENDPOINT" --no-progress
-          aws s3 cp s3://empty-data-lake/groups.json lake/groups.json \
-            --endpoint-url "$ENDPOINT"
-          aws s3 cp s3://empty-data-lake/health.json lake/health.json \
-            --endpoint-url "$ENDPOINT"
+          for f in prices_public.json groups.json health.json; do
+            aws s3 cp "s3://empty-data-lake/$f" "lake/$f" --endpoint-url "$ENDPOINT"
+          done
+
+          # Private namespace: the crypto ids only (see the header note).
+          python - <<'EOF' > crypto-ids.txt
+          import json
+          groups = json.load(open("lake/groups.json"))
+          ids = {t for g, ts in groups.items() if g.startswith("crypto") for t in ts}
+          print("\n".join(sorted(ids)))
+          EOF
+          echo "crypto ids: $(wc -l < crypto-ids.txt)"
+          xargs -P 8 -I{} aws s3 cp "s3://empty-data-lake/prices/{}.parquet" \
+            "lake/prices/{}.parquet" --endpoint-url "$ENDPOINT" --only-show-errors \
+            < crypto-ids.txt
 
       - name: Gate on lake freshness
         env:
@@ -74,22 +91,6 @@ jobs:
               sys.exit(f"STALE LAKE: snapshot is older than {max_age} days — "
                        "empty-data's R2 publish (Stage 11) has stopped; refusing to rebake.")
           EOF
-
-      # The open-data mini-lake (Ken French daily industry + market series) is
-      # gitignored and rebuilt on every run; only the source zips are cached, so
-      # a monthly Dartmouth update still lands within the cache's week-long key.
-      - name: Ken French cache key
-        id: kf
-        run: echo "month=$(date -u +%Y-%m)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Ken French downloads
-        uses: actions/cache@v4
-        with:
-          path: openlake/_src
-          key: kenfrench-${{ steps.kf.outputs.month }}
-
-      - name: Build open-data lake
-        run: python scripts/build-open-lake.py
 
       - name: Bake rings
         run: |
