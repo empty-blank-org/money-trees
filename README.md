@@ -1,6 +1,6 @@
-# Money Trees
+# Money Tree Rings
 
-Money Trees turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Arboretum currently contains 97 specimens; selecting one opens its complete record at `/specimen/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
+Money Tree Rings (moneytreerings.com) turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Arboretum currently contains 97 specimens; selecting one opens its complete record at `/specimen/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
 
 The hard gate is that every visual feature must decode to a real quantity computed from real data. Ring width is annual log growth, color is annual return, darkness is realized volatility, and scars are qualifying drawdown episodes. Natural wood is the default return encoding; an optional market mode provides the familiar red/green analytical view. See [`docs/ENCODING.md`](docs/ENCODING.md) for the complete contract and caveats.
 
@@ -36,7 +36,7 @@ Open <http://localhost:8081> for the app or <http://localhost:8081/labs/> for th
 
 ## Build and deployment
 
-Cloudflare Pages runs `./build.sh` and publishes `dist/`. The build copies the production app and canonical data while excluding the development-only lab archive and stripping lab links from public pages. `dist/` is generated and ignored by Git. The canonical origin defaults to `https://moneytrees.fun`; preview deployments can override it with the Pages build variable `SITE_URL`.
+Cloudflare Pages runs `./build.sh` and publishes `dist/`. The build copies the production app and canonical data while excluding the development-only lab archive and stripping lab links from public pages. `dist/` is generated and ignored by Git. The canonical origin defaults to `https://moneytreerings.com`; preview deployments can override it with the Pages build variable `SITE_URL`.
 
 The GitHub Actions workflow at `.github/workflows/refresh-rings.yml` runs daily and on demand. It synchronizes the price lake from R2, re-bakes and validates `data/rings.json`, and commits the deterministic artifact only when source data changes; that push triggers the public deployment. The workflow requires the documented R2 repository secrets. A separate validation workflow checks every push and pull request.
 

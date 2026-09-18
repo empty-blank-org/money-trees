@@ -1,4 +1,4 @@
-# Money Trees encoding contract
+# Money Tree Rings encoding contract
 
 The cross-section is a compact financial record, not decorative generative art. Every true annual band corresponds to one calendar-year record in `data/rings.json`.
 

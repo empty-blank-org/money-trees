@@ -8,7 +8,7 @@
 # separately by .github/workflows/refresh-rings.yml and committed.
 set -euo pipefail
 cd "$(dirname "$0")"
-SITE_URL="${SITE_URL:-https://moneytrees.fun}"
+SITE_URL="${SITE_URL:-https://moneytreerings.com}"
 SITE_URL="${SITE_URL%/}"
 
 rm -rf dist
