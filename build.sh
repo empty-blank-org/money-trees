@@ -14,6 +14,15 @@ SITE_URL="${SITE_URL%/}"
 rm -rf dist
 mkdir -p dist
 cp -r index.html 404.html app shared assets data methodology specimen dist/
+# The committed artifact keeps every computed tree for the labs; the site can only
+# open featured ones, so publish just those (about 40% of the payload).
+python3 - <<'EOF'
+import json
+d = json.load(open('dist/data/rings.json'))
+d['trees'] = [t for t in d['trees'] if t['featured']]
+d['n_trees'] = len(d['trees'])
+json.dump(d, open('dist/data/rings.json', 'w'), separators=(',', ':'))
+EOF
 cp site.webmanifest robots.txt sitemap.xml _headers dist/
 
 # Strip the dev-only lab links from the public entry pages (portable sed: macOS + Linux).

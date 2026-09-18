@@ -1,9 +1,9 @@
 dist/
-lake/
+lake
 *.bak
 .DS_Store
 __pycache__/
 *.pyc
-node_modules/
+node_modules
 test-results/
 playwright-report/

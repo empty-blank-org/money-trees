@@ -20,17 +20,25 @@
   function rand(seed) { let x=seed||1; return () => { x^=x<<13; x^=x>>>17; x^=x<<5; return (x>>>0)/4294967296; }; }
   function hexToRgb(h) { const n=parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
 
+  // One definition per statistic: the bake computes cagr (calendar-time), mean_vol
+  // (full rings), positive (full rings), worst_dd (whole history) and age_years, and
+  // the UI reads them. Rings are only re-aggregated when a year cutoff asks for a
+  // historical snapshot (archived labs), because the artifact has no per-year totals.
   function metrics(tree, year=9999) {
     const rings = tree.rings.filter(r => r.year <= year);
     if (!rings.length) return null;
+    const live = year >= tree.last_year && tree.cagr != null;
     const sumLg = rings.reduce((s,r)=>s+r.log_growth,0);
-    const cagr = Math.exp(sumLg/rings.length)-1;
-    const meanVol = rings.reduce((s,r)=>s+r.vol,0)/rings.length;
-    const positive = rings.filter(r=>r.ret>0).length/rings.length;
+    const full = rings.filter(r=>!r.partial);
+    const basis = full.length ? full : rings;
+    const cagr = live ? tree.cagr : Math.exp(sumLg/rings.length)-1;
+    const meanVol = live ? tree.mean_vol : basis.reduce((s,r)=>s+r.vol,0)/basis.length;
+    const positive = live && tree.positive != null ? tree.positive : basis.filter(r=>r.ret>0).length/basis.length;
     const scars = (tree.scars||[]).filter(s=>s.year<=year);
-    const worst = Math.min(...rings.map(r=>r.max_dd==null?0:r.max_dd));
+    const worst = live ? tree.worst_dd : Math.min(...rings.map(r=>r.max_dd==null?0:r.max_dd));
+    const ageYears = live ? tree.age_years : rings.length;
     const thickness = rings.reduce((s,r)=>s+ringThickness(r.log_growth),0);
-    return {rings, years:rings.length, sumLg, cagr, meanVol, positive, scars, worst, thickness};
+    return {rings, years:rings.length, ageYears, sumLg, cagr, meanVol, positive, scars, worst, thickness};
   }
 
   // Ring width curve. `w` is an optional override:

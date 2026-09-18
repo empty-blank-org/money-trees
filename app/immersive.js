@@ -62,7 +62,9 @@
     const s = hooks.state(), g = sizeCanvas(base), R = baseR * zoom;
     g.clearRect(0, 0, W, H);
     geo = LivingTrees.drawDetailedRings(g, t, centerX(), centerY(), R, 9999, {
-      palette: s.palette, years: s.yearLabels, fibers: true,
+      // Full view always carries year labels: it is the one view with room for them,
+      // and without them a reader cannot name a single ring without hovering.
+      palette: s.palette, years: true, fibers: true,
       labelPx: 12, labelAngle: labelAngle(), strokeR: Math.min(R, baseR * 1.6),
       clip: { x0: 0, y0: 0, x1: W, y1: H }
     });

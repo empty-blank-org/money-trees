@@ -135,11 +135,25 @@ def quantize_ret(x):
     return round(round(float(x) / RET_QUANT) * RET_QUANT, 4)
 
 MIN_FULL_YEARS = 3          # need this many calendar years to be a "tree"
-FULL_YEAR_MIN_DAYS = 150    # trading days for a year to count as "full"
+FULL_YEAR_FRACTION = 0.6    # share of an asset's own bars-per-year for a "full" ring
 PARTIAL_YEAR_MIN_DAYS = 20  # below this, drop the partial stub entirely
 MIN_SCAR_HEAL_DAYS = 120    # quick V-recoveries are flesh wounds, not scars
 
-TRADING_DAYS = 252
+# Bars per calendar year, by class. Crypto trades every day; everything else
+# keeps market hours. This drives vol annualization and the full-year gate.
+# The clock for CAGR and age is CALENDAR time, never a bar count (a bar count
+# made Bitcoin 23 years old and cut its CAGR by 54 points).
+PERIODS_PER_YEAR = {"crypto": 365}
+DEFAULT_PERIODS_PER_YEAR = 252
+DAYS_PER_YEAR = 365.25
+
+
+def periods_per_year(cls):
+    return PERIODS_PER_YEAR.get(cls, DEFAULT_PERIODS_PER_YEAR)
+
+
+def full_year_min_days(cls):
+    return int(round(FULL_YEAR_FRACTION * periods_per_year(cls)))
 
 # Canonical display names for the public collection. Equity metadata is also
 # pulled from the lake when available (see load_asset_names); these entries
@@ -311,27 +325,39 @@ def angle_of_date(ts):
     return (ts - year_start) / (year_end - year_start)
 
 
-def ring_for_year(year, s_year):
-    """Compute one ring's stats from a year's daily close series."""
+def ring_for_year(year, s_year, cls, prev_close=None):
+    """Compute one ring's stats from a year's daily close series.
+
+    `prev_close` is the last close of the preceding year. A calendar year's
+    return runs from that close to this year's last close, so the New Year's
+    move belongs to the new ring; measuring first-close -> last-close inside
+    the year silently dropped one trading day from every ring (SPY 2003 read
+    +24% instead of +28%). The very first ring has no prior close and keeps
+    its own opening print as the base.
+    """
     s_year = s_year.dropna()
     n = len(s_year)
     if n < PARTIAL_YEAR_MIN_DAYS:
         return None
 
     px = s_year.values
+    base = prev_close if prev_close is not None else px[0]
     first, last = px[0], px[-1]
 
     # Year total return + log growth (the WIDTH encoding).
     # `ret` is quantized to a whole percent before publication (see RET_QUANT),
     # and log_growth is derived FROM the quantized return so the width/color
     # encodings stay exactly consistent with the number we publish.
-    total_ret = quantize_ret(last / first - 1.0)
+    total_ret = quantize_ret(last / base - 1.0)
     log_growth = float(np.log1p(max(total_ret, -0.99)))
 
-    # Realized vol: annualized std of daily log returns (the DARKNESS encoding).
-    logr = np.diff(np.log(px))
+    # Realized vol: annualized std of daily log returns (the DARKNESS encoding),
+    # including the move in from the prior close, scaled by the class's own
+    # bars-per-year (365 for crypto, 252 otherwise).
+    path = np.concatenate(([base], px)) if prev_close is not None else px
+    logr = np.diff(np.log(path))
     if len(logr) > 1:
-        vol = float(np.std(logr, ddof=1) * np.sqrt(TRADING_DAYS))
+        vol = float(np.std(logr, ddof=1) * np.sqrt(periods_per_year(cls)))
     else:
         vol = 0.0
 
@@ -345,16 +371,15 @@ def ring_for_year(year, s_year):
 
     # Monthly returns -> 12-sector texture.  last-of-month / last-of-prev-month.
     monthly = s_year.resample("ME").last()
-    # prepend the year's opening price so January has a base.
-    base = pd.Series([first], index=[s_year.index[0]])
-    mser = pd.concat([base, monthly])
+    # prepend the year's base (prior close, or the opening print) so January has a base.
+    mser = pd.concat([pd.Series([base], index=[s_year.index[0]]), monthly])
     mret = mser.pct_change().dropna()
     # Compact 12-slot array (index 0 = Jan ... 11 = Dec); null where absent.
     mr = [None] * 12
     for ts, r in mret.items():
         mr[int(ts.month) - 1] = quantize_ret(r)
 
-    partial = n < FULL_YEAR_MIN_DAYS
+    partial = n < full_year_min_days(cls)
 
     return {
         "year": int(year),
@@ -433,14 +458,20 @@ def build_tree(ticker, cls, src):
         s = daily_close(ticker, src)
     except Exception:
         return None
-    if len(s) < FULL_YEAR_MIN_DAYS:
+    if len(s) < full_year_min_days(cls):
         return None
 
     rings = []
+    prev_close, prev_year = None, None
     for year, s_year in s.groupby(s.index.year):
-        r = ring_for_year(year, s_year)
+        s_year = s_year.dropna()
+        if not len(s_year):
+            continue
+        # Chain only across adjacent years; after a feed gap the old close is stale.
+        r = ring_for_year(year, s_year, cls, prev_close if prev_year == year - 1 else None)
         if r is not None:
             rings.append(r)
+        prev_close, prev_year = float(s_year.iloc[-1]), year
 
     full_rings = [r for r in rings if not r["partial"]]
     if len(full_rings) < MIN_FULL_YEARS:
@@ -468,8 +499,7 @@ def build_tree(ticker, cls, src):
     # Whole-tree summary stats (for the enlarged single-tree panel + sorting).
     px_first = s.iloc[0]
     px_last = s.iloc[-1]
-    n_days = len(s)
-    years_elapsed = n_days / TRADING_DAYS
+    years_elapsed = (s.index[-1] - s.index[0]).days / DAYS_PER_YEAR
     cagr = (px_last / px_first) ** (1.0 / years_elapsed) - 1.0 if years_elapsed > 0 else 0.0
 
     # Whole-history max drawdown.
@@ -497,6 +527,7 @@ def build_tree(ticker, cls, src):
     best = max(full_year_vals, key=lambda x: x[1])
     worst = min(full_year_vals, key=lambda x: x[1])
     rets = np.array([r["ret"] for r in full_rings])
+    positive = float(np.mean(rets > 0))
     # Ring uniformity: std of full-year log-growth (lower = steadier grower).
     lg = np.array([r["log_growth"] for r in full_rings])
     uniformity = float(np.std(lg))
@@ -516,6 +547,7 @@ def build_tree(ticker, cls, src):
         "best_year": {"year": best[0], "ret": round(best[1], 5)},
         "worst_year": {"year": worst[0], "ret": round(worst[1], 5)},
         "mean_vol": round(float(np.mean([r["vol"] for r in full_rings])), 5),
+        "positive": round(positive, 4),
         "uniformity": round(uniformity, 5),
         "first_year": rings[0]["year"],
         "last_year": rings[-1]["year"],
@@ -611,10 +643,15 @@ def main():
 
     n_feat = sum(tr["featured"] for tr in trees)
 
-    # Global normalization anchors so the renderer maps width/darkness
-    # consistently across the whole forest.
-    all_lg = [r["log_growth"] for tr in trees for r in tr["rings"]]
-    all_vol = [r["vol"] for tr in trees for r in tr["rings"]]
+    # Normalization anchors so the renderer maps width/darkness consistently.
+    # Computed over the FEATURED trees only: the 150-odd non-featured crypto
+    # tokens never render, and letting them set crypto's anchors coloured the
+    # visible trees against an invisible tail (and moved every time a token
+    # entered or left the lake). Same principle as the fixed 100-year disc
+    # reference — what is on the wall must not be re-normalized by what isn't.
+    anchor_trees = [tr for tr in trees if tr["featured"]]
+    all_lg = [r["log_growth"] for tr in anchor_trees for r in tr["rings"]]
+    all_vol = [r["vol"] for tr in anchor_trees for r in tr["rings"]]
     # Vol -> darkness is normalized WITHIN class: crypto pegs the global p90
     # (every ring maximally dark) while equities huddle pale at the bottom,
     # which destroys within-class variation.  Hue already carries the
@@ -627,8 +664,8 @@ def main():
     # lg_pos = p95 within class > 0; diverging around 0.)
     vol_cls, lg_cls = {}, {}
     for cls in sorted({tr["cls"] for tr in trees}):
-        vols = [r["vol"] for tr in trees if tr["cls"] == cls for r in tr["rings"]]
-        lgs = [r["log_growth"] for tr in trees if tr["cls"] == cls for r in tr["rings"]]
+        vols = [r["vol"] for tr in anchor_trees if tr["cls"] == cls for r in tr["rings"]]
+        lgs = [r["log_growth"] for tr in anchor_trees if tr["cls"] == cls for r in tr["rings"]]
         vol_cls[cls] = [round(float(np.percentile(vols, 10)), 5),
                         round(float(np.percentile(vols, 90)), 5)]
         lg_cls[cls] = [round(float(min(np.percentile(lgs, 5), -1e-3)), 5),

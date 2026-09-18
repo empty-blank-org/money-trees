@@ -14,6 +14,7 @@ done
 ./build.sh
 test ! -d dist/labs
 test -f dist/data/rings.json
+python3 scripts/validate.py --expect-featured --rings dist/data/rings.json
 test -f dist/methodology/index.html
 test -f dist/assets/og-money-trees.png
 

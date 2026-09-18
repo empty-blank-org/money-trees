@@ -33,6 +33,17 @@ The Arboretum treats structural family as the primary browsing taxonomy, then le
 
 Full Specimen uses the identical renderer and data contract at a larger scale, preserves the originating collection context for navigation, and lets readers show or hide calendar-year labels. Its poster export renders the current specimen, palette, and label preference to a 2400×3000 PNG with summary statistics and the same encoding key; it does not screenshot or rasterize the surrounding interface. A full-screen immersive view (`?view=full`) re-renders the same specimen at the zoomed resolution rather than CSS-scaling it, so magnification buys detail; hairlines and scar edges stay pinned to screen width while the wood scales.
 
+## Whole-tree statistics
+
+Every number the interface shows for a whole tree is computed once, in the bake, and read by the UI; nothing is re-derived from the rings in the browser.
+
+- **Annualized growth (`cagr`)** compounds first close to last close over **calendar** time (`age_years`, elapsed days ÷ 365.25). Bar counts are never used as a clock: crypto trades 365 days a year, market-hours instruments about 252.
+- **Annual return (`ret`)** runs from the prior year's last close to this year's last close, so the New Year's move belongs to the new ring. The first ring uses its own opening print.
+- **Realized volatility (`vol`)** is the annualized standard deviation of daily log returns, scaled by the class's own bars per year (365 crypto, 252 otherwise). `mean_vol` and `positive` (share of up years) average over full rings only.
+- **Worst drawdown (`worst_dd`)** is the deepest peak-to-trough fall over the whole history, the same number the collection sorts on.
+- **A full ring** holds at least 60% of the asset's own trading days in that year; anything shorter is marked partial and excluded from the averages above (but still drawn).
+- **Normalization anchors** (`norm`) are percentiles over the **featured** trees only, so the trees on the wall are never re-colored by trees that do not render.
+
 ## Published precision
 
 The published artifact carries derived statistics, never the underlying daily closes, and its returns are deliberately coarse so it cannot be inverted back into them:
@@ -41,7 +52,7 @@ The published artifact carries derived statistics, never the underlying daily cl
 - **`log_growth` is derived from the rounded return**, so the width and color encodings are exactly consistent with the number the interface reports.
 - **Realized volatility, maximum drawdown, and CAGR keep their full precision.** They are path statistics over hundreds of observations and do not reconstruct a price series.
 
-The visual cost is sub-pixel: band widths shift imperceptibly, and roughly two percent of bands whose true return fell inside ±0.5% now render as an exactly flat year.
+The visual cost is sub-pixel: band widths shift imperceptibly, and bands whose true return fell inside ±0.5% render as an exactly flat year — about 1.4% of all bands, but 7.8% of bond bands and 3.5% of FX bands, whose annual moves are small. Accumulated-growth multiples are therefore shown to two significant figures and derived from the full-precision `cagr`, not by compounding the rounded rings.
 
 ## Data limits
 
