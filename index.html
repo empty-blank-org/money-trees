@@ -28,30 +28,30 @@
     <a class="back" href="labs/">Open the lab →</a>
   </header>
   <div class="toolbar">
-    <div class="ticker-search">
-      <label for="search">Find a tree</label>
+    <div class="tool-row find-row">
+      <label class="tool-label" for="search">find a tree</label>
       <div class="ticker-search-field">
         <span aria-hidden="true">⌕</span>
         <input id="search" type="search" placeholder="Search ticker or name — BTC, Bitcoin, Apple…" aria-label="Find a tree by ticker or name" autocomplete="off" spellcheck="false">
       </div>
-      <span class="ticker-search-hint">Search the collection</span>
     </div>
-    <div class="family-row" id="families">
-      <span class="row-label">family</span>
+    <div class="tool-row family-row" id="families">
+      <span class="tool-label">family</span>
       <button class="active" data-family="all">All specimens</button>
+      <button data-family="old">Old growth</button>
       <button data-family="quiet">Quiet compounders</button>
       <button data-family="storm">Storm growers</button>
-      <button data-family="old">Old growth</button>
       <button data-family="scarred">Scarred survivors</button>
     </div>
-    <div class="filter-row">
+    <div class="tool-row">
       <label>arrange <select id="sort"></select></label>
       <label>class <select id="class"><option value="all">all classes</option><option value="crypto">crypto</option><option value="equity">equity</option><option value="bonds">bonds</option><option value="commodities">commodities</option><option value="fx">FX</option></select></label>
       <label>cross-date <select id="cross"><option value="">all rings</option></select></label>
-      <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
-      <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div>
-      <details class="read-key"><summary>How to read</summary><div class="reading-grid"><div class="reading-item"><span class="key-mark width-mark"><i></i><i></i></span><span><b>Ring width</b> Wider means stronger annual growth.</span></div><div class="reading-item"><span class="key-mark color-mark"></span><span><b>Color</b> Down year → flat → up year.</span></div><div class="reading-item"><span class="key-mark vol-mark"></span><span><b>Darkness + grain</b> More means higher volatility.</span></div><div class="reading-item"><span class="key-mark scar-mark"></span><span><b>Scar</b> Major drawdown; reaching bark means unrecovered.</span></div><div class="reading-item"><span class="key-mark year-mark">1Y</span><span><b>One band</b> One calendar year.</span></div></div></details>
-      <span class="cross-note" id="status"></span>
+      <div class="view-cluster trailing">
+        <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
+        <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div>
+        <details class="read-key" data-reading-key></details>
+      </div>
     </div>
   </div>
   <section class="load-error" id="load-error" hidden role="alert"><h2>The arboretum couldn’t load</h2><p>The tree-ring data may be temporarily unavailable.</p><button type="button" id="retry-load">Try again</button></section>
@@ -62,6 +62,7 @@
 <script src="shared/tree-renderer.js?v=20260918-1"></script>
 <script src="app/tree-insights.js?v=20260918-1"></script>
 <script src="shared/collection.js?v=20260918-1"></script>
+<script src="shared/reading-key.js?v=20260918-1"></script>
 <script src="app/arboretum.js?v=20260918-1"></script>
 </body>
 </html>

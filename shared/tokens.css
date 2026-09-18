@@ -34,7 +34,25 @@ h1 { margin: 4px 0 3px; font: 500 clamp(24px, 3vw, 39px)/1.05 Georgia, serif; le
 .dek:empty { display: none; }
 .back { color: #c9c2ae; text-decoration: none; white-space: nowrap; }
 .back:hover { color: white; }
-.controls { margin: 0 28px 12px; padding: 10px 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(12px); }
+/* Toolbar grammar — shared by the Arboretum and the Full Specimen.
+   A .toolbar is a panel of .tool-rows. Each row is one tier of controls:
+   find/browse first, then refine, then how the rings are drawn. The
+   .view-cluster (color toggle · legend · How to read · …) is the same
+   component on both pages, so a reader learns it once. */
+.toolbar { position: sticky; top: 0; z-index: 6; margin: 0 22px 18px; padding: 10px 12px; background: rgba(12,19,16,.95); border: 1px solid var(--line); border-radius: 11px; backdrop-filter: blur(14px); }
+.tool-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.tool-row + .tool-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.tool-label { color: #8f998f; font: 10px ui-monospace, Menlo, monospace; letter-spacing: .14em; text-transform: uppercase; margin-right: 3px; }
+.tool-row > label { color: #8f998f; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; }
+.tool-row select { color: var(--ink); background: #0d1713; border: 1px solid #34443a; border-radius: 7px; padding: 7px 9px; }
+.view-cluster { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.view-cluster.trailing { margin-left: auto; padding-left: 12px; border-left: 1px solid var(--line); }
+.read-key { position: relative; }
+.read-key summary { list-style: none; color: #d8d0bf; background: #18241e; border: 1px solid #34443a; border-radius: 7px; padding: 7px 11px; cursor: pointer; font-size: 12px; white-space: nowrap; }
+.read-key summary::-webkit-details-marker { display: none; }
+.read-key summary::after { content: " ?"; color: #8fb89c; }
+.read-key[open] summary { border-color: var(--accent-line); }
+.read-key .reading-grid { position: absolute; z-index: 12; right: 0; top: calc(100% + 7px); width: 300px; padding: 14px; border: 1px solid #4a554b; border-radius: 9px; background: rgba(7,13,11,.98); box-shadow: 0 14px 38px rgba(0,0,0,.36); }
 button, input, select { font: inherit; }
 button {
   color: var(--ink); background: #18241e; border: 1px solid #34443a; border-radius: 7px; padding: 7px 11px; cursor: pointer;
@@ -87,7 +105,9 @@ canvas { display: block; width: 100%; height: 100%; }
 .load-error p { margin: 0 0 14px; color: var(--muted); }
 @media (max-width: 720px) {
   header { align-items: flex-start; padding: 18px 16px 12px; }
-  .controls { margin: 0 16px 10px; }
+  .toolbar { position: static; backdrop-filter: none; margin-inline: 10px; }
+  .view-cluster.trailing { margin-left: 0; padding-left: 0; border-left: 0; }
+  .read-key .reading-grid { position: fixed; left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; }
   .stage { min-height: 620px; margin: 0 8px 8px; }
   .back { font-size: 12px; }
   input[type="text"], input[type="search"] { min-width: 100%; flex: 1; }

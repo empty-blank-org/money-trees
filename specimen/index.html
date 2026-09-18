@@ -22,20 +22,31 @@
     </div>
     <a class="lab-link" href="../labs/">lab ↗</a>
   </header>
-  <div class="controls"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button><div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div><div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div><div class="palette-toggle" id="year-labels" role="group" aria-label="Year labels"><span>years</span><button data-labels="show" aria-pressed="false">show</button><button class="active" data-labels="hide" aria-pressed="true">hide</button></div><button id="immerse" class="immerse-btn" aria-label="Open full-screen view">⤢ Full view <kbd>F</kbd></button><button class="download-poster" id="download-poster">Download poster</button></div>
+  <div class="toolbar specimen-toolbar">
+    <div class="tool-row nav-row"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button></div>
+    <div class="tool-row">
+      <div class="view-cluster">
+        <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
+        <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div>
+        <div class="palette-toggle" id="year-labels" role="group" aria-label="Year labels"><span>years</span><button data-labels="show" aria-pressed="false">show</button><button class="active" data-labels="hide" aria-pressed="true">hide</button></div>
+        <details class="read-key" data-reading-key></details>
+        <button id="immerse" class="immerse-btn" aria-label="Open full-screen view">⤢ Full view <kbd>F</kbd></button>
+      </div>
+    </div>
+  </div>
   <section class="viewer">
     <div class="art" id="art"><canvas id="canvas" tabindex="0" role="img" aria-label="Interactive annual tree rings" aria-describedby="ring-help ring-readout"></canvas><div class="tooltip" id="tip"></div><div class="ring-readout" id="ring-readout" aria-live="polite">Tap or focus the tree, then use ← and → to inspect annual rings.</div></div>
     <aside class="ledger">
       <h2 id="name"></h2>
       <div class="classline" id="classline"></div>
       <div class="hero" id="hero"></div>
+      <div class="export-row"><button class="download-poster" id="download-poster">Download poster</button><span class="export-note">2400 × 3000 PNG</span></div>
       <div class="facts" id="facts"></div>
       <div class="field-notes" id="field-notes"></div>
-      <section class="ledger-section" id="kin-block"><h3>Trees like this</h3><div class="kin" id="kin"></div></section>
-      <section class="ledger-section" id="scar-block"><h3>Scar ledger <span class="badge" id="scar-count"></span></h3><div id="scars"></div></section>
-      <section class="ledger-section reading-key"><h3>How to read this tree</h3><div class="reading-grid"><div class="reading-item"><span class="key-mark width-mark"><i></i><i></i></span><span><b>Ring width</b> Wider means stronger annual growth.</span></div><div class="reading-item"><span class="key-mark color-mark"></span><span><b>Color</b> Down year → flat → up year.</span></div><div class="reading-item"><span class="key-mark vol-mark"></span><span><b>Darkness + grain</b> More means higher volatility.</span></div><div class="reading-item"><span class="key-mark scar-mark"></span><span><b>Scar</b> Major drawdown; reaching bark means unrecovered.</span></div><div class="reading-item"><span class="key-mark year-mark">1Y</span><span><b>One band</b> One calendar year.</span></div></div></section>
       <p class="sr-only" id="ring-help">Use left and right arrow keys while the tree is focused to inspect one annual ring at a time.</p>
+      <details class="ledger-section" id="scar-block" open><summary>Scar ledger <span class="badge" id="scar-count"></span></summary><div id="scars"></div></details>
       <details class="ledger-section year-ledger"><summary>Year-by-year record</summary><div class="year-table-wrap" id="year-table-wrap"></div></details>
+      <section class="ledger-section" id="kin-block"><h3>Trees like this</h3><div class="kin" id="kin"></div></section>
       <section class="ledger-section specimen-source"><h3>Data notes</h3><p id="freshness">Loading data coverage…</p><p>Derived from daily closing prices. Data provided by <a href="https://twelvedata.com/" rel="external">Twelve Data</a> &amp; <a href="https://www.coingecko.com/en/api" rel="external">CoinGecko</a>. <a href="../methodology/">Methodology and limitations</a>.</p><p>Educational, not investment advice.</p></section>
     </aside>
   </section>
@@ -58,6 +69,7 @@
 <script src="../shared/tree-renderer.js?v=20260918-1"></script>
 <script src="../app/tree-insights.js?v=20260918-1"></script>
 <script src="../shared/collection.js?v=20260918-1"></script>
+<script src="../shared/reading-key.js?v=20260918-1"></script>
 <script src="../app/immersive.js?v=20260918-1"></script>
 <script src="../app/specimen.js?v=20260918-1"></script>
 </body>
