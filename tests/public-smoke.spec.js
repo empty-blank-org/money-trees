@@ -7,7 +7,7 @@ test('arboretum search and specimen inspection work in the public build', async 
 
   await page.getByLabel('Find a tree by ticker or name').fill('BTC');
   await expect(page.locator('.specimen')).toHaveCount(1);
-  await expect(page.locator('.ticker')).toHaveText('BTC');
+  await expect(page.locator('.specimen .name')).toHaveText('Bitcoin');
 
   await page.locator('.specimen').press('Enter');
   await expect(page).toHaveURL(/\/specimen\/.*id=btc/);

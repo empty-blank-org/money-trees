@@ -4,6 +4,9 @@
     commodities: "#D55E00", fx: "#CC79A7", portfolio: "#F0E442"
   };
   const CLASS_NAMES = {crypto:"Crypto", equity:"Equity", bonds:"Bonds", commodities:"Commodities", fx:"FX", portfolio:"Portfolio"};
+  // The bark is wood, not a legend: one dark natural rind for every class. Asset class
+  // lives on the label only, so the outer edge never reads as a colored halo.
+  const BARK = "#2a1a0e";
   const PALETTES = {
     wood: {neg:[69,45,30], negNear:[132,92,54], mid:[157,116,71], posNear:[184,142,85], pos:[235,198,128]},
     market: {neg:[190,57,73], negNear:[204,121,119], mid:[173,158,124], posNear:[113,172,145], pos:[43,143,111]}
@@ -76,7 +79,7 @@
       g.beginPath(); g.arc(cx,cy,r1,0,Math.PI*2); g.strokeStyle="rgba(5,9,8,.55)"; g.lineWidth=.7; g.stroke();
       bands.push({year:ring.year,r0,r1}); r0=r1;
     }
-    g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2); g.strokeStyle=CLASS_COLORS[tree.cls]||"#aaa"; g.lineWidth=1.5; g.stroke();
+    g.beginPath(); g.arc(cx,cy,R,0,Math.PI*2); g.strokeStyle=BARK; g.lineWidth=1.5; g.stroke();
     for (const sc of m.scars) drawOrganicScar(g,cx,cy,R,bands,sc,year);
     g.restore();
   }
@@ -200,7 +203,7 @@
       prev=self;r0=r1;
     });
     g.globalAlpha=baseAlpha;
-    const outer=bands[bands.length-1];if(outer&&outer.outerPts){g.beginPath();tracePoints(g,outer.outerPts);g.strokeStyle=CLASS_COLORS[tree.cls]||'#aaa';g.lineWidth=Math.max(1.5,sr*.004);g.stroke();}
+    const outer=bands[bands.length-1];if(outer&&outer.outerPts){g.beginPath();tracePoints(g,outer.outerPts);g.strokeStyle=BARK;g.lineWidth=Math.max(1.5,sr*.004);g.stroke();}
     for(const sc of m.scars){g.globalAlpha=baseAlpha*((opts.focusYear&&sc.year!==opts.focusYear) ? 0.22 : 1);drawOrganicScar(g,cx,cy,R,bands,sc,year,sr);}
     g.globalAlpha=baseAlpha;
     if(opts.highlightYear){const b=bands.find(x=>x.year===opts.highlightYear);if(b&&b.outerPts){ringPath(g,b.outerPts,b.innerPts);g.fillStyle='rgba(245,215,142,.16)';g.fill();g.strokeStyle='rgba(255,232,170,.9)';g.lineWidth=Math.max(1.2,sr*.004);g.stroke();}}
@@ -274,7 +277,7 @@
     g.moveTo(x-trunkW*.62,ground); g.quadraticCurveTo(x-trunkW*.30,ground-H*.50,x-trunkW*.10,top);
     g.lineTo(x+trunkW*.10,top); g.quadraticCurveTo(x+trunkW*.32,ground-H*.48,x+trunkW*.62,ground); g.closePath();
     const bark=g.createLinearGradient(x-trunkW,0,x+trunkW,0); bark.addColorStop(0,"#493622"); bark.addColorStop(.5,"#92704a"); bark.addColorStop(1,"#3c2c1d");
-    g.fillStyle=bark; g.fill(); g.strokeStyle=CLASS_COLORS[tree.cls]||"#aaa"; g.lineWidth=1.1; g.stroke();
+    g.fillStyle=bark; g.fill(); g.strokeStyle=BARK; g.lineWidth=1.1; g.stroke();
 
     // Drawdown scars live at the height corresponding to their calendar year.
     for (const sc of m.scars) {

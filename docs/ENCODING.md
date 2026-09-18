@@ -14,7 +14,7 @@ The cross-section is a compact financial record, not decorative generative art. 
 
 - **Radius — length of record (Arboretum only).** On the collection wall a tree's disc radius is `Rmax · min(1, (years / 100) ^ 0.35)`: an elder is visibly an elder and a short record is visibly a sapling. The 100-year reference is FIXED, never normalized to the oldest tree currently on screen, so adding an older specimen later cannot silently resize the whole collection. The 0.35 exponent compresses the range enough that a 15-year record still reads at roughly half radius with legible bands. Full Specimen ignores this — a single specimen is sized to the viewport, because there is nothing on the page to compare it against.
 
-Asset class is encoded on the bark and label, not the band fill: crypto amber, equity blue, bonds green, commodities orange, and FX magenta.
+Asset class is encoded on the label only, not the bark or the band fill: crypto amber, equity blue, bonds green, commodities orange, and FX magenta. The bark is one dark natural rind on every tree, so the outer edge never reads as a colored halo; a specimen is identified by its full name with the ticker beneath.
 
 ## Scars
 
