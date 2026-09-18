@@ -1,4 +1,4 @@
-// Immersive viewer: the specimen, full-bleed, with zoom and pan.
+// Immersive viewer: the tree, full-bleed, with zoom and pan.
 //
 // A century-scale tree packs 101 annual bands into the sidebar-sized canvas, so a
 // single ring is sub-pixel — unreadable and un-hoverable. Here the tree is redrawn
@@ -312,7 +312,7 @@
   window.Immersive = {
     mount, open: show, close,
     isOpen: () => open,
-    // Palette / year-label / specimen changes from the host page.
+    // Palette / year-label / tree changes from the host page.
     refresh() { if (!open) return; const t = tree(); if (t) titleEl.textContent = `${t.name} · ${t.first_year}–${t.last_year} · ${t.rings.length} rings · moneytreeforest.com`; limits(); render(); readout(hooks.state().selectedYear); },
     syncYear() { if (!open) return; hoverYear = null; readout(hooks.state().selectedYear); drawOverlay(); }
   };

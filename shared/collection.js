@@ -1,6 +1,6 @@
 // Shared collection ordering — the SINGLE source of "what order are the trees in".
-// Used by the arboretum grid AND the specimen prev/next, so stepping through
-// specimens matches the collection you came from. Family membership (the archetype
+// Used by the forest grid AND the tree prev/next, so stepping through
+// trees matches the collection you came from. Family membership (the archetype
 // taxonomy) lives in TreeInsights; this module only SORTS + applies the class/
 // family/search filters. Sorts are pure orderings by metric — no archetype names,
 // so they never collide with the family control.

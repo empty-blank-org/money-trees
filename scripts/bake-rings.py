@@ -603,10 +603,10 @@ def build_tree(ticker, cls, src):
 
 # ---- featured forest selection ---------------------------------------------
 # Majors across classes + a few extremes.  Everything else is computed and
-# swappable via the selector; this is the curated public arboretum.
+# swappable via the selector; this is the curated public forest.
 
 FEATURED = [
-    # Curated lead — the order the Arboretum opens in. The first rows have to
+    # Curated lead — the order the Forest opens in. The first rows have to
     # teach the encoding before anything else: a century tree with 1929 and
     # 2008 carved in it, a steady compounder, a violent young one, a bond, a
     # commodity, a currency fund — old beside young, wide beside thin, scarred

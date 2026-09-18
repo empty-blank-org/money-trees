@@ -5,24 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Explore a financial asset’s complete annual tree-ring record, including growth, volatility, and drawdown scars.">
   <meta name="theme-color" content="#07100d"><meta property="og:type" content="website"><meta property="og:site_name" content="Money Tree Forest">
-  <meta property="og:title" content="Full Specimen — Money Tree Forest"><meta property="og:description" content="A complete financial history rendered as annual tree rings.">
-  <meta property="og:url" content="__SITE_URL__/specimen/"><meta property="og:image" content="__SITE_URL__/assets/og-money-trees.png">
+  <meta property="og:title" content="One tree — Money Tree Forest"><meta property="og:description" content="A complete financial history rendered as annual tree rings.">
+  <meta property="og:url" content="__SITE_URL__/tree/"><meta property="og:image" content="__SITE_URL__/assets/og-money-trees.png">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="__SITE_URL__/assets/og-money-trees.png">
-  <link rel="canonical" href="__SITE_URL__/specimen/"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-  <title>Full Specimen — Money Tree Forest</title>
-  <link rel="stylesheet" href="../shared/tokens.css?v=20260918-7">
-  <link rel="stylesheet" href="../app/specimen.css?v=20260918-7">
+  <link rel="canonical" href="__SITE_URL__/tree/"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <title>One tree — Money Tree Forest</title>
+  <link rel="stylesheet" href="../shared/tokens.css?v=20260918-8">
+  <link rel="stylesheet" href="../app/tree.css?v=20260918-8">
 </head>
 <body>
 <main class="page">
   <header>
     <div>
-      <nav class="crumbs"><a id="back" class="crumb">← Arboretum</a></nav>
-      <h1 id="title">Loading specimen…</h1>
+      <nav class="crumbs"><a id="back" class="crumb">← Forest</a></nav>
+      <h1 id="title">Loading tree…</h1>
+      <p class="title-sub" id="title-sub"></p>
     </div>
   </header>
-  <div class="toolbar specimen-toolbar">
-    <div class="tool-row nav-row"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to specimen"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button></div>
+  <div class="toolbar tree-toolbar">
+    <div class="tool-row nav-row"><button class="tree-nav" id="prev" aria-label="Previous tree">← Previous tree</button><select id="ticker" aria-label="Jump to tree"></select><button class="tree-nav" id="next" aria-label="Next tree">Next tree →</button></div>
     <div class="tool-row">
       <div class="view-cluster">
         <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
@@ -47,10 +48,10 @@
       <details class="ledger-section" id="scar-block" open><summary>Scar ledger <span class="badge" id="scar-count"></span></summary><div id="scars"></div></details>
       <details class="ledger-section year-ledger"><summary>Year-by-year record</summary><div class="year-table-wrap" id="year-table-wrap"></div></details>
       <section class="ledger-section" id="kin-block"><h3>Trees like this</h3><div class="kin" id="kin"></div></section>
-      <section class="ledger-section specimen-source"><h3>Data notes</h3><p id="freshness">Loading data coverage…</p><p id="basis"></p><p>Derived from daily closing prices. Data provided by <a href="https://twelvedata.com/" rel="external">Twelve Data</a> &amp; <a href="https://www.coingecko.com/en/api" rel="external">CoinGecko</a>. <a href="../methodology/">Methodology and limitations</a>.</p><p>Educational, not investment advice.</p></section>
+      <section class="ledger-section tree-source"><h3>Data notes</h3><p id="freshness">Loading data coverage…</p><p id="basis"></p><p>Derived from daily closing prices. Data provided by <a href="https://twelvedata.com/" rel="external">Twelve Data</a> &amp; <a href="https://www.coingecko.com/en/api" rel="external">CoinGecko</a>. <a href="../methodology/">Methodology and limitations</a>.</p><p>Educational, not investment advice.</p></section>
     </aside>
   </section>
-  <section class="load-error" id="load-error" hidden role="alert"><h2>This specimen couldn’t load</h2><p>The tree-ring data may be temporarily unavailable.</p><button type="button" id="retry-load">Try again</button></section>
+  <section class="load-error" id="load-error" hidden role="alert"><h2>This tree couldn’t load</h2><p>The tree-ring data may be temporarily unavailable.</p><button type="button" id="retry-load">Try again</button></section>
 </main>
 <div class="immersive" id="immersive" hidden>
   <div class="imm-stage" id="imm-stage" tabindex="0" role="img" aria-label="Full-screen annual tree rings, zoomable"><div class="imm-layers" id="imm-layers"><canvas id="imm-canvas"></canvas><canvas id="imm-overlay"></canvas></div></div>
@@ -67,11 +68,11 @@
   <div class="imm-readout" id="imm-readout" aria-live="polite"></div>
   <div class="imm-hint" id="imm-hint">scroll to zoom · drag to pan · double-click to magnify · ← → step rings · S takes a screenshot</div>
 </div>
-<script src="../shared/tree-renderer.js?v=20260918-7"></script>
-<script src="../app/tree-insights.js?v=20260918-7"></script>
-<script src="../shared/collection.js?v=20260918-7"></script>
-<script src="../shared/reading-key.js?v=20260918-7"></script>
-<script src="../app/immersive.js?v=20260918-7"></script>
-<script src="../app/specimen.js?v=20260918-7"></script>
+<script src="../shared/tree-renderer.js?v=20260918-8"></script>
+<script src="../app/tree-insights.js?v=20260918-8"></script>
+<script src="../shared/collection.js?v=20260918-8"></script>
+<script src="../shared/reading-key.js?v=20260918-8"></script>
+<script src="../app/immersive.js?v=20260918-8"></script>
+<script src="../app/tree.js?v=20260918-8"></script>
 </body>
 </html>

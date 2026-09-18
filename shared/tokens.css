@@ -34,7 +34,7 @@ h1 { margin: 4px 0 3px; font: 500 clamp(24px, 3vw, 39px)/1.05 Georgia, serif; le
 .dek:empty { display: none; }
 .back { color: #c9c2ae; text-decoration: none; white-space: nowrap; }
 .back:hover { color: white; }
-/* Toolbar grammar — shared by the Arboretum and the Full Specimen.
+/* Toolbar grammar — shared by the Forest and the Tree page.
    A .toolbar is a panel of .tool-rows. Each row is one tier of controls:
    find/browse first, then refine, then how the rings are drawn. The
    .view-cluster (color toggle · legend · How to read · …) is the same

@@ -130,7 +130,7 @@
   // gently wandering path and tapers to a point at BOTH ends when the drawdown recovered
   // (a closed teardrop, widest ~a third out where the damage is deepest); when it hasn't
   // recovered it tapers at the trough and stays open to the bark. Thinness is size-aware:
-  // hairline on a large specimen, a touch heavier on small cards so it stays legible.
+  // hairline on a large tree, a touch heavier on small cards so it stays legible.
   // `sr` is the reference radius for hairline strokes: it equals R for a plain
   // render, but the immersive viewer holds it near the fit-to-screen radius so
   // edge lines stay hairlines instead of fattening with magnification.
@@ -207,7 +207,7 @@
         // Decade reference lines. Dendrochronologists mark every tenth ring so the
         // eye can count a long series without losing its place; the outer edge of a
         // year ending in 0 gets a slightly heavier, slightly darker boundary. It has
-        // to whisper — texture at card scale, gentle latitude lines at specimen scale —
+        // to whisper — texture at card scale, gentle latitude lines at tree scale —
         // so this is a small step up from the annual hairline, not a rule.
         const decade=opts.decades!==false&&ring.year%10===0;
         g.beginPath();tracePoints(g,outerPts);

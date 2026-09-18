@@ -1,5 +1,5 @@
 // The encoding key ("How to read"), built once and mounted on every page that
-// draws rings, so the Arboretum and the Full Specimen can never drift apart.
+// draws rings, so the Forest and the Tree page can never drift apart.
 // Mount point: <details class="read-key" data-reading-key></details>
 (function () {
   const ITEMS = [

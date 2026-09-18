@@ -1,15 +1,15 @@
 # Money Tree Forest
 
-Money Tree Forest (moneytreeforest.com) turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Arboretum currently contains 97 specimens; selecting one opens its complete record at `/specimen/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
+Money Tree Forest (moneytreeforest.com) turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Forest currently contains 97 trees; selecting one opens its complete record at `/tree/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
 
 The hard gate is that every visual feature must decode to a real quantity computed from real data. Ring width is annual log growth, color is annual return, darkness is realized volatility, and scars are qualifying drawdown episodes. Natural wood is the default return encoding; an optional market mode provides the familiar red/green analytical view. See [`docs/ENCODING.md`](docs/ENCODING.md) for the complete contract and caveats.
 
 ## Structure
 
 ```text
-index.html                 production Arboretum shell
-app/                       Arboretum and Full Specimen UI modules
-specimen/                  shareable full-record route
+index.html                 production Forest shell
+app/                       Forest and Tree page UI modules
+tree/                  shareable full-record route
 shared/                    production renderer and design tokens
 data/rings.json            canonical committed production artifact
 scripts/sync-lake.sh       pull the lake slice from R2 into lake/ (dev and CI)
