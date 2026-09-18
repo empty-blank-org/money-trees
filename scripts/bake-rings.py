@@ -25,8 +25,8 @@ daily price data.  Nothing is decorative:
                    legible beside crypto. Realized vol darkens the ring within
                    class (class p10..p90); wood-mode darkening is bounded so it
                    cannot erase the sign distinction. The asset CLASS lives on
-                   the bark outline + label hue (crypto amber / equity blue /
-                   bonds green / commodities rust / fx teal), not the fill.
+                   the label hue only (crypto amber / equity blue / bonds green /
+                   commodities rust / fx magenta); the bark is one natural rind.
 
   * SCAR (radial seam) = a MAJOR drawdown episode, computed on the whole
                    history (not per-year).  Only episodes deeper than a
@@ -60,8 +60,8 @@ Universe
 --------
 Every publishable asset in the empty-data lake — all of data/prices_public/
 (Twelve Data equities/ETFs, Kenneth R. French century series) plus the CRYPTO
-slice of data/prices/ (CoinGecko) — with >= 3 calendar years that each have >= ~150
-trading days (so a "full ring" really is a year of data).  All are computed;
+slice of data/prices/ (CoinGecko) — with >= 3 full calendar years, where a full
+year holds >= 60% of the asset's own bars (≈150 market-hours, ≈219 crypto).  All are computed;
 the page caps the rendered forest at the most-relevant majors+extremes via a
 `featured` flag, with a selector to swap any computed asset in.
 
