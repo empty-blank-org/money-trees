@@ -10,15 +10,12 @@ name: Refresh tree rings
 # if the snapshot is older than MAX_LAKE_AGE_DAYS the job FAILS instead of
 # silently rebaking stale data.
 #
-# What this job pulls, and why only that:
-#   * prices_public/ + prices_public.json — the publishable namespace (Twelve
-#     Data equities/ETFs/bonds/commodities/FX 1970->, plus the Kenneth R. French
-#     century series 1926->). Everything the site draws except crypto.
-#   * the CRYPTO slice of prices/ + groups.json — CoinGecko history, which only
-#     exists in the private namespace. The rest of prices/ is Tiingo-sourced and
-#     must never reach a public artifact, so it is not even downloaded.
+# What this job pulls is decided in ONE place, scripts/sync-lake.sh (shared with
+# the local bake): the publishable prices_public/ namespace plus the crypto slice
+# of the private prices/ namespace. See that script's header for the why.
 #
-# Requires repo secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
+# Requires repo secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+# (a read-only, single-bucket R2 API token).
 
 on:
   schedule:
@@ -53,28 +50,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
           R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-        run: |
-          ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
-          mkdir -p lake/prices lake/prices_public
-
-          # Publishable namespace: everything.
-          aws s3 sync s3://empty-data-lake/prices_public lake/prices_public \
-            --endpoint-url "$ENDPOINT" --no-progress
-          for f in prices_public.json groups.json health.json; do
-            aws s3 cp "s3://empty-data-lake/$f" "lake/$f" --endpoint-url "$ENDPOINT"
-          done
-
-          # Private namespace: the crypto ids only (see the header note).
-          python - <<'EOF' > crypto-ids.txt
-          import json
-          groups = json.load(open("lake/groups.json"))
-          ids = {t for g, ts in groups.items() if g.startswith("crypto") for t in ts}
-          print("\n".join(sorted(ids)))
-          EOF
-          echo "crypto ids: $(wc -l < crypto-ids.txt)"
-          xargs -P 8 -I{} aws s3 cp "s3://empty-data-lake/prices/{}.parquet" \
-            "lake/prices/{}.parquet" --endpoint-url "$ENDPOINT" --only-show-errors \
-            < crypto-ids.txt
+        run: scripts/sync-lake.sh lake
 
       - name: Gate on lake freshness
         env:
@@ -94,7 +70,7 @@ jobs:
 
       - name: Bake rings
         run: |
-          EMPTY_DATA="$PWD/lake" python scripts/bake-rings.py
+          python scripts/bake-rings.py   # reads ./lake by default
           python scripts/validate.py --expect-featured
 
       - name: Commit if changed

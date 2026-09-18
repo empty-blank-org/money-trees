@@ -83,7 +83,26 @@ import numpy as np
 import pandas as pd
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LAKE = os.path.abspath(os.environ.get("EMPTY_DATA", os.path.join(REPO, "..", "empty-data", "data")))
+
+
+def locate_lake():
+    """EMPTY_DATA if set; else ./lake (what scripts/sync-lake.sh pulls from R2);
+    else the sibling empty-data checkout's data/ (a dev clone of the lake repo)."""
+    if os.environ.get("EMPTY_DATA"):
+        return os.path.abspath(os.environ["EMPTY_DATA"])
+    candidates = [
+        os.path.join(REPO, "lake"),
+        os.path.join(REPO, "..", "empty-blank", "empty-data", "data"),
+        os.path.join(REPO, "..", "empty-data", "data"),
+    ]
+    for c in candidates:
+        if os.path.isfile(os.path.join(c, "prices_public.json")):
+            return os.path.abspath(c)
+    sys.exit("bake: no lake found — run scripts/sync-lake.sh (pulls the R2 slice "
+             "into ./lake) or set EMPTY_DATA to a lake data/ directory")
+
+
+LAKE = locate_lake()
 OUT = os.path.join(REPO, "data", "rings.json")
 
 # Licensing floor for the PRIVATE lake (data/prices/).
@@ -532,6 +551,7 @@ FEATURED = [
 
 
 def main():
+    print(f"lake: {LAKE}")
     manifest = load_public_manifest()
     sources = load_sources(manifest)
     tk2cls = load_class_map(manifest)

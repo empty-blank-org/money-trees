@@ -12,6 +12,7 @@ app/                       Arboretum and Full Specimen UI modules
 specimen/                  shareable full-record route
 shared/                    production renderer and design tokens
 data/rings.json            canonical committed production artifact
+scripts/sync-lake.sh       pull the lake slice from R2 into lake/ (dev and CI)
 scripts/bake-rings.py      canonical price-lake → rings bake
 labs/                      experiment catalog and frozen studies
   experiments/<slug>/      self-contained HTML, assets, data, optional prep
@@ -43,14 +44,17 @@ The GitHub Actions workflow at `.github/workflows/refresh-rings.yml` runs daily 
 
 ```bash
 python3 -m pip install --requirement requirements-bake.txt
-python3 scripts/bake-rings.py
+scripts/sync-lake.sh          # pull the lake slice from R2 into ./lake (gitignored)
+python3 scripts/bake-rings.py # reads ./lake by default
 ```
+
+`scripts/sync-lake.sh` is the single definition of what Money Trees downloads from the `empty-data-lake` R2 bucket; the refresh workflow runs the same script. Locally it uses the `[r2]` profile in `~/.aws` and reads `R2_ACCOUNT_ID` from the sibling `empty-data` checkout's `.env`; in CI those come from the repo secrets. The bake resolves its lake in this order: `EMPTY_DATA` if set, then `./lake`, then a sibling `empty-data` checkout's `data/` directory.
 
 The bake reads the empty-data lake's **two price namespaces**. Everything the site draws except crypto comes from `$EMPTY_DATA/prices_public/` — Twelve Data equities/ETFs/bonds/commodities/FX (daily history begins 1970-01-02) plus the Kenneth R. French Data Library century series (daily market factor + 12 Industry Portfolios, 1926→), compounded upstream into total-return indexes. That namespace is licensed for public display; its per-asset class and display names come from `$EMPTY_DATA/prices_public.json`. Crypto comes from the **crypto slice only** of the private `$EMPTY_DATA/prices/` (CoinGecko, the one series that does not exist in the public namespace); the rest of that namespace is Tiingo-sourced and may not be publicly displayed, so the bake never reads it and `LAKE_HISTORY_FLOOR` (1970-01-01) stays on that read path as belt-and-suspenders.
 
 Published returns are quantized to a whole percent (`RET_QUANT`) so the artifact cannot be inverted back to a vendor's adjusted closes; see [`docs/ENCODING.md`](docs/ENCODING.md) § *Published precision*.
 
-The script reads the sibling `../empty-data/data` lake by default (dev). Override it with `EMPTY_DATA`. In CI, `.github/workflows/refresh-rings.yml` instead syncs the lake slice from the `empty-data-lake` R2 bucket and **gates on `health.json.generated_at`** (fails if the snapshot is >3 days old) before rebaking — the standard empty-data consumer contract (see empty-data's `context/technical-architecture.md` § *Consumer contract v1*). Price parquet files contain `hour`, `price`, and `volume` in both namespaces; asset classes and display names come from `prices_public.json`, falling back to `groups.json`'s group prefixes and a stable cross-asset name map for crypto.
+In CI, `.github/workflows/refresh-rings.yml` syncs the lake slice from R2 with the script above and **gates on `health.json.generated_at`** (fails if the snapshot is >3 days old) before rebaking — the standard empty-data consumer contract (see empty-data's `context/technical-architecture.md` § *Consumer contract v1*). Price parquet files contain `hour`, `price`, and `volume` in both namespaces; asset classes and display names come from `prices_public.json`, falling back to `groups.json`'s group prefixes and a stable cross-asset name map for crypto.
 
 ## Validate before publishing
 
