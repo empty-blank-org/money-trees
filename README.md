@@ -36,7 +36,7 @@ Open <http://localhost:8081> for the app or <http://localhost:8081/labs/> for th
 
 ## Build and deployment
 
-Cloudflare Pages runs `./build.sh` and publishes `dist/`. The build copies the production app and canonical data while excluding the development-only lab archive and stripping lab links from public pages. `dist/` is generated and ignored by Git. The canonical origin defaults to `https://moneytreeforest.com`; preview deployments can override it with the Pages build variable `SITE_URL`.
+Cloudflare Pages runs `./build.sh` and publishes `dist/`. The build copies the production app and canonical data while excluding the development-only lab archive; the pages carry no lab links (the archive is reached by URL at `/labs/` on the dev server). `dist/` is generated and ignored by Git. The canonical origin defaults to `https://moneytreeforest.com`; preview deployments can override it with the Pages build variable `SITE_URL`.
 
 The GitHub Actions workflow at `.github/workflows/refresh-rings.yml` runs daily and on demand. It synchronizes the price lake from R2, re-bakes and validates `data/rings.json`, and commits the deterministic artifact only when source data changes; that push triggers the public deployment. The workflow requires the documented R2 repository secrets. A separate validation workflow checks every push and pull request.
 

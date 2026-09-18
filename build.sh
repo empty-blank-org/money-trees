@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Reproducible public build for Cloudflare Pages.
 #
-# Assembles the static site into dist/ — EXCLUDING the dev-only labs/ archive and
-# stripping its links, so the public deploy carries no lab content and no dead paths.
+# Assembles the static site into dist/ — EXCLUDING the dev-only labs/ archive, so
+# the public deploy carries no lab content. The pages carry no lab links even in dev;
+# the archive is reached by URL at /labs/.
 # Cloudflare Pages runs this as the build command (output directory: dist).
 # It only touches repo files (no lake access); the data (data/rings.json) is baked
 # separately by .github/workflows/refresh-rings.yml and committed.
@@ -60,9 +61,6 @@ open('dist/sitemap.xml', 'w').write(sm)
 print(f"pre-rendered {len(urls)} specimen pages")
 PY
 
-# Strip the dev-only lab links from the public entry pages (portable sed: macOS + Linux).
-sed -i.bak '/Open the lab/d' dist/index.html && rm -f dist/index.html.bak
-find dist/specimen -name index.html -exec sed -i.bak '/class="lab-link"/d' {} \; && find dist/specimen -name '*.bak' -delete
 
 # Resolve absolute sharing/canonical URLs at build time. Set SITE_URL in
 # Cloudflare Pages when a custom domain replaces the default pages.dev host.
