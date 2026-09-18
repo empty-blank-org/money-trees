@@ -38,7 +38,7 @@ function renderYearTable(){document.getElementById('year-table-wrap').innerHTML=
 function update(){const m=LivingTrees.metrics(tree,9999);if(!m)return;const family=TreeInsights.familyOf(insights,tree),from=encodeURIComponent(params.get('from')||'arboretum'),kinParams=arbParams();
   document.title=tree.id.toUpperCase()+' Full Specimen — Money Tree Rings';
   document.getElementById('title').textContent=`${tree.name} carries ${m.years} visible annual rings`;
-  document.getElementById('crumb-context').textContent=ctx.family!=='all'?` · ${TreeInsights.FAMILY_LABELS[ctx.family]}`:(ctx.cls!=='all'?` · ${LivingTrees.CLASS_NAMES[ctx.cls]}`:'');
+  document.getElementById('back').textContent=`← ${ctx.family!=='all'?TreeInsights.FAMILY_LABELS[ctx.family]:ctx.cls!=='all'?LivingTrees.CLASS_NAMES[ctx.cls]:'Arboretum'}`;
   document.getElementById('name').textContent=tree.name;
   const classline=document.getElementById('classline');classline.textContent=`${tree.id.toUpperCase()} · ${LivingTrees.CLASS_NAMES[tree.cls]} · ${TreeInsights.FAMILY_LABELS[family]} · ${tree.first_year}–${tree.last_year}`;classline.style.color=LivingTrees.CLASS_COLORS[tree.cls];
   document.getElementById('hero').innerHTML=`<span class="hero-num">${grow(m)}</span><span class="hero-label">accumulated growth over ${m.years} years</span>`;
