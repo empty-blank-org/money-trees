@@ -18,14 +18,14 @@ Asset class is encoded on the label only, not the bark or the band fill: crypto 
 
 ## Scars
 
-A scar is a whole-history drawdown episode, not simply the worst dip within an annual band. It qualifies when its depth exceeds the asset's median full-year realized-volatility threshold, clamped to 15–50%, and remains underwater for at least 120 days after the trough or is still open.
+A scar is a whole-history drawdown episode, not simply the worst dip within an annual band. It qualifies when its depth exceeds a gate set in the asset's own units — a fall of 1.25 median-annual-volatilities, in log space, floored at 10% — and remains underwater for at least 120 days after the trough or is still open. That is roughly a 12% fall for a currency fund, 20% for the S&P 500, 57% for Bitcoin. Episodes are measured from the all-time high; a second crash from an interim high inside a still-open episode (Bitcoin in March 2020, the US market in 1937–38) is a **nested** scar, measured from that interim high and healed when it is reclaimed.
 
 - The wound begins in the band containing the trough.
 - Its general angle is anchored to the trough's calendar date: January starts at the top and time moves clockwise.
 - Its width increases with drawdown depth. Deterministic meander and asymmetric edges keep it organic without inventing a new financial variable; its visible weight is size-aware so it remains delicate on a full specimen and legible on a card.
 - It extends through later rings until the prior peak is recovered. Recovered wounds taper to a point at both the trough and recovery ends; unrecovered wounds taper at the trough and remain open through the bark.
 
-This makes synchronized market events appear at similar angles across the trees that were near a peak when the event struck. A crash nested inside an already-open episode (Bitcoin in March 2020, still below its 2017 high) does not open a second scar, so a market-wide event marks some trees and not others. The scar copy always names the peak the depth is measured from.
+This makes synchronized market events appear at similar angles across the forest. The scar copy always names the peak the depth is measured from, and marks nested scars as such.
 
 The bake also publishes `climate_years`: for each calendar year with at least 30 living trees, the share of them whose scar troughed that year and the mean resultant length of those troughs' calendar angles; the top six by breadth × concentration lead the cross-date menu.
 

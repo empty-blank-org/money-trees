@@ -30,18 +30,21 @@ daily price data.  Nothing is decorative:
 
   * SCAR (radial seam) = a MAJOR drawdown episode, computed on the whole
                    history (not per-year).  Only episodes deeper than a
-                   severity gate scar the tree: threshold = the asset's median
-                   full-year vol, clamped to [15%, 50%] — so a 20% dip scars
-                   SPY but not BTC, and any halving scars anything.  The scar
-                   starts at the trough date (its ring + angular position,
-                   Jan = top, clockwise) and RADIATES OUTWARD through every
-                   later ring until the year price reclaimed the prior peak —
+                   severity gate scar the tree: a fall of SCAR_SIGMA median
+                   annual vols in log space, floored at SCAR_MIN_DEPTH — so a
+                   12% fall scars a currency fund, 20% scars SPY, ~57% scars
+                   BTC.  Episodes run from the all-time high, plus NESTED
+                   episodes: a second crash from an interim high inside a
+                   still-open one (see scar_episodes).  The scar starts at the
+                   trough date (its ring + angular position, Jan = top,
+                   clockwise) and RADIATES OUTWARD through every later ring
+                   until the year price reclaimed the peak it fell from —
                    exactly like a real fire scar that subsequent rings grow
                    around until the bark closes over.  Depth ∝ drawdown
                    magnitude; an unrecovered drawdown stays open to the bark.
                    Because the angle is the calendar date, a market-wide event
-                   (COVID = late March 2020) still carves scars at the SAME
-                   angle across the forest — visible "climate years."
+                   (COVID = late March 2020) carves scars at the SAME angle
+                   across the forest — visible "climate years."
 
   * MONTHLY returns (`mr`) are still emitted per featured ring for research
                    and archived experiments. The production tree always draws
@@ -138,6 +141,8 @@ MIN_FULL_YEARS = 3          # need this many calendar years to be a "tree"
 FULL_YEAR_FRACTION = 0.6    # share of an asset's own bars-per-year for a "full" ring
 PARTIAL_YEAR_MIN_DAYS = 20  # below this, drop the partial stub entirely
 MIN_SCAR_HEAL_DAYS = 120    # quick V-recoveries are flesh wounds, not scars
+SCAR_SIGMA = 1.25           # scar gate: a fall of this many median-annual-vols (log space)
+SCAR_MIN_DEPTH = 0.10       # ...but never shallower than this
 
 # Bars per calendar year, by class. Crypto trades every day; everything else
 # keeps market hours. This drives vol annualization and the full-year gate.
@@ -413,58 +418,81 @@ def ring_for_year(year, s_year, cls, prev_close=None):
 def scar_episodes(s, threshold):
     """Whole-history drawdown episodes deeper than `threshold`.
 
-    An episode runs peak -> trough -> recovery (first day the prior peak is
-    reclaimed).  Returns a list of dicts; recovery fields are None while the
-    asset is still underwater at the end of the series.
+    A PRIMARY episode runs all-time peak -> trough -> recovery (first day the
+    prior peak is reclaimed). A NESTED episode is a second crash inside an open
+    primary: after the primary's trough the price climbs to an interim high and
+    then falls more than `threshold` from it, before the old peak is reclaimed
+    (Bitcoin, March 2020: -60% from the June 2019 high, while still below the
+    December 2017 peak; the US market in 1937-38, still below 1929). Without
+    nested episodes a market-wide event only scarred the trees that happened to
+    be at a high when it struck. A nested episode's depth is measured from its
+    interim high, and it recovers when that high is reclaimed.
 
-    Besides the depth gate, an episode must stay underwater for at least
-    MIN_SCAR_HEAL_DAYS past its trough (or still be open) to scar the tree —
-    a deep but instantly-recovered V is a flesh wound, and drawing it leaves
-    a blob in one ring with nothing radiating.
+    Returns a list of dicts; recovery fields are None while the asset is still
+    underwater at the end of the series. Besides the depth gate, an episode must
+    stay underwater for at least MIN_SCAR_HEAL_DAYS past its trough (or still be
+    open) to scar the tree — a deep but instantly-recovered V is a flesh wound,
+    and drawing it leaves a blob in one ring with nothing radiating.
     """
     px = s.values
     idx = s.index
-    episodes = []
-    runmax = px[0]
-    peak_i = 0
-    cur_trough_i = 0
-    cur_depth = 0.0
+    primary, nested = [], []
+    runmax, peak_i, cur_trough_i, cur_depth = px[0], 0, 0, 0.0
+    imax, ipeak_i, sdepth, strough_i = px[0], 0, 0.0, 0   # interim-high tracking since the trough
+
+    def close_nested(rec_i):
+        nonlocal sdepth
+        if sdepth <= -threshold:
+            nested.append((ipeak_i, strough_i, rec_i, sdepth))
+        sdepth = 0.0
+
     for i in range(1, len(px)):
         if px[i] >= runmax:
+            close_nested(i)                       # the old peak is back: everything below it healed
             if cur_depth <= -threshold:
-                episodes.append((peak_i, cur_trough_i, i, cur_depth))
-            runmax = px[i]
-            peak_i = i
-            cur_trough_i = i
-            cur_depth = 0.0
+                primary.append((peak_i, cur_trough_i, i, cur_depth))
+            runmax, peak_i, cur_trough_i, cur_depth = px[i], i, i, 0.0
+            imax, ipeak_i = px[i], i
         else:
             dd = px[i] / runmax - 1.0
-            if dd < cur_depth:
-                cur_depth = dd
-                cur_trough_i = i
+            if dd < cur_depth:                    # a new bottom: the primary trough moves, interim tracking restarts
+                cur_depth, cur_trough_i = dd, i
+                imax, ipeak_i, sdepth = px[i], i, 0.0
+            elif px[i] >= imax:                   # a new interim high: a pending nested episode has recovered
+                close_nested(i)
+                imax, ipeak_i = px[i], i
+            else:
+                sdd = px[i] / imax - 1.0
+                if sdd < sdepth:
+                    sdepth, strough_i = sdd, i
+    close_nested(None)
     if cur_depth <= -threshold:
-        episodes.append((peak_i, cur_trough_i, None, cur_depth))
+        primary.append((peak_i, cur_trough_i, None, cur_depth))
 
     out = []
-    for peak_i, trough_i, rec_i, depth in episodes:
-        t_date = idx[trough_i]
-        if rec_i is not None and (idx[rec_i] - t_date).days < MIN_SCAR_HEAL_DAYS:
-            continue
-        scar = {
-            "depth": round(float(depth), 4),
-            "year": int(t_date.year),
-            "angle": round(float(angle_of_date(t_date)), 4),
-            "date": t_date.strftime("%Y-%m-%d"),
-            "peak_date": idx[peak_i].strftime("%Y-%m-%d"),
-        }
-        if rec_i is not None:
-            r_date = idx[rec_i]
-            scar["r_year"] = int(r_date.year)
-            scar["r_angle"] = round(float(angle_of_date(r_date)), 4)
-            scar["r_date"] = r_date.strftime("%Y-%m-%d")
-        else:
-            scar["r_year"] = None
-        out.append(scar)
+    for kind, episodes in (("primary", primary), ("nested", nested)):
+        for peak_i, trough_i, rec_i, depth in episodes:
+            t_date = idx[trough_i]
+            if rec_i is not None and (idx[rec_i] - t_date).days < MIN_SCAR_HEAL_DAYS:
+                continue
+            scar = {
+                "depth": round(float(depth), 4),
+                "year": int(t_date.year),
+                "angle": round(float(angle_of_date(t_date)), 4),
+                "date": t_date.strftime("%Y-%m-%d"),
+                "peak_date": idx[peak_i].strftime("%Y-%m-%d"),
+            }
+            if kind == "nested":
+                scar["nested"] = True
+            if rec_i is not None:
+                r_date = idx[rec_i]
+                scar["r_year"] = int(r_date.year)
+                scar["r_angle"] = round(float(angle_of_date(r_date)), 4)
+                scar["r_date"] = r_date.strftime("%Y-%m-%d")
+            else:
+                scar["r_year"] = None
+            out.append(scar)
+    out.sort(key=lambda sc: sc["date"])
     return out
 
 
@@ -523,10 +551,14 @@ def build_tree(ticker, cls, src):
     dd_all = pxv / runmax - 1.0
     worst_dd_all = float(dd_all.min())
 
-    # Scar severity gate: median full-year vol, clamped — a 20% dip scars a
-    # bond fund but not BTC; any halving scars anything.
+    # Scar severity gate, in the asset's own units: a fall of SCAR_SIGMA times
+    # its median full-year vol, in log space (so it can never exceed 100%), with
+    # a small absolute floor. The old clamp to [15%, 50%] bound at an endpoint for
+    # every bond, FX and crypto tree — FX carried one scar in twenty years, crypto
+    # scarred at half its own annual vol. Now a 12% fall scars a currency fund,
+    # a 20% fall scars the S&P, and Bitcoin needs about 57%.
     med_vol = float(np.median([r["vol"] for r in full_rings]))
-    scar_thr = min(max(0.15, med_vol), 0.50)
+    scar_thr = max(SCAR_MIN_DEPTH, 1.0 - float(np.exp(-SCAR_SIGMA * med_vol)))
     scars = scar_episodes(s, scar_thr)
     # Drop scars whose trough fell in a dropped stub year OR in the asset's
     # first ring — a listing-year crash is an artifact of where the data
