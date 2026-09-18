@@ -145,6 +145,33 @@
 
   function reset() { zoom = 1; panX = 0; panY = 0; apply(); }
 
+  // Save what is on screen: the sharp bitmap at device resolution over the view's
+  // own background, with a caption strip naming the tree, the span, the zoom and
+  // the selected ring — a formatted crop for a post, without the poster's full sheet.
+  async function saveView() {
+    const t = tree(); if (!t) return;
+    if (shown.zoom !== zoom || shown.panX !== panX || shown.panY !== panY) render();
+    const dpr = DPR(), w = base.width, h = base.height, strip = Math.round(64 * dpr);
+    const out = document.createElement('canvas'); out.width = w; out.height = h + strip;
+    const g = out.getContext('2d');
+    const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#0b1713'); bg.addColorStop(.62, '#07100d'); bg.addColorStop(1, '#10130d');
+    g.fillStyle = bg; g.fillRect(0, 0, w, h + strip);
+    g.drawImage(base, 0, 0);
+    g.fillStyle = 'rgba(5,10,8,.92)'; g.fillRect(0, h, w, strip);
+    g.fillStyle = 'rgba(228,218,190,.14)'; g.fillRect(0, h, w, Math.max(1, Math.round(dpr)));
+    const year = hooks.state().selectedYear, ring = year && t.rings.find(r => r.year === year);
+    const left = `${t.name} · ${t.first_year}–${t.last_year} · ${t.rings.length} annual rings · ${zoom.toFixed(1)}×` +
+      (ring ? `   |   ${ring.year}: return ${ring.ret >= 0 ? '+' : ''}${pct(ring.ret)} · vol ${pct(ring.vol)} · max dd ${pct(ring.max_dd)}` : '');
+    g.font = `${Math.round(13 * dpr)}px ui-monospace, Menlo, monospace`; g.textBaseline = 'middle';
+    g.fillStyle = '#d9d1c0'; g.textAlign = 'left'; g.fillText(left, Math.round(18 * dpr), h + strip / 2);
+    g.fillStyle = '#6fbf8a'; g.textAlign = 'right'; g.fillText('moneytreeforest.com', w - Math.round(18 * dpr), h + strip / 2);
+    const blob = await new Promise(res => out.toBlob(res, 'image/png'));
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `${t.id}-rings-${zoom.toFixed(1).replace('.', '_')}x${year ? '-' + year : ''}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+
   function selectYear(year) {
     hoverYear = null;
     if (hooks.selectYear(year)) { readout(year); drawOverlay(); }
@@ -222,6 +249,7 @@
     if (e.key === '0') { e.preventDefault(); reset(); return; }
     if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomAt(W / 2, H / 2, 1.4); return; }
     if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomAt(W / 2, H / 2, 1 / 1.4); return; }
+    if (e.key === 's' || e.key === 'S') { e.preventDefault(); saveView(); return; }
     if (e.key === 'f' || e.key === 'F') { e.preventDefault(); close(); }
   }
 
@@ -274,6 +302,7 @@
       if (a === 'in') zoomAt(W / 2, H / 2, 1.4);
       else if (a === 'out') zoomAt(W / 2, H / 2, 1 / 1.4);
       else if (a === 'reset') reset();
+      else if (a === 'save') saveView();
       else if (a === 'exit') close();
     });
     window.addEventListener('keydown', onKey);
