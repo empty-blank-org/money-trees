@@ -145,7 +145,7 @@
 
   function reset() { zoom = 1; panX = 0; panY = 0; apply(); }
 
-  // Save what is on screen: the sharp bitmap at device resolution over the view's
+  // Screenshot: save what is on screen — the sharp bitmap at device resolution over the view's
   // own background, with a caption strip naming the tree, the span, the zoom and
   // the selected ring — a formatted crop for a post, without the poster's full sheet.
   async function saveView() {
