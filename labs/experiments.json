@@ -1,5 +1,6 @@
 {
   "experiments": [
+    {"slug":"eccentric-growth","title":"Eccentric Growth","category":"concept","status":"study","description":"Compares the shipped independent-per-year ring wobble against a persistent-lean model: ring irregularity carried forward as (direction, magnitude) state that drifts each year and leaky-integrates volatility. Passed on — the carried-forward lean never read as eccentric growth at either scale."},
     {"slug":"scar-study","title":"Scar Study","category":"concept","status":"active prototype","description":"Compares four ways to render drawdown scars on the same specimen — the current radial seam, a catface that heals shut, rings that deflect around the wound, and a composite — toward a less formulaic scar."},
     {"slug":"atlas","title":"Forest Atlas","category":"main","status":"superseded","description":"A roomier forest with playback, sorting, density controls, and specimen inspection."},
     {"slug":"clearings","title":"Forest Clearings","category":"main","status":"superseded","description":"Groups the forest by asset class, age, temperament, and shared damage."},

@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Eccentric Growth — Money Trees Lab</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07100d;--panel:#0e1712;--ink:#e8e1d2;--muted:#9a9488;--line:#28332b;--gold:#d3b46f}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -15%,#1b2a20 0,transparent 42%),var(--bg);color:var(--ink);font:14px/1.5 system-ui,sans-serif}
+    main{max-width:1180px;margin:auto;padding:30px 22px 70px}
+    header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:8px}
+    .eyebrow{font:11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.14em;color:var(--gold)}
+    h1{font:500 clamp(30px,5vw,50px)/1 Georgia,serif;margin:7px 0 10px}
+    .dek{max-width:760px;color:#b8b1a3;font-size:15px;margin:0}
+    .home{color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:8px 11px;white-space:nowrap}
+    .bar{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:20px 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(14,23,18,.5)}
+    .bar label{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
+    .bar .num{color:var(--ink);font:11px ui-monospace,monospace;min-width:2.6em;display:inline-block}
+    select{font:inherit;color:var(--ink);background:#0d1713;border:1px solid #34443a;border-radius:7px;padding:7px 10px}
+    input[type=range]{width:110px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .panel{border:1px solid var(--line);border-radius:13px;background:linear-gradient(150deg,rgba(20,30,24,.7),rgba(9,15,12,.8));padding:14px 14px 16px}
+    .panel .cap{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .panel h2{font:500 18px Georgia,serif;margin:0}
+    .panel .tag{font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--gold)}
+    .panel p{color:var(--muted);font-size:12px;margin:10px 2px 0}
+    .art{position:relative;width:100%;aspect-ratio:1/1;background:radial-gradient(circle,rgba(38,49,39,.26),rgba(4,9,7,.2) 68%);border-radius:9px;overflow:hidden}
+    canvas{display:block;width:100%;height:100%}
+    .stripe-label{font:10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.1em;color:#6f7a6f;margin:28px 2px 10px}
+    .stripe{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+    .card{position:relative;aspect-ratio:1/1;background:radial-gradient(circle,rgba(38,49,39,.3),rgba(4,9,7,.15) 68%);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+    .card .id{position:absolute;left:5px;bottom:4px;font:9px ui-monospace,monospace;color:rgba(232,225,210,.55);z-index:2}
+    @media(max-width:820px){.grid{grid-template-columns:1fr}.stripe{grid-template-columns:repeat(3,1fr)}header{display:block}.home{display:inline-block;margin-top:10px}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <div class="eyebrow">Money Trees · lab study</div>
+      <h1>Eccentric Growth</h1>
+      <p class="dek">Real tree rings aren't circles — a trunk leans into wind, light, or slope, and that same
+        direction gets favored year after year, so the eccentricity drifts slowly instead of resetting. The
+        shipped renderer re-randomizes each ring's wobble independently, so a wild year's warp has no memory
+        next year. This carries a persistent (direction, magnitude) forward instead: direction drifts a
+        little each year rather than re-rolling, magnitude is a leaky integrator of that year's realized
+        volatility — a rough year pushes the tree further off-round than it already was, calm years relax it
+        back toward (not snap to) round. Inner rings, formed in the tree's early and more volatile years,
+        should show more of that carried-forward irregularity; outer rings stay closer to round, same as the
+        shipped renderer, since this is a modest, tuning pass on top of the existing per-year wobble rather
+        than an attempt at a fully non-circular bark edge.</p>
+    </div>
+    <a class="home" href="../../">← The lab</a>
+  </header>
+
+  <div class="bar">
+    <label>specimen <select id="ticker"></select></label>
+    <label>drift <input type="range" id="driftStep" min="0" max="1.4" step=".05" value=".55"><span class="num" id="driftStepN"></span></label>
+    <label>decay <input type="range" id="decay" min=".4" max=".95" step=".01" value=".82"><span class="num" id="decayN"></span></label>
+    <label>vol kick <input type="range" id="kick" min="0" max="1.5" step=".05" value=".85"><span class="num" id="kickN"></span></label>
+    <label>max lean <input type="range" id="magMax" min=".2" max="2" step=".05" value="1"><span class="num" id="magMaxN"></span></label>
+    <label>scale <input type="range" id="scale" min=".01" max=".14" step=".005" value=".05"><span class="num" id="scaleN"></span></label>
+  </div>
+
+  <section class="grid" id="grid">
+    <div class="panel">
+      <div class="cap"><h2>Shipped</h2><span class="tag">independent per year</span></div>
+      <div class="art"><canvas id="cvCurrent"></canvas></div>
+      <p>Each ring's wobble is a fresh random draw, scaled only by that year's own volatility. Wild years warp; the next year resets, no memory of which way it leaned.</p>
+    </div>
+    <div class="panel">
+      <div class="cap"><h2>Persistent lean</h2><span class="tag">carried forward</span></div>
+      <div class="art"><canvas id="cvEccentric"></canvas></div>
+      <p>Same ring data. Direction drifts gradually; magnitude leaky-integrates volatility. Inner rings carry
+        forward more irregularity; outer rings stay relatively round.</p>
+    </div>
+  </section>
+
+  <div class="stripe-label">persistent lean across the featured forest</div>
+  <div class="stripe" id="stripe"></div>
+</main>
+<script src="shared/renderer.js"></script>
+<script>
+const L=EccentricLab;
+let trees=[],tree=null,stripeIds=[];
+const P=['driftStep','decay','kick','magMax','scale'];
+function params(){
+  const o={};P.forEach(k=>o[k]=+document.getElementById(k).value);return o;
+}
+function syncLabels(){
+  P.forEach(k=>{document.getElementById(k+'N').textContent=document.getElementById(k).value;});
+}
+function renderBig(cv,subj,eccentric){
+  const r=cv.parentElement.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,r.width,r.height);
+  const s=Math.min(r.width,r.height);
+  L.drawDetailedRings(g,subj,r.width/2,r.height/2,s*.46,9999,{palette:'wood',years:true,eccentric:eccentric?params():false});
+}
+function renderStripe(){
+  document.querySelectorAll('#stripe canvas').forEach(cv=>{
+    const subj=trees.find(t=>t.id===cv.dataset.id);if(!subj)return;
+    const r=cv.parentElement.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+    cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+    const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,r.width,r.height);
+    const s=Math.min(r.width,r.height);
+    L.drawDetailedRings(g,subj,r.width/2,r.height/2,s*.46,9999,{palette:'wood',eccentric:params()});
+  });
+}
+function renderAll(){
+  if(!tree)return;
+  renderBig(document.getElementById('cvCurrent'),tree,false);
+  renderBig(document.getElementById('cvEccentric'),tree,true);
+  renderStripe();
+}
+function pick(id){tree=trees.find(t=>t.id===id)||trees[0];document.getElementById('ticker').value=tree.id;renderAll();}
+document.querySelectorAll('.bar input[type=range]').forEach(el=>el.addEventListener('input',()=>{syncLabels();renderAll();}));
+document.getElementById('ticker').addEventListener('change',e=>pick(e.target.value));
+window.addEventListener('resize',renderAll);
+L.load('data/rings.json').then(d=>{
+  trees=d.trees.filter(t=>t.featured&&t.rings.length>=12).sort((a,b)=>b.rings.length-a.rings.length);
+  document.getElementById('ticker').innerHTML=trees.map(t=>`<option value="${t.id}">${t.id.toUpperCase()} · ${L.CLASS_NAMES[t.cls]} (${t.rings.length}y)</option>`).join('');
+  stripeIds=trees.slice(0,12).map(t=>t.id);
+  document.getElementById('stripe').innerHTML=stripeIds.map(id=>`<div class="card"><canvas data-id="${id}"></canvas><span class="id">${id.toUpperCase()}</span></div>`).join('');
+  syncLabels();
+  pick(trees.find(t=>t.id==='btc')?.id||trees[0].id);
+}).catch(e=>{document.querySelector('main').insertAdjacentHTML('beforeend',`<p style="color:#e88">Could not load data: ${e.message}</p>`)});
+</script>
+</body>
+</html>
