@@ -25,9 +25,44 @@ json.dump(d, open('dist/data/rings.json', 'w'), separators=(',', ':'))
 EOF
 cp site.webmanifest robots.txt sitemap.xml _headers dist/
 
+# Pre-render one page per featured specimen at /specimen/<id>/ so a shared link
+# previews as THAT tree (title, description) and search engines can find all 97.
+# Each stub is the specimen page with real meta tags, a <base> so the app's
+# relative paths still resolve one level deeper, and the id injected. The app
+# then writes pretty URLs itself (window.PRETTY_ROUTES). /specimen/?id= still works.
+python3 - <<'PY'
+import json, html, re, os
+rings = json.load(open('dist/data/rings.json'))
+src = open('dist/specimen/index.html').read()
+flag = '<script>window.PRETTY_ROUTES=true</script>'
+open('dist/specimen/index.html', 'w').write(src.replace('<head>', '<head>' + flag, 1))
+home = open('dist/index.html').read()
+open('dist/index.html', 'w').write(home.replace('<head>', '<head>' + flag, 1))
+urls = []
+for t in rings['trees']:
+    tid, name = t['id'], html.escape(t['name'])
+    title = f"{name} — Money Tree Rings"
+    n_sc = len(t['scars'])
+    desc = html.escape(f"{t['name']} ({t['id'].upper()}) as tree rings: {t['n_rings']} annual rings, "
+                       f"{t['first_year']}–{t['last_year']}. {t['cagr']*100:+.1f}% annualized growth, "
+                       f"worst drawdown {t['worst_dd']*100:.0f}%, {n_sc} major scar{'s' if n_sc != 1 else ''}.")
+    page = src.replace('<head>', f'<head><base href="/specimen/">{flag}<script>window.SPECIMEN_ROUTE="{tid}"</script>', 1)
+    page = re.sub(r'<title>.*?</title>', f'<title>{title}</title>', page, count=1)
+    page = page.replace('<meta property="og:title" content="Full Specimen — Money Tree Rings">', f'<meta property="og:title" content="{title}">')
+    page = page.replace('<meta name="description" content="Explore a financial asset’s complete annual tree-ring record, including growth, volatility, and drawdown scars.">', f'<meta name="description" content="{desc}">')
+    page = page.replace('<meta property="og:description" content="A complete financial history rendered as annual tree rings.">', f'<meta property="og:description" content="{desc}">')
+    page = page.replace('__SITE_URL__/specimen/', f'__SITE_URL__/specimen/{tid}/')
+    os.makedirs(f'dist/specimen/{tid}', exist_ok=True)
+    open(f'dist/specimen/{tid}/index.html', 'w').write(page)
+    urls.append(f'  <url><loc>__SITE_URL__/specimen/{tid}/</loc></url>')
+sm = open('dist/sitemap.xml').read().replace('</urlset>', '\n'.join(urls) + '\n</urlset>')
+open('dist/sitemap.xml', 'w').write(sm)
+print(f"pre-rendered {len(urls)} specimen pages")
+PY
+
 # Strip the dev-only lab links from the public entry pages (portable sed: macOS + Linux).
 sed -i.bak '/Open the lab/d' dist/index.html && rm -f dist/index.html.bak
-sed -i.bak '/class="lab-link"/d' dist/specimen/index.html && rm -f dist/specimen/index.html.bak
+find dist/specimen -name index.html -exec sed -i.bak '/class="lab-link"/d' {} \; && find dist/specimen -name '*.bak' -delete
 
 # Resolve absolute sharing/canonical URLs at build time. Set SITE_URL in
 # Cloudflare Pages when a custom domain replaces the default pages.dev host.

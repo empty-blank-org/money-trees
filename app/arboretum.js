@@ -29,7 +29,7 @@ function syncPalette(){paletteEl.querySelectorAll('[data-palette]').forEach(b=>{
 function syncFamily(){familiesEl.querySelectorAll('[data-family]').forEach(b=>b.classList.toggle('active',b.dataset.family===family))}
 // Carry the full collection context to the specimen so its prev/next matches this
 // view AND its "back" restores exactly what you left.
-function openSpecimen(id){const q=new URLSearchParams({id,from:'arboretum',sort,class:classEl.value,family,color:palette});if(crossYear)q.set('year',crossYear);if(searchEl.value)q.set('q',searchEl.value);location.href=`specimen/?${q}`}
+function openSpecimen(id){const q=new URLSearchParams({from:'arboretum',sort,class:classEl.value,family,color:palette});if(crossYear)q.set('year',crossYear);if(searchEl.value)q.set('q',searchEl.value);if(window.PRETTY_ROUTES)location.href=`specimen/${id}/?${q}`;else{q.set('id',id);location.href=`specimen/?${q}`}}
 familiesEl.onclick=e=>{const b=e.target.closest('[data-family]');if(!b)return;family=b.dataset.family;syncFamily();render()};
 sortEl.onchange=()=>{sort=sortEl.value;render()};
 paletteEl.onclick=e=>{const b=e.target.closest('[data-palette]');if(!b||b.dataset.palette===palette)return;palette=b.dataset.palette;syncPalette();syncUrl();paint()};
