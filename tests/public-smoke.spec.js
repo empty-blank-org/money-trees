@@ -11,7 +11,7 @@ test('arboretum search and specimen inspection work in the public build', async 
 
   await page.locator('.specimen').press('Enter');
   await expect(page).toHaveURL(/\/specimen\/btc\//);
-  await expect(page).toHaveTitle("Bitcoin — Money Tree Rings");
+  await expect(page).toHaveTitle("Bitcoin — Money Tree Forest");
   await expect(page.locator('#year-labels button.active')).toHaveAttribute('data-labels', 'hide');
 
   const canvas = page.locator('#canvas');

@@ -8,7 +8,7 @@
 # separately by .github/workflows/refresh-rings.yml and committed.
 set -euo pipefail
 cd "$(dirname "$0")"
-SITE_URL="${SITE_URL:-https://moneytreerings.com}"
+SITE_URL="${SITE_URL:-https://moneytreeforest.com}"
 SITE_URL="${SITE_URL%/}"
 
 rm -rf dist
@@ -41,14 +41,14 @@ open('dist/index.html', 'w').write(home.replace('<head>', '<head>' + flag, 1))
 urls = []
 for t in rings['trees']:
     tid, name = t['id'], html.escape(t['name'])
-    title = f"{name} — Money Tree Rings"
+    title = f"{name} — Money Tree Forest"
     n_sc = len(t['scars'])
     desc = html.escape(f"{t['name']} ({t['id'].upper()}) as tree rings: {t['n_rings']} annual rings, "
                        f"{t['first_year']}–{t['last_year']}. {t['cagr']*100:+.1f}% annualized growth, "
                        f"worst drawdown {t['worst_dd']*100:.0f}%, {n_sc} major scar{'s' if n_sc != 1 else ''}.")
     page = src.replace('<head>', f'<head><base href="/specimen/">{flag}<script>window.SPECIMEN_ROUTE="{tid}"</script>', 1)
     page = re.sub(r'<title>.*?</title>', f'<title>{title}</title>', page, count=1)
-    page = page.replace('<meta property="og:title" content="Full Specimen — Money Tree Rings">', f'<meta property="og:title" content="{title}">')
+    page = page.replace('<meta property="og:title" content="Full Specimen — Money Tree Forest">', f'<meta property="og:title" content="{title}">')
     page = page.replace('<meta name="description" content="Explore a financial asset’s complete annual tree-ring record, including growth, volatility, and drawdown scars.">', f'<meta name="description" content="{desc}">')
     page = page.replace('<meta property="og:description" content="A complete financial history rendered as annual tree rings.">', f'<meta property="og:description" content="{desc}">')
     page = page.replace('__SITE_URL__/specimen/', f'__SITE_URL__/specimen/{tid}/')

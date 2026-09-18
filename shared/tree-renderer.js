@@ -188,6 +188,12 @@
     const onScreen=(a,b)=>!clip||(b>=rNear&&a<=rFar);
     const va=(NORM?.vol_cls&&NORM.vol_cls[tree.cls])||[NORM?.vol_p10||.1,NORM?.vol_p90||.7];
     let r0=core,innerPts=null,prev={r:core,vol:0,th:0,seed:'core'};g.save();g.globalAlpha=baseAlpha;
+    // The pith is wood too: the tree's first ring, darkened, with a darker dot at the
+    // very centre. Left unpainted it read as a black hole at full-view zoom.
+    if(!clip||Math.hypot(cx-clamp(cx,clip.x0,clip.x1),cy-clamp(cy,clip.y0,clip.y1))<core*1.1){
+      const f0=ringFill(tree.cls,m.rings[0],opts.palette),dark=[26,16,8];
+      g.beginPath();g.arc(cx,cy,core*1.02,0,Math.PI*2);g.fillStyle=rgba(mix(f0,dark,.35));g.fill();
+      g.beginPath();g.arc(cx,cy,core*.38,0,Math.PI*2);g.fillStyle=rgba(mix(f0,dark,.7));g.fill();}
     m.rings.forEach(ring=>{
       const r1=r0+usable*ringThickness(ring.log_growth,wc,tree.cls)/total,a0=-Math.PI/2,a1=a0+Math.PI*2;
       const vol01=clamp((ring.vol-va[0])/(va[1]-va[0]),0,1),self={r:r1,vol:vol01,th:r1-r0,seed:tree.id+'|'+ring.year};
