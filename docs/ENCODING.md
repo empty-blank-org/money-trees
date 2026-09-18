@@ -4,7 +4,7 @@ The cross-section is a compact financial record, not decorative generative art. 
 
 ## Annual bands
 
-- **Width — annual growth.** Band thickness is a monotone, log-compressed mapping of annual log total return. Better years are always wider. A floor keeps negative years visible.
+- **Width — annual growth.** Band thickness is a monotone, log-compressed mapping of annual log total return, normalized within asset class on the same anchors color uses, so a bond's best year is as wide as a crypto asset's best year. Better years are always wider. A floor keeps negative years visible.
 - **Color — return direction and magnitude.** Both color treatments use separated sign ramps so near-zero years cannot obscure direction. The default wood treatment assigns every negative year to heartwood and every positive year to sapwood. The optional market treatment assigns every negative year to red and every positive year to green. Within each sign, a gentle ease-in magnitude curve keeps ordinary returns near a mild shoulder color and reserves the strongest endpoint for genuinely exceptional years; only a truly flat year uses the middle tan/ochre. Both modes normalize magnitude within asset class so a good bond year remains legible beside crypto.
 - **Darkness — realized volatility.** Annualized daily log-return volatility darkens each band, also normalized within asset class. The wood treatment deliberately bounds this darkening so a volatile positive year cannot become visually confusable with a negative year.
 - **Boundary irregularity — volatility texture.** Every visible concentric boundary remains one calendar year. Its subtle waviness increases with that year's class-normalized realized volatility, reinforcing the darkness channel without introducing false rings. At Full Specimen scale only, a few restrained radial fibers add the same volatility texture without running parallel to the annual boundaries.
@@ -25,7 +25,9 @@ A scar is a whole-history drawdown episode, not simply the worst dip within an a
 - Its width increases with drawdown depth. Deterministic meander and asymmetric edges keep it organic without inventing a new financial variable; its visible weight is size-aware so it remains delicate on a full specimen and legible on a card.
 - It extends through later rings until the prior peak is recovered. Recovered wounds taper to a point at both the trough and recovery ends; unrecovered wounds taper at the trough and remain open through the bark.
 
-This makes synchronized market events appear at similar angles across different trees.
+This makes synchronized market events appear at similar angles across the trees that were near a peak when the event struck. A crash nested inside an already-open episode (Bitcoin in March 2020, still below its 2017 high) does not open a second scar, so a market-wide event marks some trees and not others. The scar copy always names the peak the depth is measured from.
+
+The bake also publishes `climate_years`: for each calendar year with at least 30 living trees, the share of them whose scar troughed that year and the mean resultant length of those troughs' calendar angles; the top six by breadth × concentration lead the cross-date menu.
 
 ## Product interactions
 
@@ -43,6 +45,7 @@ Every number the interface shows for a whole tree is computed once, in the bake,
 - **Worst drawdown (`worst_dd`)** is the deepest peak-to-trough fall over the whole history, the same number the collection sorts on.
 - **A full ring** holds at least 60% of the asset's own trading days in that year; anything shorter is marked partial and excluded from the averages above (but still drawn).
 - **Normalization anchors** (`norm`) are percentiles over the **featured** trees only, so the trees on the wall are never re-colored by trees that do not render.
+- **Return basis (`basis`)** is `total` for the Ken French indexes, `adjusted` for the Twelve Data series (dividend- and split-adjusted closes, thinner adjustment before 2013) and `spot` for crypto. It is shown on every specimen.
 
 ## Published precision
 

@@ -253,6 +253,21 @@ def load_sources(manifest):
     ]
 
 
+# Return basis, by upstream source. The Twelve Data series are fetched with
+# adjust=all (dividend- and split-adjusted, i.e. total return) but the vendor's
+# dividend adjustment is thinner before 2013; the Ken French series are total-
+# return indexes by construction; crypto is a spot price with no yield.
+BASIS_BY_SOURCE = {"twelvedata": "adjusted", "kenfrench": "total"}
+
+
+def load_basis(manifest):
+    """id -> return basis ('total' | 'adjusted' | 'spot')."""
+    basis = {}
+    for ticker, meta in manifest.get("assets", {}).items():
+        basis[str(ticker).lower()] = BASIS_BY_SOURCE.get(meta.get("source"), "adjusted")
+    return basis
+
+
 def load_asset_names(manifest):
     """Public-manifest display names layered over the curated cross-asset map."""
     names = dict(DISPLAY_NAMES)
@@ -559,27 +574,66 @@ def build_tree(ticker, cls, src):
 # swappable via the selector; this is the curated public arboretum.
 
 FEATURED = [
+    # Curated lead — the order the Arboretum opens in. The first rows have to
+    # teach the encoding before anything else: a century tree with 1929 and
+    # 2008 carved in it, a steady compounder, a violent young one, a bond, a
+    # commodity, a currency fund — old beside young, wide beside thin, scarred
+    # beside smooth. After the lead the list runs by class.
+    "us-market", "ko", "btc",
+    "spy", "tlt", "eth",
+    "gld", "nvda", "sol",
+    "fxe", "brk.b", "doge",
     # crypto majors + extremes
-    "btc", "eth", "sol", "xrp", "bnb", "ada", "doge", "ltc", "link", "avax",
+    "xrp", "bnb", "ada", "ltc", "link", "avax",
     "shib", "pepe", "uni", "aave", "xlm", "xmr", "zec", "etc", "bch", "eos",
     "trx", "lunc", "mana", "mkr", "atom", "stx", "fil", "axs", "dot", "near",
     "inj", "ton", "render", "op",
     # equity index + megacap + extremes
-    "spy", "qqq", "iwm", "aapl", "msft", "nvda", "tsla", "amzn", "meta", "googl",
+    "qqq", "iwm", "aapl", "msft", "tsla", "amzn", "meta", "googl",
     "coin", "mstr", "mara", "pltr", "amd",
-    "ko", "ge", "dis", "xom", "wmt", "jpm", "o", "intc", "asml", "brk.b",
+    "ge", "dis", "xom", "wmt", "jpm", "o", "intc", "asml",
     "nflx", "ewj", "eem",
     # bonds (old-growth, tight pale rings)
-    "tlt", "ief", "shy", "agg", "lqd", "hyg", "tip", "emb", "mbb",
+    "ief", "shy", "agg", "lqd", "hyg", "tip", "emb", "mbb",
     # commodities
-    "gld", "slv", "uso", "dbc", "ung", "dba", "cper", "pplt",
+    "slv", "uso", "dbc", "ung", "dba", "cper", "pplt",
     # fx
-    "uup", "fxe", "fxy", "fxa", "fxb", "fxc", "fxf",
+    "uup", "fxy", "fxa", "fxb", "fxc", "fxf",
     # century trees (Kenneth R. French Data Library, 1926->), from prices_public/
-    "us-market", "durables", "manufacturing", "energy",
+    "durables", "manufacturing", "energy",
     "chemicals", "tech", "telecom", "utilities", "retail", "healthcare",
     "finance",
 ]
+
+
+def climate_years(trees, min_trees=30, top=6):
+    """Years in which the forest was wounded TOGETHER.
+
+    For each calendar year: breadth = share of trees alive that year whose scar
+    troughed in it; R = mean resultant length of those troughs' calendar angles
+    (1 = all on the same day, 0 = spread around the year). score = breadth × R,
+    so a year ranks high only when many trees were hit AND at the same time.
+    Years with fewer than `min_trees` living trees are excluded (too few to
+    call a climate). Ported from the archived Climate Years lab.
+    """
+    alive, hits = {}, {}
+    for tr in trees:
+        for r in tr["rings"]:
+            alive[r["year"]] = alive.get(r["year"], 0) + 1
+        for sc in tr["scars"]:
+            hits.setdefault(sc["year"], []).append(sc["angle"])
+    rows = []
+    for year, n in alive.items():
+        if n < min_trees or year not in hits:
+            continue
+        ang = np.array(hits[year]) * 2 * np.pi
+        R = float(np.hypot(np.cos(ang).mean(), np.sin(ang).mean()))
+        breadth = len(ang) / n
+        rows.append({"year": int(year), "n": int(n), "scarred": len(ang),
+                     "breadth": round(breadth, 3), "R": round(R, 3),
+                     "score": round(breadth * R, 4)})
+    rows.sort(key=lambda x: -x["score"])
+    return rows[:top]
 
 
 def main():
@@ -588,6 +642,7 @@ def main():
     sources = load_sources(manifest)
     tk2cls = load_class_map(manifest)
     asset_names = load_asset_names(manifest)
+    basis_map = load_basis(manifest)
 
     # ticker -> owning source; the first source listed wins a collision (and
     # says so, since a shadowed id would silently change what a tree means).
@@ -623,6 +678,7 @@ def main():
             skipped += 1
             continue
         tree["name"] = asset_names.get(t, t.upper())
+        tree["basis"] = "spot" if cls == "crypto" else basis_map.get(t, "adjusted")
         trees.append(tree)
 
     feat_set = set(FEATURED)
@@ -682,6 +738,7 @@ def main():
     }
 
     data_through = max(tr["data_through"] for tr in trees)
+    climate = climate_years([tr for tr in trees if tr["featured"]])
     out = {
         "schema_version": 1,
         # Derived from source data rather than wall-clock bake time so an
@@ -691,6 +748,7 @@ def main():
         "n_trees": len(trees),
         "n_featured": n_feat,
         "norm": norm,
+        "climate_years": climate,
         "trees": trees,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)

@@ -234,7 +234,7 @@
     document.body.classList.add('immersed');
     measure(); zoom = 1; panX = 0; panY = 0;
     const t = tree();
-    titleEl.textContent = t ? `${t.id.toUpperCase()} · ${t.first_year}–${t.last_year} · ${t.rings.length} rings` : '';
+    titleEl.textContent = t ? `${t.name} · ${t.first_year}–${t.last_year} · ${t.rings.length} rings · moneytreerings.com` : '';
     hoverYear = null;
     readout(hooks.state().selectedYear);
     render();
@@ -284,7 +284,7 @@
     mount, open: show, close,
     isOpen: () => open,
     // Palette / year-label / specimen changes from the host page.
-    refresh() { if (!open) return; const t = tree(); if (t) titleEl.textContent = `${t.id.toUpperCase()} · ${t.first_year}–${t.last_year} · ${t.rings.length} rings`; limits(); render(); readout(hooks.state().selectedYear); },
+    refresh() { if (!open) return; const t = tree(); if (t) titleEl.textContent = `${t.name} · ${t.first_year}–${t.last_year} · ${t.rings.length} rings · moneytreerings.com`; limits(); render(); readout(hooks.state().selectedYear); },
     syncYear() { if (!open) return; hoverYear = null; readout(hooks.state().selectedYear); drawOverlay(); }
   };
 })();

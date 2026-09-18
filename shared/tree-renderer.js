@@ -37,19 +37,23 @@
     const scars = (tree.scars||[]).filter(s=>s.year<=year);
     const worst = live ? tree.worst_dd : Math.min(...rings.map(r=>r.max_dd==null?0:r.max_dd));
     const ageYears = live ? tree.age_years : rings.length;
-    const thickness = rings.reduce((s,r)=>s+ringThickness(r.log_growth),0);
+    const thickness = rings.reduce((s,r)=>s+ringThickness(r.log_growth,null,tree.cls),0);
     return {rings, years:rings.length, ageYears, sumLg, cagr, meanVol, positive, scars, worst, thickness};
   }
 
   // Ring width curve. `w` is an optional override:
   // {squash, floor, max, lo, hi}. The shipped curve is log1p squash 3.2 between the
-  // forest's p5/p95 growth anchors, floor .15, max 2.0. The low floor is what lets a
-  // century tree breathe: 100 rings in one radius means the weakest years have to
-  // collapse to a hairline or the strong years have no room left to read as strong.
-  function ringThickness(lg, w) {
+  // CLASS's p5/p95 growth anchors (the same anchors colour uses — width and colour
+  // encode the same variable and must agree about how much of it there is; on the
+  // old global anchors a bond tree's rings were all one width while its colours
+  // said otherwise), floor .15, max 2.0. The low floor is what lets a century tree
+  // breathe: 100 rings in one radius means the weakest years have to collapse to a
+  // hairline or the strong years have no room left to read as strong.
+  function ringThickness(lg, w, cls) {
     const squash=w&&w.squash!=null?w.squash:3.2;
     const floor=w&&w.floor!=null?w.floor:.15, max=w&&w.max!=null?w.max:2.0;
-    const lo0=(w&&w.lo!=null)?w.lo:(NORM?.lg_p5 ?? -.45), hi0=(w&&w.hi!=null)?w.hi:(NORM?.lg_p95 ?? .55);
+    const la=(cls&&NORM?.lg_cls&&NORM.lg_cls[cls])||null;
+    const lo0=(w&&w.lo!=null)?w.lo:(la?la[0]:(NORM?.lg_p5 ?? -.45)), hi0=(w&&w.hi!=null)?w.hi:(la?la[1]:(NORM?.lg_p95 ?? .55));
     const sq=v=>Math.sign(v)*Math.log1p(Math.abs(v)*squash);
     const t=sq(lg),lo=sq(lo0),hi=sq(hi0);
     return floor+(max-floor)*clamp((t-lo)/(hi-lo),0,1);
@@ -77,11 +81,11 @@
 
   function drawRings(g, tree, cx, cy, R, year=9999, alpha=1, palette="wood") {
     const m=metrics(tree,year); if (!m) return;
-    const total=m.rings.reduce((s,r)=>s+ringThickness(r.log_growth),0);
+    const total=m.rings.reduce((s,r)=>s+ringThickness(r.log_growth,null,tree.cls),0);
     let r0=R*.07; const usable=R-r0, bands=[];
     g.save(); g.globalAlpha=alpha;
     for (const ring of m.rings) {
-      const r1=r0+usable*ringThickness(ring.log_growth)/total;
+      const r1=r0+usable*ringThickness(ring.log_growth,null,tree.cls)/total;
       g.beginPath(); g.arc(cx,cy,r1,0,Math.PI*2); g.arc(cx,cy,r0,Math.PI*2,0,true); g.closePath();
       g.fillStyle=rgba(ringFill(tree.cls,ring,palette)); g.fill();
       g.beginPath(); g.arc(cx,cy,r1,0,Math.PI*2); g.strokeStyle="rgba(5,9,8,.55)"; g.lineWidth=.7; g.stroke();
@@ -166,7 +170,7 @@
   function drawDetailedRings(g,tree,cx,cy,R,year=9999,opts={}) {
     const m=metrics(tree,year);if(!m)return null;
     const wc=opts.width;   // opt-in ring-width curve override; undefined = shipped curve
-    const total=m.rings.reduce((s,r)=>s+ringThickness(r.log_growth,wc),0),core=R*.055,usable=R-core,bands=[];
+    const total=m.rings.reduce((s,r)=>s+ringThickness(r.log_growth,wc,tree.cls),0),core=R*.055,usable=R-core,bands=[];
     const baseAlpha=opts.alpha==null?1:opts.alpha;
     // Hairline reference radius: a magnified render (immersive zoom) passes the
     // fit-to-screen radius so boundary lines stay hairlines instead of fattening.
@@ -185,7 +189,7 @@
     const va=(NORM?.vol_cls&&NORM.vol_cls[tree.cls])||[NORM?.vol_p10||.1,NORM?.vol_p90||.7];
     let r0=core,innerPts=null,prev={r:core,vol:0,th:0,seed:'core'};g.save();g.globalAlpha=baseAlpha;
     m.rings.forEach(ring=>{
-      const r1=r0+usable*ringThickness(ring.log_growth,wc)/total,a0=-Math.PI/2,a1=a0+Math.PI*2;
+      const r1=r0+usable*ringThickness(ring.log_growth,wc,tree.cls)/total,a0=-Math.PI/2,a1=a0+Math.PI*2;
       const vol01=clamp((ring.vol-va[0])/(va[1]-va[0]),0,1),self={r:r1,vol:vol01,th:r1-r0,seed:tree.id+'|'+ring.year};
       if(onScreen(r0,r1)){
         const fill=ringFill(tree.cls,ring,opts.palette);
