@@ -14,7 +14,7 @@ SITE_URL="${SITE_URL%/}"
 
 rm -rf dist
 mkdir -p dist
-cp -r index.html 404.html app shared assets data methodology tree dist/
+cp -r index.html 404.html app shared assets data methodology tree compare dist/
 # The committed artifact keeps every computed tree for the labs; the site can only
 # open featured ones, so publish just those (about 40% of the payload).
 python3 - <<'EOF'
@@ -39,6 +39,8 @@ flag = '<script>window.PRETTY_ROUTES=true</script>'
 open('dist/tree/index.html', 'w').write(src.replace('<head>', '<head>' + flag, 1))
 home = open('dist/index.html').read()
 open('dist/index.html', 'w').write(home.replace('<head>', '<head>' + flag, 1))
+cmp = open('dist/compare/index.html').read()
+open('dist/compare/index.html', 'w').write(cmp.replace('<head>', '<head>' + flag, 1))
 urls = []
 for t in rings['trees']:
     tid, name = t['id'], html.escape(t['name'])

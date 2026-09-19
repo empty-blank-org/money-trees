@@ -47,6 +47,10 @@ Every number the interface shows for a whole tree is computed once, in the bake,
 - **Normalization anchors** (`norm`) are percentiles over the **featured** trees only, so the trees on the wall are never re-colored by trees that do not render.
 - **Return basis (`basis`)** is `total` for the Ken French indexes, `adjusted` for the Twelve Data series (dividend- and split-adjusted closes, thinner adjustment before 2013) and `spot` for crypto. It is shown on every tree.
 
+## Compare
+
+`/compare/?a=<id>&b=<id>` draws two trees side by side with the same renderer. By default the disc scale is the forest's age rule, so a young tree is visibly smaller than an elder; "fit both" gives each tree its whole panel. Hovering a year on either tree highlights it on both and shows both readouts (or says where the other record begins); clicking selects it. Below, one calendar axis carries every scar episode of both trees, peak to recovery with the trough as a dot, and a facts table sets the whole-tree statistics side by side.
+
 ## Published precision
 
 The published artifact carries derived statistics, never the underlying daily closes, and its returns are deliberately coarse so it cannot be inverted back into them:

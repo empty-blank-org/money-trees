@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Two financial assets side by side as tree rings, at the same scale, with linked years and a shared drawdown timeline.">
+  <meta name="theme-color" content="#07100d"><meta property="og:type" content="website"><meta property="og:site_name" content="Money Tree Forest">
+  <meta property="og:title" content="Compare two trees — Money Tree Forest"><meta property="og:description" content="Two financial assets side by side as tree rings, at the same scale, with linked years and a shared drawdown timeline.">
+  <meta property="og:url" content="__SITE_URL__/compare/"><meta property="og:image" content="__SITE_URL__/assets/og-money-trees.png">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="__SITE_URL__/assets/og-money-trees.png">
+  <link rel="canonical" href="__SITE_URL__/compare/"><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <title>Compare two trees — Money Tree Forest</title>
+  <link rel="stylesheet" href="../shared/tokens.css?v=20260919-4">
+  <link rel="stylesheet" href="../app/compare.css?v=20260919-4">
+</head>
+<body>
+<main class="page">
+  <header>
+    <div>
+      <nav class="crumbs"><a id="back" class="crumb" href="../">← Forest</a></nav>
+      <h1 id="title">Compare two trees</h1>
+      <p class="title-sub" id="title-sub">Same scale, linked years, one drawdown timeline.</p>
+    </div>
+  </header>
+  <div class="toolbar compare-toolbar">
+    <div class="tool-row pick-row">
+      <select id="pick-a" aria-label="Left tree"></select>
+      <button type="button" id="swap" aria-label="Swap the two trees">⇄</button>
+      <select id="pick-b" aria-label="Right tree"></select>
+    </div>
+    <div class="tool-row">
+      <div class="view-cluster">
+        <div class="palette-toggle" id="scale" role="group" aria-label="Disc scale"><span>scale</span><button class="active" data-scale="age" aria-pressed="true">by age</button><button data-scale="fit" aria-pressed="false">fit both</button></div>
+        <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
+        <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div>
+        <details class="read-key" data-reading-key></details>
+      </div>
+    </div>
+  </div>
+  <section class="pair">
+    <article class="side" data-side="a">
+      <div class="art"><canvas id="cv-a" tabindex="0" role="img" aria-label="Left tree"></canvas></div>
+      <div class="readout" id="ro-a"></div>
+      <h2 id="name-a"></h2><div class="classline" id="cls-a"></div>
+    </article>
+    <article class="side" data-side="b">
+      <div class="art"><canvas id="cv-b" tabindex="0" role="img" aria-label="Right tree"></canvas></div>
+      <div class="readout" id="ro-b"></div>
+      <h2 id="name-b"></h2><div class="classline" id="cls-b"></div>
+    </article>
+  </section>
+  <section class="timeline-block">
+    <h3>Drawdowns on one calendar <span class="hint">peak to recovery; the dot is the trough. Click one to select its year.</span></h3>
+    <div class="timeline-wrap"><canvas id="timeline" aria-label="Shared drawdown timeline"></canvas></div>
+  </section>
+  <section class="facts-block">
+    <table class="facts" id="facts"></table>
+  </section>
+  <div class="tooltip" id="tip"></div>
+  <footer class="site-footer"><span id="freshness"></span><span>Derived from daily closing prices · Data provided by <a href="https://twelvedata.com/" rel="external">Twelve Data</a> &amp; <a href="https://www.coingecko.com/en/api" rel="external">CoinGecko</a> · <a href="../methodology/">Methodology &amp; data notes</a> · Educational, not investment advice</span></footer>
+</main>
+<script src="../shared/tree-renderer.js?v=20260919-4"></script>
+<script src="../app/tree-insights.js?v=20260919-4"></script>
+<script src="../shared/reading-key.js?v=20260919-4"></script>
+<script src="../app/compare.js?v=20260919-4"></script>
+</body>
+</html>
