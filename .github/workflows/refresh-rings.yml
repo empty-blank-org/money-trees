@@ -73,14 +73,28 @@ jobs:
           python scripts/bake-rings.py   # reads ./lake by default
           python scripts/validate.py --expect-featured
 
+      # Link-preview images: one 1200×630 card per featured tree, re-rendered only when
+      # a tree's name, ring count or scar count changed (scripts/render-og.js).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Render link previews
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8090 >/dev/null 2>&1 &
+          sleep 1
+          node scripts/render-og.js http://localhost:8090
+
       - name: Commit if changed
         run: |
-          if git diff --quiet -- data/rings.json; then
+          if git diff --quiet -- data/rings.json assets/og && [ -z "$(git ls-files --others --exclude-standard assets/og)" ]; then
             echo "rings.json unchanged — nothing to deploy."
           else
             git config user.name  "money-trees-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add data/rings.json
+            git add data/rings.json assets/og
             git commit -m "data: refresh tree rings from lake"
             git push
             echo "Committed new rings.json — Cloudflare Pages will deploy it."

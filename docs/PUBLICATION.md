@@ -12,7 +12,7 @@
 - [ ] Confirm the R2 lake sync is current, then run the `Refresh tree rings` workflow once manually.
 - [ ] Run `./scripts/check.sh` and confirm the `Validate production` workflow passes, including browser smoke tests.
 - [ ] Test the production homepage, one long-history equity, one crypto tree, touch inspection, keyboard inspection, poster download, 404 page, and methodology page.
-- [ ] Validate the homepage social card with the target platforms' sharing debuggers after deployment, and one pre-rendered tree page (`/tree/btc/`): the build writes one stub per featured tree with its own title and description, and lists all of them in `sitemap.xml`.
+- [ ] Validate the homepage social card with the target platforms' sharing debuggers after deployment, and one pre-rendered tree page (`/tree/btc/`): the build writes one stub per featured tree with its own title, description and preview image (`assets/og/<id>.jpg`, rendered by `scripts/render-og.js` in the refresh workflow), and lists all of them in `sitemap.xml`.
 
 ## Ongoing
 

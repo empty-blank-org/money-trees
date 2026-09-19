@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Link preview card</title>
+<!-- Renders one tree as a 1200×630 social card. Not part of the site: scripts/render-og.js
+     screenshots this page for each featured tree into assets/og/<id>.jpg. Open as
+     /scripts/og/?id=btc on the dev server. -->
+<style>
+  html,body{margin:0;width:1200px;height:630px;overflow:hidden;background:#07100d;color:#eee9dd;font-family:ui-sans-serif,-apple-system,"Segoe UI",Arial,sans-serif}
+  .card{position:relative;width:1200px;height:630px;background:radial-gradient(circle at 78% 50%,#263b2e 0,#0b1713 42%,#07100d 100%)}
+  .text{position:absolute;left:84px;top:0;bottom:0;width:560px;display:flex;flex-direction:column;justify-content:center;gap:18px}
+  .eyebrow{color:#6fbf8a;font:600 19px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase}
+  h1{margin:0;font:500 64px/1.05 Georgia,serif;letter-spacing:-.02em;text-wrap:balance}
+  h1.long{font-size:50px}
+  .sub{font:600 20px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.04em;text-transform:uppercase}
+  .facts{display:grid;grid-template-columns:auto auto;gap:6px 36px;margin-top:6px;font-size:22px;color:#b5ae9f}
+  .facts b{color:#f2ecdf;font-weight:600}
+  .domain{position:absolute;left:84px;bottom:40px;color:#9fcfae;font:600 19px ui-monospace,Menlo,monospace;letter-spacing:.06em}
+  canvas{position:absolute;right:70px;top:65px;width:500px;height:500px;filter:drop-shadow(0 18px 28px rgba(0,0,0,.45))}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="text">
+    <div class="eyebrow">Money Tree Forest</div>
+    <h1 id="name"></h1>
+    <div class="sub" id="sub"></div>
+    <div class="facts" id="facts"></div>
+  </div>
+  <div class="domain">moneytreeforest.com</div>
+  <canvas id="tree" width="1000" height="1000"></canvas>
+</div>
+<script src="../../shared/tree-renderer.js"></script>
+<script src="../../app/tree-insights.js"></script>
+<script>
+const id = (new URLSearchParams(location.search).get('id') || 'btc').toLowerCase();
+LivingTrees.load('../../data/rings.json').then(d => {
+  const trees = d.trees.filter(t => t.featured), tree = trees.find(t => t.id === id) || trees[0];
+  const insights = TreeInsights.create(trees), family = TreeInsights.familyOf(insights, tree);
+  const m = LivingTrees.metrics(tree), pct = x => (x * 100).toFixed(1) + '%';
+  const h1 = document.getElementById('name'); h1.textContent = tree.name; if (tree.name.length > 22) h1.classList.add('long');
+  document.getElementById('sub').innerHTML = `<span style="color:${LivingTrees.CLASS_COLORS[tree.cls]}">${tree.id.toUpperCase()}</span> · ${LivingTrees.CLASS_NAMES[tree.cls]} · ${TreeInsights.FAMILY_LABELS[family]}`;
+  const n = m.scars.length;
+  document.getElementById('facts').innerHTML =
+    `<span>${tree.first_year}–${tree.last_year}</span><span><b>${m.years}</b> rings · <b>${n}</b> scar${n === 1 ? '' : 's'}</span>` +
+    `<span>annualized growth</span><b>${m.cagr >= 0 ? '+' : ''}${pct(m.cagr)}</b>` +
+    `<span>worst drawdown</span><b>${pct(m.worst)}</b>`;
+  const cv = document.getElementById('tree'), g = cv.getContext('2d');
+  LivingTrees.drawDetailedRings(g, tree, 500, 500, 470, 9999, { palette: 'wood', years: false, fibers: true });
+  document.body.dataset.ready = '1';
+});
+</script>
+</body>
+</html>

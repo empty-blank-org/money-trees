@@ -14,6 +14,8 @@ shared/                    production renderer and design tokens
 data/rings.json            canonical committed production artifact
 scripts/sync-lake.sh       pull the lake slice from R2 into lake/ (dev and CI)
 scripts/bake-rings.py      canonical price-lake → rings bake
+scripts/render-og.js       one link-preview image per featured tree → assets/og/ (CI)
+scripts/og/                the 1200×630 card page that render-og screenshots
 labs/                      experiment catalog and frozen studies
   experiments/<slug>/      self-contained HTML, assets, data, optional prep
 docs/ENCODING.md           visual/data grammar

@@ -53,6 +53,8 @@ for t in rings['trees']:
     page = page.replace('<meta name="description" content="Explore a financial asset’s complete annual tree-ring record, including growth, volatility, and drawdown scars.">', f'<meta name="description" content="{desc}">')
     page = page.replace('<meta property="og:description" content="A complete financial history rendered as annual tree rings.">', f'<meta property="og:description" content="{desc}">')
     page = page.replace('__SITE_URL__/tree/', f'__SITE_URL__/tree/{tid}/')
+    if os.path.exists(f'dist/assets/og/{tid}.jpg'):   # per-tree preview image, rendered by scripts/render-og.js
+        page = page.replace('__SITE_URL__/assets/og-money-trees.png', f'__SITE_URL__/assets/og/{tid}.jpg')
     os.makedirs(f'dist/tree/{tid}', exist_ok=True)
     open(f'dist/tree/{tid}/index.html', 'w').write(page)
     urls.append(f'  <url><loc>__SITE_URL__/tree/{tid}/</loc></url>')
