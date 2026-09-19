@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 
 test('forest search and tree inspection work in the public build', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.tree')).toHaveCount(97);
+  await expect(page.locator('.tree')).toHaveCount(100);
   await expect(page.locator('#freshness')).toContainText('Prices through');
 
   await page.getByLabel('Find a tree by ticker or name').fill('BTC');

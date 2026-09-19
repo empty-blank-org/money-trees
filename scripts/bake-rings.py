@@ -625,6 +625,7 @@ FEATURED = [
     "coin", "mstr", "mara", "pltr", "amd",
     "ge", "dis", "xom", "wmt", "jpm", "o", "intc", "asml",
     "nflx", "ewj", "eem",
+    "ibm", "jnj", "mcd",   # 2026-09-18: three 1970-era elders round the forest to 100
     # bonds (old-growth, tight pale rings)
     "ief", "shy", "agg", "lqd", "hyg", "tip", "emb", "mbb",
     # commodities

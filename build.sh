@@ -27,7 +27,7 @@ EOF
 cp site.webmanifest robots.txt sitemap.xml _headers dist/
 
 # Pre-render one page per featured tree at /tree/<id>/ so a shared link
-# previews as THAT tree (title, description) and search engines can find all 97.
+# previews as THAT tree (title, description) and search engines can find all 100.
 # Each stub is the tree page with real meta tags, a <base> so the app's
 # relative paths still resolve one level deeper, and the id injected. The app
 # then writes pretty URLs itself (window.PRETTY_ROUTES). /tree/?id= still works.

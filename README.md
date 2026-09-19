@@ -1,6 +1,6 @@
 # Money Tree Forest
 
-Money Tree Forest (moneytreeforest.com) turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Forest currently contains 97 trees; selecting one opens its complete record at `/tree/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
+Money Tree Forest (moneytreeforest.com) turns an asset's price history into a tree cross-section: one band per calendar year, with growth, volatility, and major drawdowns encoded into the wood. The curated Forest currently contains 100 trees; selecting one opens its complete record at `/tree/?id=TICKER`, where it can be inspected by mouse, touch, or keyboard and exported as a high-resolution poster PNG.
 
 The hard gate is that every visual feature must decode to a real quantity computed from real data. Ring width is annual log growth, color is annual return, darkness is realized volatility, and scars are qualifying drawdown episodes. Natural wood is the default return encoding; an optional market mode provides the familiar red/green analytical view. See [`docs/ENCODING.md`](docs/ENCODING.md) for the complete contract and caveats.
 

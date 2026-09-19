@@ -61,7 +61,7 @@ The visual cost is sub-pixel: band widths shift imperceptibly, and bands whose t
 
 - Coverage varies substantially by asset. The century market and industry series begin in 1926, individual equities begin no earlier than 1970 (the first daily bar the equity vendor carries), currency funds generally begin in 2006–2007, Bitcoin begins in 2010, and younger crypto assets begin at their own market inception. This uneven coverage is why historical playback is not a primary product interaction.
 - The universe is survivor-biased: delisted and failed assets absent from the lake cannot contribute rings or scars.
-- Monthly returns are emitted only for the 97 featured assets. Production does not use them to remove ring geometry; they remain available to archived research experiments.
+- Monthly returns are emitted only for the 100 featured assets. Production does not use them to remove ring geometry; they remain available to archived research experiments.
 - Equity and fund returns use the closing-price series available in the lake and should not be assumed to include dividend reinvestment for every instrument.
 - First and current calendar years can be partial. Inspection and the accessible annual ledger mark these records explicitly.
 - Class-relative normalization supports comparison of each asset with its peers, but color darkness should not be read as an absolute cross-class volatility scale.
