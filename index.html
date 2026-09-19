@@ -42,10 +42,10 @@
       <button data-family="storm">Storm growers</button>
       <button data-family="scarred">Scarred survivors</button>
     </div>
+    <div class="tool-row chip-row" id="sort" role="group" aria-label="Sort"><span class="tool-label">sort</span></div>
     <div class="tool-row">
-      <label>sort <select id="sort"></select></label>
-      <label>class <select id="class"><option value="all">all classes</option><option value="crypto">crypto</option><option value="equity">equity</option><option value="bonds">bonds</option><option value="commodities">commodities</option><option value="fx">FX</option></select></label>
-      <label>cross-date <select id="cross"><option value="">all rings</option></select></label>
+      <div class="chip-row" id="class" role="group" aria-label="Asset class"><span class="tool-label">class</span><button class="active" data-class="all">All</button><button data-class="equity">Equity</button><button data-class="crypto">Crypto</button><button data-class="bonds">Bonds</button><button data-class="commodities">Commodities</button><button data-class="fx">FX</button></div>
+      <details class="cross-date" id="cross"><summary><span class="tool-label">cross-date</span><span id="cross-label">all rings</span></summary><div class="cross-panel" id="cross-panel"></div></details>
       <div class="view-cluster trailing">
         <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
         <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div>

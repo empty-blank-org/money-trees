@@ -10,6 +10,7 @@ The hard gate is that every visual feature must decode to a real quantity comput
 index.html                 production Forest shell
 app/                       Forest and Tree page UI modules
 tree/                  shareable full-record route
+compare/               two trees side by side, linked years, shared drawdown timeline
 shared/                    production renderer and design tokens
 data/rings.json            canonical committed production artifact
 scripts/sync-lake.sh       pull the lake slice from R2 into lake/ (dev and CI)

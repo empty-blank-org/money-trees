@@ -8,14 +8,15 @@
   const metric = t => LivingTrees.metrics(t, 9999);
 
   const SORTS = {
-    curated:     { label: 'Curated order',              headline: 'in curated order',                compare: (a, b) => a._i - b._i,                                 value: () => '' },
-    growth:      { label: 'Highest annualized growth',  headline: 'by annualized growth, highest first',     compare: (a, b) => b.cagr - a.cagr,                             value: t => `${(t.cagr * 100).toFixed(1)}% CAGR` },
-    vol:         { label: 'Calmest first',              headline: 'by mean volatility, calmest first',   compare: (a, b) => a.mean_vol - b.mean_vol,                     value: t => `${(t.mean_vol * 100).toFixed(1)}% mean vol` },
-    age:         { label: 'Oldest first',               headline: 'by length of record, oldest first',      compare: (a, b) => b.age_years - a.age_years,                   value: t => `${t.age_years.toFixed(1)} years · ${t.n_rings} rings` },
-    drawdown:    { label: 'Deepest drawdown',           headline: 'by worst drawdown, deepest first',       compare: (a, b) => a.worst_dd - b.worst_dd,                     value: t => `${(t.worst_dd * 100).toFixed(1)}% worst DD` },
-    consistency: { label: 'Most positive years',        headline: 'by share of positive years, highest first',   compare: (a, b) => metric(b).positive - metric(a).positive,     value: t => `${Math.round(metric(t).positive * 100)}% positive years` },
+    curated:     { label: 'Curated',              headline: 'in curated order',                compare: (a, b) => a._i - b._i,                                 value: () => '' },
+    growth:      { label: 'Highest growth',       headline: 'by annualized growth, highest first',     compare: (a, b) => b.cagr - a.cagr,                             value: t => `${(t.cagr * 100).toFixed(1)}% CAGR` },
+    vol:         { label: 'Calmest',              headline: 'by mean volatility, calmest first',   compare: (a, b) => a.mean_vol - b.mean_vol,                     value: t => `${(t.mean_vol * 100).toFixed(1)}% mean vol` },
+    age:         { label: 'Oldest',               headline: 'by length of record, oldest first',      compare: (a, b) => b.age_years - a.age_years,                   value: t => `${t.age_years.toFixed(1)} years · ${t.n_rings} rings` },
+    drawdown:    { label: 'Deepest drawdown',     headline: 'by worst drawdown, deepest first',       compare: (a, b) => a.worst_dd - b.worst_dd,                     value: t => `${(t.worst_dd * 100).toFixed(1)}% worst DD` },
+    consistency: { label: 'Most positive years',  headline: 'by share of positive years, highest first',   compare: (a, b) => metric(b).positive - metric(a).positive,     value: t => `${Math.round(metric(t).positive * 100)}% positive years` },
+    scars:       { label: 'Most scars',           headline: 'by number of major scars, most first',   compare: (a, b) => b.scars.length - a.scars.length,             value: t => `${t.scars.length} scar${t.scars.length === 1 ? '' : 's'}` },
   };
-  const SORT_ORDER = ['curated', 'growth', 'vol', 'age', 'drawdown', 'consistency'];
+  const SORT_ORDER = ['curated', 'growth', 'vol', 'age', 'drawdown', 'consistency', 'scars'];
 
   // Filter (class + family + search) then sort. Returns a new array; never mutates.
   function order(trees, insights, { sort = 'curated', cls = 'all', family = 'all', q = '' } = {}) {
