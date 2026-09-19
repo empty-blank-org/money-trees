@@ -134,9 +134,11 @@
   // `sr` is the reference radius for hairline strokes: it equals R for a plain
   // render, but the immersive viewer holds it near the fit-to-screen radius so
   // edge lines stay hairlines instead of fattening with magnification.
-  function drawOrganicScar(g,cx,cy,R,bands,sc,year,sr) {
+  // Returns the scar's radial span and base angle (for zoom-to-scar); `highlight`
+  // outlines it in the same gold the ring highlight uses.
+  function drawOrganicScar(g,cx,cy,R,bands,sc,year,sr,highlight) {
     if(sr==null)sr=R;
-    const k0=bands.findIndex(b=>b.year>=sc.year);if(k0<0)return;
+    const k0=bands.findIndex(b=>b.year>=sc.year);if(k0<0)return null;
     const recovered=sc.r_year!=null&&sc.r_year<=year;
     let k1=bands.length-1;
     if(recovered){k1=k0;while(k1+1<bands.length&&bands[k1+1].year<=sc.r_year)k1++;}
@@ -162,6 +164,9 @@
     const edge=pts=>{g.beginPath();g.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)g.lineTo(...pts[i]);g.strokeStyle='rgba(213,193,151,.22)';g.lineWidth=Math.max(.5,sr*.0018);g.stroke();};
     edge(left);edge(right);
     g.beginPath();g.moveTo(...center[0]);for(let i=1;i<center.length;i++)g.lineTo(...center[i]);g.strokeStyle='rgba(0,0,0,.44)';g.lineWidth=Math.max(.4,sr*.0013);g.stroke();
+    if(highlight){g.beginPath();g.moveTo(...left[0]);for(let i=1;i<left.length;i++)g.lineTo(...left[i]);for(let i=right.length-1;i>=0;i--)g.lineTo(...right[i]);g.closePath();
+      g.globalAlpha=1;g.strokeStyle='rgba(245,215,142,.35)';g.lineWidth=Math.max(6,sr*.014);g.stroke();g.strokeStyle='rgba(255,232,170,.95)';g.lineWidth=Math.max(1.5,sr*.004);g.stroke();}
+    return {rStart,rEnd,angle:baseAngle};
   }
 
   // Detailed renderer: one visible boundary per calendar year. Volatility
@@ -222,7 +227,7 @@
     });
     g.globalAlpha=baseAlpha;
     const outer=bands[bands.length-1];if(outer&&outer.outerPts){g.beginPath();tracePoints(g,outer.outerPts);g.strokeStyle=BARK;g.lineWidth=Math.max(1.5,sr*.004);g.stroke();}
-    for(const sc of m.scars){g.globalAlpha=baseAlpha*((opts.focusYear&&sc.year!==opts.focusYear) ? 0.22 : 1);drawOrganicScar(g,cx,cy,R,bands,sc,year,sr);}
+    const scars=[];for(const sc of m.scars){g.globalAlpha=baseAlpha*((opts.focusYear&&sc.year!==opts.focusYear) ? 0.22 : 1);const sg=drawOrganicScar(g,cx,cy,R,bands,sc,year,sr,opts.highlightScar!=null&&opts.highlightScar===sc.date);if(sg)scars.push(Object.assign({sc},sg));}
     g.globalAlpha=baseAlpha;
     if(opts.highlightYear){const b=bands.find(x=>x.year===opts.highlightYear);if(b&&b.outerPts){ringPath(g,b.outerPts,b.innerPts);g.fillStyle='rgba(245,215,142,.16)';g.fill();g.strokeStyle='rgba(255,232,170,.9)';g.lineWidth=Math.max(1.2,sr*.004);g.stroke();}}
     // Year labels: thin them by the SPACE each label needs, not by a fixed
@@ -249,7 +254,7 @@
         if(opts.labelPx){g.lineWidth=3;g.strokeStyle='rgba(4,8,6,.5)';g.strokeText(String(b.year),px+ox,py+oy);}
         g.fillText(String(b.year),px+ox,py+oy);}
       g.textBaseline='alphabetic';}
-    g.restore();return {core,bands,barkR:outer?.r1||0};
+    g.restore();return {core,bands,scars,barkR:outer?.r1||0};
   }
 
   function detailedRingAt(geo,cx,cy,x,y){

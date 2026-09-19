@@ -64,7 +64,7 @@
     geo = LivingTrees.drawDetailedRings(g, t, centerX(), centerY(), R, 9999, {
       // Full view always carries year labels: it is the one view with room for them,
       // and without them a reader cannot name a single ring without hovering.
-      palette: s.palette, years: true, fibers: true,
+      palette: s.palette, years: true, fibers: true, highlightScar: s.selectedScar,
       labelPx: 12, labelAngle: labelAngle(), strokeR: Math.min(R, baseR * 1.6),
       clip: { x0: 0, y0: 0, x1: W, y1: H }
     });
