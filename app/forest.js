@@ -5,7 +5,7 @@ document.getElementById('retry-load').onclick=()=>location.reload();
 let trees=[],insights,sort='curated',cls='all',family='all',crossYear=null,palette='wood',raf=0;
 function metric(t){return LivingTrees.metrics(t,9999)}
 // Populate the arrange-by dropdown from the shared sort registry.
-sortEl.insertAdjacentHTML('beforeend',Collection.SORT_ORDER.map(k=>`<button data-sort="${k}"${k==='curated'?' class="active"':''}>${Collection.SORTS[k].label}</button>`).join(''));
+document.getElementById('sort-menu').innerHTML=Collection.SORT_ORDER.map(k=>`<button data-sort="${k}"${k==='curated'?' class="active"':''}>${Collection.SORTS[k].label}</button>`).join('');
 function list(){return Collection.order(trees,insights,{sort,cls,family,q:searchEl.value})}
 function focusedRing(t){return crossYear?t.rings.find(r=>r.year===crossYear):null}
 function cardStats(t){const r=focusedRing(t);if(r)return `<b>${r.ret>=0?'+':''}${(r.ret*100).toFixed(1)}%</b> in ${crossYear}<br><b>${(r.vol*100).toFixed(1)}%</b> volatility`;const m=metric(t),sortValue=Collection.SORTS[sort].value(t);return sortValue?`<b>${sortValue}</b><br>${(m.worst*100).toFixed(1)}% worst DD`:`<b>${(m.cagr*100).toFixed(1)}%</b> CAGR<br><b>${(m.worst*100).toFixed(1)}%</b> worst DD`}
@@ -31,11 +31,14 @@ function syncFamily(){familiesEl.querySelectorAll('[data-family]').forEach(b=>b.
 // view AND its "back" restores exactly what you left.
 function openTree(id){const q=new URLSearchParams({from:'forest',sort,class:cls,family,color:palette});if(crossYear)q.set('year',crossYear);if(searchEl.value)q.set('q',searchEl.value);if(window.PRETTY_ROUTES)location.href=`tree/${id}/?${q}`;else{q.set('id',id);location.href=`tree/?${q}`}}
 familiesEl.onclick=e=>{const b=e.target.closest('[data-family]');if(!b)return;family=b.dataset.family;syncFamily();render()};
-function syncChips(){sortEl.querySelectorAll('[data-sort]').forEach(b=>b.classList.toggle('active',b.dataset.sort===sort));classesEl.querySelectorAll('[data-class]').forEach(b=>b.classList.toggle('active',b.dataset.class===cls));crossLabel.textContent=crossYear?String(crossYear):'all rings';crossEl.classList.toggle('set',!!crossYear);crossPanel.querySelectorAll('[data-year]').forEach(b=>b.classList.toggle('active',+b.dataset.year===crossYear))}
-sortEl.onclick=e=>{const b=e.target.closest('[data-sort]');if(!b)return;sort=b.dataset.sort;syncChips();render()};
-classesEl.onclick=e=>{const b=e.target.closest('[data-class]');if(!b)return;cls=b.dataset.class;syncChips();render()};
+// Custom dropdowns: a <details> whose summary shows the current value and whose menu is a list of buttons.
+const CLASS_LABELS={all:'All classes',equity:'Equity',crypto:'Crypto',bonds:'Bonds',commodities:'Commodities',fx:'FX'};
+function syncChips(){sortEl.querySelectorAll('[data-sort]').forEach(b=>b.classList.toggle('active',b.dataset.sort===sort));document.getElementById('sort-label').textContent=Collection.SORTS[sort].label;sortEl.classList.toggle('set',sort!=='curated');classesEl.querySelectorAll('[data-class]').forEach(b=>b.classList.toggle('active',b.dataset.class===cls));document.getElementById('class-label').textContent=CLASS_LABELS[cls];classesEl.classList.toggle('set',cls!=='all');crossLabel.textContent=crossYear?String(crossYear):'All rings';crossEl.classList.toggle('set',!!crossYear);crossPanel.querySelectorAll('[data-year]').forEach(b=>b.classList.toggle('active',+b.dataset.year===crossYear))}
+const dds=[sortEl,classesEl,crossEl];function closeDds(except){dds.forEach(d=>{if(d!==except)d.open=false})}dds.forEach(d=>d.addEventListener('toggle',()=>{if(d.open)closeDds(d)}));
+sortEl.onclick=e=>{const b=e.target.closest('[data-sort]');if(!b)return;sort=b.dataset.sort;sortEl.open=false;syncChips();render()};
+classesEl.onclick=e=>{const b=e.target.closest('[data-class]');if(!b)return;cls=b.dataset.class;classesEl.open=false;syncChips();render()};
 crossPanel.onclick=e=>{const b=e.target.closest('[data-year]');if(!b)return;crossYear=b.dataset.year?+b.dataset.year:null;crossEl.open=false;syncChips();render(false)};
-document.addEventListener('click',e=>{if(crossEl.open&&!crossEl.contains(e.target))crossEl.open=false});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&crossEl.open)crossEl.open=false});
+document.addEventListener('click',e=>{dds.forEach(d=>{if(d.open&&!d.contains(e.target))d.open=false})});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDds()});
 paletteEl.onclick=e=>{const b=e.target.closest('[data-palette]');if(!b||b.dataset.palette===palette)return;palette=b.dataset.palette;syncPalette();syncUrl();paint()};
 searchEl.oninput=()=>render();window.addEventListener('resize',paint);
 grid.onclick=e=>{const card=e.target.closest('.tree');if(card)openTree(card.dataset.id)};grid.onkeydown=e=>{const card=e.target.closest('.tree');if(card&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openTree(card.dataset.id)}};

@@ -42,10 +42,10 @@
       <button data-family="storm">Storm growers</button>
       <button data-family="scarred">Scarred survivors</button>
     </div>
-    <div class="tool-row chip-row" id="sort" role="group" aria-label="Sort"><span class="tool-label">sort</span></div>
     <div class="tool-row">
-      <div class="chip-row" id="class" role="group" aria-label="Asset class"><span class="tool-label">class</span><button class="active" data-class="all">All</button><button data-class="equity">Equity</button><button data-class="crypto">Crypto</button><button data-class="bonds">Bonds</button><button data-class="commodities">Commodities</button><button data-class="fx">FX</button></div>
-      <details class="cross-date" id="cross"><summary><span class="tool-label">cross-date</span><span id="cross-label">all rings</span></summary><div class="cross-panel" id="cross-panel"></div></details>
+      <details class="dd" id="sort"><summary><span class="tool-label">sort</span><span class="dd-value" id="sort-label">Curated</span></summary><div class="dd-menu" id="sort-menu"></div></details>
+      <details class="dd" id="class"><summary><span class="tool-label">class</span><span class="dd-value" id="class-label">All classes</span></summary><div class="dd-menu" id="class-menu"><button class="active" data-class="all">All classes</button><button data-class="equity">Equity</button><button data-class="crypto">Crypto</button><button data-class="bonds">Bonds</button><button data-class="commodities">Commodities</button><button data-class="fx">FX</button></div></details>
+      <details class="dd cross-date" id="cross"><summary><span class="tool-label">cross-date</span><span class="dd-value" id="cross-label">All rings</span></summary><div class="dd-menu cross-panel" id="cross-panel"></div></details>
       <div class="view-cluster trailing">
         <div class="palette-toggle" id="palette" role="group" aria-label="Ring color encoding"><span>color</span><button class="active" data-palette="wood" aria-pressed="true">wood</button><button data-palette="market" aria-pressed="false">market</button></div>
         <div class="return-legend" id="legend" data-palette="wood" role="img" aria-label="Wood colors progress from large loss through near zero to large gain"><div class="legend-scale"><i></i><i></i><i></i><i></i><i></i></div><div class="legend-labels"><span>big loss</span><span>mild loss</span><span>~0</span><span>mild gain</span><span>big gain</span></div></div>
