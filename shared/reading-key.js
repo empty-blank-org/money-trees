@@ -6,8 +6,8 @@
     ['width-mark', '<i></i><i></i>', 'Ring width', 'Wider means stronger annual growth.'],
     ['color-mark', '', 'Color', 'Down year → flat → up year.'],
     ['vol-mark', '', 'Darkness + grain', 'More means higher volatility.'],
-    ['scar-mark', '', 'Scar', 'Major drawdown; reaching bark means unrecovered.'],
-    ['year-mark', '1Y', 'One band', 'One calendar year.']
+    ['scar-mark', '', 'Scar', 'A major drawdown. One that reaches the edge has not recovered.'],
+    ['year-mark', '1Y', 'One ring', 'One calendar year.']
   ];
   const html = () => `<summary>How to read</summary><div class="reading-grid">${ITEMS.map(([cls, inner, name, text]) =>
     `<div class="reading-item"><span class="key-mark ${cls}">${inner}</span><span><b>${name}</b> ${text}</span></div>`).join('')}</div>`;
